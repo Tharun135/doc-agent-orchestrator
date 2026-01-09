@@ -1,0 +1,14 @@
+## Test Input 08: Support Ticket (User Issue)
+
+**Ticket #4567**
+
+User reports they can't upload files larger than 10MB. Getting error message "Upload failed". 
+
+Tested on Chrome, Windows 10. Same issue on Firefox. Mobile app works fine for same file.
+
+User tried:
+- Different file formats (PDF, DOCX, JPG)
+- Clearing browser cache
+- Different network connection
+
+Still failing on web. Need workaround or fix.

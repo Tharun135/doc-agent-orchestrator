@@ -1,0 +1,18 @@
+## Test Input 13: Product Spec (Vague Requirements)
+
+# Notification System
+
+## Goal
+Keep users informed about important events.
+
+## Approach
+Send notifications when things happen. Users should be able to configure preferences. Different notification types for different events. Some notifications are critical and can't be disabled.
+
+## Delivery
+Support multiple channels. Users choose preferred method.
+
+## Timing
+Real-time when possible, batched when appropriate.
+
+## Storage
+Keep history of sent notifications for some period.

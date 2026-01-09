@@ -1,0 +1,13 @@
+Login Authentication Process
+
+The homepage displays a login form with two fields: username and password. There is a blue "Sign In" button below the fields.
+
+When the user enters their username and password and clicks the Sign In button, the system validates the credentials against the user database.
+
+If the credentials are valid, the system redirects the user to the main dashboard at /dashboard. The dashboard displays a welcome message with the user's name.
+
+If the credentials are invalid, the system displays a red error message below the Sign In button that reads "Invalid username or password. Please try again."
+
+Admin users see an additional "Admin Panel" link in the top navigation bar after successful login. Regular users do not see this link.
+
+The login form has client-side validation that prevents submission if either field is empty.

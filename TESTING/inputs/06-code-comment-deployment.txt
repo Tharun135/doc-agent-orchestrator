@@ -1,0 +1,16 @@
+## Test Input 06: Code Comment (Deployment Process)
+
+```python
+# Deployment process:
+# 1. Run tests locally
+# 2. Push to staging branch
+# 3. Wait for CI/CD pipeline
+# 4. QA team validates on staging
+# 5. Merge to main when approved
+# 6. Production deploy happens automatically
+# 7. Monitor logs for issues
+# 8. Rollback if needed using the rollback script
+#
+# Note: Staging uses separate database
+# Note: Prod deployments only on Tuesdays/Thursdays
+```

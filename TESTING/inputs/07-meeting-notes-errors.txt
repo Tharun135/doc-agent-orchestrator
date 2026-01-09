@@ -1,0 +1,23 @@
+## Test Input 07: Meeting Notes (Design Decision)
+
+# Meeting: API Error Handling Strategy
+
+**Attendees:** Dev team, Product, QA  
+**Date:** Jan 5
+
+**Decision:**
+We'll standardize all API errors with consistent format. Every error response includes error code, message, and details. 
+
+**Error Types:**
+- Validation errors (400)
+- Auth errors (401/403)
+- Not found (404)
+- Server errors (500)
+
+**Implementation:**
+Backend team will create error middleware. All endpoints must use it. Error codes will be documented in API reference.
+
+**Action Items:**
+- Update all endpoints by end of sprint
+- Document error codes
+- Add tests for error scenarios

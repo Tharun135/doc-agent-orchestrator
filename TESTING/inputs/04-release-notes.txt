@@ -1,0 +1,18 @@
+## Test Input 04: Release Notes Draft
+
+# Release 2.4.0 - Authentication Improvements
+
+## New Features
+- SSO integration with OAuth providers
+- Session management enhancements
+- New security settings page
+
+## Changes
+- Login flow redesigned for better UX
+- Password requirements updated
+- Session timeout adjustable by admins
+
+## Bug Fixes
+- Fixed issue with concurrent sessions
+- Resolved token refresh problems
+- Corrected permission checks

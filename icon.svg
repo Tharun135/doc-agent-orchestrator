@@ -1,0 +1,18 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="64" cy="64" r="60" fill="#0098FF" opacity="0.9"/>
+  
+  <!-- Document icon -->
+  <rect x="36" y="28" width="56" height="72" rx="4" fill="white"/>
+  
+  <!-- Document lines -->
+  <rect x="44" y="40" width="40" height="3" rx="1.5" fill="#0098FF"/>
+  <rect x="44" y="50" width="40" height="3" rx="1.5" fill="#0098FF"/>
+  <rect x="44" y="60" width="32" height="3" rx="1.5" fill="#0098FF"/>
+  
+  <!-- AI/Robot symbol -->
+  <circle cx="64" cy="78" r="12" fill="#0098FF"/>
+  <rect x="58" y="71" width="4" height="6" fill="white"/>
+  <rect x="66" y="71" width="4" height="6" fill="white"/>
+  <rect x="60" y="81" width="8" height="2" rx="1" fill="white"/>
+</svg>

@@ -1,0 +1,16 @@
+## Test Input 05: Email (Customer Request)
+
+Subject: API rate limiting documentation needed
+
+Hi team,
+
+Our API clients are getting rate limited but there's no documentation about the limits. Can you document:
+- What the rate limits are
+- How they're enforced
+- What happens when you hit the limit
+- Best practices to avoid hitting it
+
+Current behavior is undocumented and customers are frustrated.
+
+Thanks,
+Mike

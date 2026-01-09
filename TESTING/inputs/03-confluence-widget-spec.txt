@@ -1,0 +1,18 @@
+## Test Input 03: Confluence Page (Partial Spec)
+
+# Dashboard Widget Specification
+
+## Overview
+The new analytics widget will display key metrics on the user dashboard.
+
+## Widget Components
+- Metric cards showing current values
+- Trend indicators (up/down arrows)
+- Time range selector in header
+- Refresh button
+
+## Data Refresh
+Widget data updates automatically. Users can also trigger manual refresh. Cache is invalidated appropriately.
+
+## Permissions
+Widget visibility depends on user role. Certain metrics are admin-only.

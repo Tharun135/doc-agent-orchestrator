@@ -1,0 +1,19 @@
+## Prerequisites
+- Valid username and password credentials
+- Access to the homepage
+
+## Procedure
+
+1. Navigate to the homepage.
+2. Enter your username in the username field.
+3. Enter your password in the password field.
+4. Click the **Sign In** button.
+
+The system validates your credentials against the user database and redirects you to the main dashboard at `/dashboard`. A welcome message displays with your name.
+
+## Notes
+
+- If either field is empty, client-side validation prevents form submission.
+- If credentials are invalid, a red error message displays below the Sign In button: "Invalid username or password. Please try again."
+- Admin users will see an additional **Admin Panel** link in the top navigation bar after successful login. Regular users do not see this link.
+- The Sign In button is blue.

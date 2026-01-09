@@ -1,0 +1,1 @@
+User clicks login button. System checks credentials. If valid, redirect to dashboard. If invalid, show error message. Admin users get extra options.

@@ -1,0 +1,14 @@
+## Test Input 14: Onboarding Checklist (Internal Doc)
+
+# New User Onboarding
+
+When new user signs up:
+1. Send welcome email
+2. Create user profile with defaults
+3. Assign to appropriate tier based on signup info
+4. Trigger onboarding tutorial if enabled
+5. Set up initial workspace/project
+6. Schedule follow-up emails
+7. Notify account manager if enterprise customer
+8. Track onboarding progress
+9. Remove trial limitations after payment confirmed

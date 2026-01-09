@@ -1,0 +1,71 @@
+{
+  "name": "doc-agent-orchestrator",
+  "displayName": "Documentation Agent Orchestrator",
+  "description": "Generate governance-driven AI prompts for technical documentation and preview rewrites with side-by-side diffs",
+  "version": "0.0.2",
+  "publisher": "TharunSebastian",
+  "icon": "icon.png",
+  "author": {
+    "name": "TharunSebastian"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/doc-agent-orchestrator"
+  },
+  "keywords": [
+    "documentation",
+    "ai",
+    "prompt",
+    "technical writing",
+    "governance",
+    "diff",
+    "claude",
+    "copilot",
+    "markdown"
+  ],
+  "engines": {
+    "vscode": "^1.104.0"
+  },
+  "categories": [
+    "Other",
+    "Formatters",
+    "Snippets"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "docAgent.generateDocumentation",
+        "title": "Generate Documentation Prompt"
+      },
+      {
+        "command": "docAgent.previewRewriteDiff",
+        "title": "Preview Documentation Rewrite Diff"
+      },
+      {
+        "command": "docAgent.provideClarifications",
+        "title": "Provide Clarifications and Regenerate Prompt"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "22.x",
+    "@types/vscode": "^1.104.0",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
+    "eslint": "^9.39.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.48.1"
+  }
+}

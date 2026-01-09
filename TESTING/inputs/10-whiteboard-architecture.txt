@@ -1,0 +1,23 @@
+## Test Input 10: Whiteboard Photo (System Architecture)
+
+[Text extracted from whiteboard notes]
+
+User Request Flow:
+- Client sends request
+- Load balancer distributes
+- App server processes
+- Cache layer checks
+- Database query if needed
+- Response back through layers
+
+Components:
+- Nginx (load balancer)
+- Node.js servers (3 instances)
+- Redis (caching)
+- PostgreSQL (main DB)
+- S3 (file storage)
+
+Notes:
+- Autoscaling when load increases
+- Health checks every 30 sec
+- Failover to backup if primary down

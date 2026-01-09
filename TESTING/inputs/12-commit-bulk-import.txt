@@ -1,0 +1,16 @@
+## Test Input 12: Git Commit Message (Feature Implementation)
+
+```
+commit a7f9e2c1b8d3f4e5a6b7c8d9e0f1a2b3c4d5e6f7
+Author: dev@company.com
+Date: Mon Jan 8 14:23:45 2024 -0800
+
+feat: implement bulk user import
+
+Added bulk import functionality for users via CSV upload.
+Users can upload CSV with required fields, system validates
+and creates accounts. Invalid entries are flagged with reasons.
+Success count and error list shown after processing.
+
+Related to PROJ-892
+```

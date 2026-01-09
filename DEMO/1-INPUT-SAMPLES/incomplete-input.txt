@@ -1,0 +1,1 @@
+User logs in and completes the standard workflow. System validates input and takes appropriate action.

@@ -2,7 +2,7 @@
   "name": "doc-agent-orchestrator",
   "displayName": "Documentation Agent Orchestrator",
   "description": "Generate governance-driven AI prompts for technical documentation and preview rewrites with side-by-side diffs",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "publisher": "TharunSebastian",
   "icon": "icon.png",
   "author": {
@@ -11,7 +11,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/doc-agent-orchestrator"
+    "url": "https://github.com/Tharun135/doc-agent-orchestrator"
   },
   "keywords": [
     "documentation",

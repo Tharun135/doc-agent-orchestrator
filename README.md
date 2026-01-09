@@ -6,124 +6,159 @@ A VS Code extension that generates governance-driven AI prompts for technical do
 
 **New to this extension?** [Read the Getting Started Guide →](https://tharun.gitbook.io/documentation-agent-orchestrator/)
 
-1. **Select** any text or rough notes in VS Code
-2. **Press** `Ctrl+Shift+P` and type "Generate Documentation Prompt"
-3. **Choose** your documentation type (Procedure, Concept, or Troubleshooting)
-4. **Copy** the generated prompt (auto-copied to clipboard)
-5. **Paste** into Claude, ChatGPT, or any AI assistant
-6. **Get** governance-compliant documentation without hallucinations
+It enforces strict governance rules so AI either:
 
-[See full demo →](#usage)
+- Documents exactly what is provided, preserving ambiguity explicitly, or
 
-## Features
+- Stops and asks questions when documentation would require inventing behavior
 
-### 🎯 Generate AI Documentation Prompts
-Transform your rough notes or existing content into structured AI prompts with built-in governance rules:
+It does not rewrite for style, clarity, or elegance.
+It exists to protect correctness.
 
-- **Procedure Documentation** - Convert steps into formal procedures
-- **Concept Explanations** - Turn technical notes into clear concept docs
-- **Troubleshooting Guides** - Structure problem-solving documentation
+### Why this exists
 
-Each prompt includes:
-- ✅ Governance rules (prevent AI from inventing features)
-- ✅ Ambiguity preservation (AI documents vague details as-is, doesn't demand perfection)
-- ✅ Selective questioning (AI asks only when task completion requires invention)
-- ✅ Structured output templates
-- ✅ Quality enforcement
+AI is fluent but unreliable.
 
-### 📊 Preview Documentation Rewrites
-Compare original content with AI-generated documentation using VS Code's built-in diff viewer:
+When rewriting documentation, AI often:
 
-- Side-by-side comparison
-- Highlight changes
-- Easy validation before committing
+- Invents features
 
-## Usage
+- Implies steps that do not exist
 
-### 1. Generate Documentation Prompt
+- Changes established terminology
 
-1. Select text in your editor (or open a file with content)
-2. Open Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`)
-3. Run: **"Generate Documentation Prompt"**
-4. Choose task type: Procedure, Concept, or Troubleshooting
-5. Describe your intent (e.g., "Document the login process")
-6. The prompt opens in a new tab and is copied to clipboard
-7. Paste into your AI assistant (Claude, Copilot, ChatGPT, etc.)
+- Fills gaps with guesses
 
-### 2. Preview Documentation Rewrite
+These mistakes are hard to notice and costly to fix later.
 
-1. After getting AI output, paste it into a VS Code file
-2. Open Command Palette
-3. Run: **"Preview Documentation Rewrite Diff"**
-4. Review the side-by-side comparison
-5. Validate changes before finalizing
+Documentation Agent Orchestrator prevents that by making AI behavior constrained, inspectable, and defensible.
 
-## Requirements
+### What this extension does
 
-- VS Code 1.104.0 or higher
-- Access to an AI assistant (Claude, GitHub Copilot, ChatGPT, etc.)
+- Generates governed AI prompts for documentation
 
-## Commands
+- Forces AI to preserve ambiguity instead of guessing
 
-This extension contributes the following commands:
+- Allows questions only when documentation cannot be generated without invention
 
-- `Generate Documentation Prompt` - Create a governance-driven AI prompt from selected content
-- `Preview Documentation Rewrite Diff` - Compare original content with AI-rewritten documentation
+- Shows a side-by-side diff so you can validate changes before accepting them
 
-## Governance Features
+### What this extension deliberately does NOT do
 
-The extension enforces these governance rules in every prompt:
+This is important.
 
-- **No feature invention** - AI cannot make up functionality not stated or implied
-- **No terminology changes** - Preserves established terms from your source
-- **Preserve ambiguity** - When source is vague, AI documents it as-is rather than guessing
-- **Question only when blocked** - AI asks questions only when documentation cannot be generated without inventing behavior (not for every missing detail)
-- **No silent assumptions** - AI flags when it needs to make choices about unstated behavior
+The extension does not:
 
-## Example Workflow
+- Polish sentences
 
-**Input (rough notes):**
-```
-User clicks login. Credentials checked. Valid → dashboard. Invalid → error. Admins get extra options.
-```
+- Improve wording or tone
 
-**AI Prompt Generated:**
-- Includes governance rules
-- Preserves ambiguity when appropriate
-- Asks questions only if task completion requires invention
-- Defines output structure
+- Simplify language
 
-**AI Response:**
-- Documents vague details as-is ("extra options"), OR
-- Asks clarifying questions only when blocked by undefined references
+- Add missing details
 
-**Diff Preview:**
-- Compare original vs rewritten
-- Validate accuracy
-- Accept or iterate
+- “Help” by filling gaps
 
-## Known Issues
+If you want better writing, use a different tool.
+If you want AI to stop lying, use this one.
 
-- Diff preview requires running "Generate Documentation Prompt" first
-- Context is reset when VS Code restarts
+### Supported documentation types
 
-## Release Notes
+- Procedures
 
-### 0.0.1
+- Concepts
 
-Initial release:
+- Troubleshooting guides
 
-- Generate governance-driven documentation prompts
-- Preview documentation rewrites with diff view
-- Support for 3 documentation types: Procedure, Concept, Troubleshooting
+These are document types where correctness matters more than phrasing.
 
----
+### Typical workflow
 
-## Contributing
+1. Select source content in VS Code
+
+1. Run Generate Documentation Prompt
+
+1. Choose documentation type
+
+1. Paste the prompt into your AI assistant (ChatGPT, Claude, etc.)
+
+1. Paste the AI response back into VS Code
+
+1. Run Preview Documentation Rewrite Diff
+
+1. Review changes and preserved ambiguities
+
+1. Accept or reject knowingly
+
+### Governance model (in plain language)
+
+Every prompt enforces these rules:
+
+- No feature or behavior invention
+
+- No terminology changes
+
+- No implied steps
+
+- No silent assumptions
+
+Ambiguity in the source is preserved explicitly, not resolved.
+
+Clarifying questions are asked only when proceeding would require guessing.
+
+### Output behavior
+
+Generated documentation includes:
+
+- Structured content (based on selected type)
+
+- A Preserved Ambiguities section listing vague or unspecified terms
+
+- Clarifying questions only if the task is blocked
+
+This makes uncertainty visible instead of hiding it in fluent text.
+
+### Known limitations
+
+- Vague input stays vague by design
+
+- The extension will not “improve” incomplete requirements
+
+- It may feel less helpful than general AI tools
+
+- Human review is still required
+
+This tradeoff is intentional.
+
+### Requirements
+
+VS Code 1.104.0 or later
+
+Access to an AI assistant (ChatGPT, Claude, Copilot, etc.)
+
+### Commands
+
+Generate Documentation Prompt
+Create a governance-driven AI prompt from selected content
+
+Preview Documentation Rewrite Diff
+Compare original content with AI-generated documentation
+
+### Who this is for
+
+This extension is for:
+
+- Technical writers
+
+- Documentation engineers
+
+- Docs-as-code teams
+
+- Anyone accountable for documentation accuracy
+
+If you want AI to write better, this tool is not for you.
+If you want AI output you can trust, it is.
+
+### Contributing
 
 Found a bug or have a feature request? [Open an issue](https://github.com/yourusername/doc-agent-orchestrator/issues)
-
-## License
-
-MIT
-

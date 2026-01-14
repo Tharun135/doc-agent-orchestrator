@@ -1,7 +1,11 @@
 export type TaskType =
   | "procedure"
   | "concept"
-  | "troubleshooting";
+  | "troubleshooting"
+  | "reference"
+  | "tutorial"
+  | "release-notes"
+  | "api-documentation";
 
 export interface PromptInput {
   taskType: TaskType;

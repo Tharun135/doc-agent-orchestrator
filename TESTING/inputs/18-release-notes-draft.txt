@@ -1,0 +1,22 @@
+## Test Input 18: Release Notes (Version 2.5.0)
+
+**Version 2.5.0 - Q1 2026**
+
+New stuff:
+- Dark mode (finally!)
+- Export feature with multiple formats
+- Performance improvements across the board
+- Better error messages
+
+Fixed:
+- Crash on startup in certain conditions
+- Memory leak in background process
+- Various UI glitches
+
+Breaking:
+- Old config format no longer supported
+- API endpoint /v1/legacy removed
+
+Known problems:
+- Export can be slow with large datasets
+- Some translations incomplete

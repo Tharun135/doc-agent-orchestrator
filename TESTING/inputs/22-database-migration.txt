@@ -1,0 +1,20 @@
+## Test Input 22: Database Migration Procedure
+
+From: DevOps runbook
+
+**Migration to new schema (v3.2)**
+
+Prerequisites:
+- Full backup completed
+- Maintenance window scheduled
+- All services stopped
+
+Steps:
+1. Verify backup integrity
+2. Run migration script (takes a while depending on data volume)
+3. Validate data consistency checks
+4. Update application config to use new schema
+5. Start services in specific order
+6. Monitor for issues
+
+Rollback plan: Restore from backup if validation fails. Estimated downtime varies.

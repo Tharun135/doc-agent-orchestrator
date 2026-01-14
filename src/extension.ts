@@ -46,6 +46,10 @@ export function activate(context: vscode.ExtensionContext) {
             { label: "Write / Rewrite Procedure", value: "procedure" },
             { label: "Explain a Technical Concept", value: "concept" },
             { label: "Create Troubleshooting Guide", value: "troubleshooting" },
+            { label: "Create Reference Documentation", value: "reference" },
+            { label: "Write a Tutorial", value: "tutorial" },
+            { label: "Generate Release Notes", value: "release-notes" },
+            { label: "Document an API", value: "api-documentation" },
           ],
           { placeHolder: "Select documentation task" }
         );
@@ -112,20 +116,29 @@ export function activate(context: vscode.ExtensionContext) {
           return;
         }
 
+        let rewrittenText = "";
         const editor = vscode.window.activeTextEditor;
-        if (!editor) {
-          vscode.window.showErrorMessage(
-            "No active editor found. Please open the AI-generated documentation file."
-          );
-          return;
-        }
 
-        const rewrittenText = editor.document.getText().trim();
-        if (!rewrittenText) {
-          vscode.window.showErrorMessage(
-            "Current file is empty. Please paste the AI-generated documentation first."
-          );
-          return;
+        // Check if current editor has content
+        if (editor && !editor.document.isUntitled && editor.document.getText().trim()) {
+          // Use content from current editor
+          rewrittenText = editor.document.getText().trim();
+        } else if (editor && editor.document.isUntitled && editor.document.getText().trim()) {
+          // Use content from untitled document
+          rewrittenText = editor.document.getText().trim();
+        } else {
+          // Read from clipboard
+          const clipboardText = await vscode.env.clipboard.readText();
+          
+          if (!clipboardText.trim()) {
+            vscode.window.showErrorMessage(
+              "Clipboard is empty. Please copy the AI response first, then run this command."
+            );
+            return;
+          }
+
+          rewrittenText = clipboardText.trim();
+          vscode.window.showInformationMessage("✅ Reading AI response from clipboard...");
         }
 
         const originalDoc = await vscode.workspace.openTextDocument({

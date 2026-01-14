@@ -1,0 +1,13 @@
+## Test Input 17: Tutorial (Getting Started)
+
+From: Internal wiki
+
+**Setting up the development environment**
+
+First, install Node.js (recent version should work). Then clone the repo and run the install command. 
+
+You'll need to configure environment variables - check the example file for what's needed. Some are optional.
+
+Run the dev server to verify everything works. It should start on a port and open automatically.
+
+If you see errors, try the troubleshooting section. Most issues are related to dependencies or config.

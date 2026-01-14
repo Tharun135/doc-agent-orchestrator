@@ -1,0 +1,22 @@
+## Test Input 25: Performance Troubleshooting
+
+**Issue:** Dashboard loading very slowly
+
+**Symptoms:**
+- Page takes 5-10 seconds to load
+- Worse during business hours
+- Some users report timeouts
+- Other pages load normally
+
+**Recent changes:**
+- New analytics widget added last week
+- Data volume has grown significantly
+- No infrastructure changes
+
+**Observations:**
+- Database queries seem slow
+- Multiple API calls happening sequentially
+- Large payloads being transferred
+- Caching not working as expected
+
+**Impact:** User complaints increasing, affecting productivity

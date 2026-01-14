@@ -1,0 +1,21 @@
+## Test Input 23: Webhook API Documentation
+
+**Webhook Event:** order.completed
+
+**Trigger:** When order status changes to completed
+
+**Payload structure:**
+- event_type: string
+- order_id: string
+- timestamp: ISO 8601
+- data: object with order details
+- signature: for verification
+
+**Endpoint requirements:**
+- Must respond within reasonable time
+- Return 200 status for successful processing
+- Retry behavior: Failed webhooks are retried with backoff
+
+**Security:** Verify signature using shared secret. Algorithm details in security docs.
+
+**Example payload available in API reference.**

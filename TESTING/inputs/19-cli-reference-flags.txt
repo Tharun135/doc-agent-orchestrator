@@ -1,0 +1,18 @@
+## Test Input 19: CLI Reference (Command Flags)
+
+**Command:** deploy
+
+**Description:** Deploys the application to specified environment
+
+**Options:**
+--env: Target environment (required)
+--config: Path to config file (optional, uses default)
+--force: Skip confirmations
+--verbose: Show detailed output
+--timeout: Override default timeout
+
+**Examples:**
+Basic deployment: `deploy --env production`
+With config: `deploy --env staging --config custom.yml`
+
+**Notes:** Requires authentication. Some flags may conflict with each other.

@@ -65,6 +65,14 @@ ${clarificationsSection}
       return base + conceptOutputSpec();
     case "troubleshooting":
       return base + troubleshootingOutputSpec();
+    case "reference":
+      return base + referenceOutputSpec();
+    case "tutorial":
+      return base + tutorialOutputSpec();
+    case "release-notes":
+      return base + releaseNotesOutputSpec();
+    case "api-documentation":
+      return base + apiDocumentationOutputSpec();
     default:
       throw new Error("Unsupported task type");
   }
@@ -110,6 +118,70 @@ Possible Causes
 Verification Steps
 Resolution
 Prevention
+Preserved Ambiguities (only if applicable)
+Governance Notes (only if applicable)
+`;
+}
+
+function referenceOutputSpec(): string {
+  return `
+TASK:
+Rewrite the source content into a reference document.
+
+OUTPUT STRUCTURE (use exactly these headings):
+Description
+Parameters / Options
+Examples
+Related Information
+Preserved Ambiguities (only if applicable)
+Governance Notes (only if applicable)
+`;
+}
+
+function tutorialOutputSpec(): string {
+  return `
+TASK:
+Rewrite the source content into a tutorial.
+
+OUTPUT STRUCTURE (use exactly these headings):
+Objective
+Prerequisites
+Steps
+Verification
+Next Steps
+Preserved Ambiguities (only if applicable)
+Governance Notes (only if applicable)
+`;
+}
+
+function releaseNotesOutputSpec(): string {
+  return `
+TASK:
+Rewrite the source content into release notes.
+
+OUTPUT STRUCTURE (use exactly these headings):
+New Features
+Improvements
+Bug Fixes
+Breaking Changes (if applicable)
+Known Issues (if applicable)
+Preserved Ambiguities (only if applicable)
+Governance Notes (only if applicable)
+`;
+}
+
+function apiDocumentationOutputSpec(): string {
+  return `
+TASK:
+Rewrite the source content into API documentation.
+
+OUTPUT STRUCTURE (use exactly these headings):
+Endpoint / Function
+Description
+Request / Parameters
+Response / Return Value
+Examples
+Error Handling
 Preserved Ambiguities (only if applicable)
 Governance Notes (only if applicable)
 `;

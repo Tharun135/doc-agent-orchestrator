@@ -1,0 +1,19 @@
+## Test Input 16: API Endpoint Specification
+
+**Endpoint:** POST /api/users/register
+
+**Purpose:** Create new user account
+
+**Request body needs:**
+- email (required)
+- password (required) 
+- name (optional)
+- some preferences
+
+**Returns:** User object with ID and token
+
+**Errors:**
+- 400 if validation fails
+- 409 if user exists
+
+**Notes:** Rate limited. Token expires after some time.

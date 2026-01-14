@@ -1,0 +1,16 @@
+## Test Input 20: Architecture Concept (Microservices)
+
+From: Design doc - Service Communication
+
+Our system uses event-driven architecture. Services communicate through message queue with eventual consistency.
+
+**Key services:**
+- User service: Handles authentication and profiles
+- Payment service: Processes transactions
+- Notification service: Sends alerts via various channels
+
+When a user action happens, the originating service publishes an event. Other services subscribe to relevant events and react accordingly.
+
+Failed messages go to retry queue with exponential backoff. After certain attempts, they move to dead letter queue for investigation.
+
+This provides loose coupling and better scalability compared to direct calls.

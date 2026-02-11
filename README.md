@@ -161,4 +161,6 @@ If you want AI output you can trust, it is.
 
 ### Contributing
 
-Found a bug or have a feature request? [Open an issue](https://github.com/yourusername/doc-agent-orchestrator/issues)
+Found a bug or have a feature request? 
+[Open an issue](https://github.com/Tharun135/doc-agent-orchestrator/issues)
+

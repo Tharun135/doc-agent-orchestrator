@@ -83,6 +83,13 @@ function procedureOutputSpec(): string {
 TASK:
 Rewrite the source content into a user-facing procedure.
 
+PROCEDURE STEP FORMATTING:
+- Each step should contain the action and its result (if applicable) in the same step
+- Only create separate steps for distinct actions
+- Do NOT create a new step for the result of a previous action
+- Combine action and result: "Action. Result." instead of "1. Action" then "2. Result."
+- Example: "Click Submit. The form is validated." NOT "1. Click Submit. 2. The form is validated."
+
 OUTPUT STRUCTURE (use exactly these headings):
 Prerequisites
 Procedure

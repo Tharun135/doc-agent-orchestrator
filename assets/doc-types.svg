@@ -1,0 +1,38 @@
+<svg width="500" height="400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="500" height="400" fill="#1e1e1e"/>
+  <rect x="50" y="50" width="400" height="300" fill="#252526" rx="5"/>
+  <text x="250" y="80" font-family="Arial" font-size="14" fill="#cccccc" text-anchor="middle">
+    Select documentation task
+  </text>
+  <rect x="70" y="100" width="360" height="30" fill="#094771"/>
+  <text x="80" y="121" font-family="Arial" font-size="13" fill="#ffffff">
+    ✏️ Write / Rewrite Procedure
+  </text>
+  <rect x="70" y="135" width="360" height="30" fill="#2d2d2d"/>
+  <text x="80" y="156" font-family="Arial" font-size="13" fill="#cccccc">
+    💡 Explain a Technical Concept
+  </text>
+  <rect x="70" y="170" width="360" height="30" fill="#2d2d2d"/>
+  <text x="80" y="191" font-family="Arial" font-size="13" fill="#cccccc">
+    🔧 Create Troubleshooting Guide
+  </text>
+  <rect x="70" y="205" width="360" height="30" fill="#2d2d2d"/>
+  <text x="80" y="226" font-family="Arial" font-size="13" fill="#cccccc">
+    📚 Create Reference Documentation
+  </text>
+  <rect x="70" y="240" width="360" height="30" fill="#2d2d2d"/>
+  <text x="80" y="261" font-family="Arial" font-size="13" fill="#cccccc">
+    🎓 Write a Tutorial
+  </text>
+  <rect x="70" y="275" width="360" height="30" fill="#2d2d2d"/>
+  <text x="80" y="296" font-family="Arial" font-size="13" fill="#cccccc">
+    📋 Generate Release Notes
+  </text>
+  <rect x="70" y="310" width="360" height="30" fill="#2d2d2d"/>
+  <text x="80" y="331" font-family="Arial" font-size="13" fill="#cccccc">
+    🔌 Document an API
+  </text>
+  <text x="250" y="375" font-family="Arial" font-size="11" fill="#666666" text-anchor="middle">
+    [PLACEHOLDER - Doc Types Screenshot]
+  </text>
+</svg>

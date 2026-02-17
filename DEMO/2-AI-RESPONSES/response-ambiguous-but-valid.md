@@ -1,4 +1,5 @@
 # AI RESPONSE - Ambiguous But Valid Input
+
 ## (Preserved ambiguity without blocking)
 
 Input was vague but documentable without inventing behavior.
@@ -6,6 +7,7 @@ Input was vague but documentable without inventing behavior.
 ---
 
 ## Prerequisites
+
 - Access to the login button
 
 ## Procedure
@@ -21,9 +23,10 @@ Input was vague but documentable without inventing behavior.
 
 ---
 
-## ✅ WHY THIS IS EXCELLENT:
+## ✅ WHY THIS IS EXCELLENT
 
 **Preserved ambiguity without inventing:**
+
 - ✅ "Login button" (didn't invent label like "Sign In")
 - ✅ "Checks credentials" (didn't specify username/password)
 - ✅ "Redirected to dashboard" (didn't invent URL)
@@ -31,11 +34,13 @@ Input was vague but documentable without inventing behavior.
 - ✅ "Additional options" (didn't list invented admin features)
 
 **No blocking questions:**
+
 - The task was completable as-is
 - Ambiguity preserved: "additional options depend on your permissions"
 - User gets usable documentation immediately
 
 **No invented features:**
+
 - ❌ No "Remember Me" checkbox
 - ❌ No "Forgot Password" link
 - ❌ No specific error messages

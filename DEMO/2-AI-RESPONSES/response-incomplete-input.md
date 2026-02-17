@@ -1,4 +1,5 @@
 # AI RESPONSE - Truly Incomplete Input
+
 ## (Blocked by undefined references)
 
 Input had undefined terms that force invention.
@@ -25,18 +26,21 @@ I cannot generate documentation because the source contains undefined references
      - Trigger a process?
 
 **Why I'm asking:**
+
 - Without knowing what "standard workflow" and "appropriate action" mean, I would have to invent the actual behavior
 - This violates the governance rule against inventing features
 
 **Please provide:**
+
 - Definition of "standard workflow" with specific steps
 - Description of what "appropriate action" means in this context
 
 ---
 
-## ✅ WHY THIS IS CORRECT:
+## ✅ WHY THIS IS CORRECT
 
 **These are truly blocking:**
+
 - ❌ "Standard workflow" - undefined reference
 - ❌ "Appropriate action" - no concrete behavior specified
 - ❌ Cannot document without inventing the actual process

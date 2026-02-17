@@ -2,7 +2,7 @@
   "name": "doc-agent-orchestrator",
   "displayName": "Documentation Agent Orchestrator",
   "description": "Generate governance-driven AI prompts for technical documentation and preview rewrites with side-by-side diffs",
-  "version": "0.0.7",
+  "version": "1.0.1",
   "publisher": "TharunSebastian",
   "icon": "icon.png",
   "author": {

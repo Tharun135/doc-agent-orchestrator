@@ -1,0 +1,23 @@
+<svg width="600" height="300" xmlns="http://www.w3.org/2000/svg">
+  <rect width="600" height="300" fill="#1e1e1e"/>
+  <rect x="50" y="50" width="500" height="200" fill="#252526" rx="5"/>
+  <rect x="60" y="60" width="480" height="35" fill="#3c3c3c" rx="3"/>
+  <text x="70" y="83" font-family="Consolas" font-size="14" fill="#cccccc">
+    > Generate Documentation Prompt
+  </text>
+  <rect x="60" y="105" width="480" height="30" fill="#094771"/>
+  <text x="70" y="126" font-family="Arial" font-size="13" fill="#ffffff">
+    📝 Generate Documentation Prompt
+  </text>
+  <rect x="60" y="140" width="480" height="25" fill="#2d2d2d"/>
+  <text x="70" y="158" font-family="Arial" font-size="12" fill="#cccccc">
+    Preview Documentation Rewrite Diff
+  </text>
+  <rect x="60" y="170" width="480" height="25" fill="#2d2d2d"/>
+  <text x="70" y="188" font-family="Arial" font-size="12" fill="#cccccc">
+    Provide Clarifications and Regenerate Prompt
+  </text>
+  <text x="300" y="270" font-family="Arial" font-size="12" fill="#666666" text-anchor="middle">
+    [PLACEHOLDER - Command Palette Screenshot]
+  </text>
+</svg>

@@ -38,7 +38,7 @@
     "commands": [
       {
         "command": "docAgent.generateDocumentation",
-        "title": "Generate Documentation Prompt"
+        "title": "Generate Documentation (Governed Mode)"
       },
       {
         "command": "docAgent.previewRewriteDiff",
@@ -46,7 +46,15 @@
       },
       {
         "command": "docAgent.provideClarifications",
-        "title": "Provide Clarifications and Regenerate Prompt"
+        "title": "Provide Clarifications and Regenerate (Governed Mode)"
+      },
+      {
+        "command": "docAgent.selectGovernanceProfile",
+        "title": "Select Governance Profile"
+      },
+      {
+        "command": "docAgent.runDemo",
+        "title": "Run Governance Demo (Sample Input)"
       }
     ]
   },

@@ -16,7 +16,7 @@ This directory should contain visual assets to make the README more engaging.
 
 2. **command-palette.png** - Screenshot showing:
    - Ctrl+Shift+P menu open
-   - "Generate Documentation Prompt" typed in search
+   - "Generate Documentation (Governed Mode)" typed in search
    - Command highlighted
 
 3. **doc-types.png** - Screenshot showing:

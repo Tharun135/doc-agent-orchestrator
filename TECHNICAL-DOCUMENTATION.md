@@ -1,6 +1,7 @@
 # Technical Documentation: Documentation Agent Orchestrator
 
 ## Table of Contents
+
 1. [Overview](#overview)
 2. [Architecture](#architecture)
 3. [How It Works](#how-it-works)
@@ -18,6 +19,7 @@
 **Documentation Agent Orchestrator** is a VS Code extension that acts as a governance layer between raw content and AI-generated documentation. It enforces strict rules to prevent AI hallucination while enabling AI to create structured documentation from rough notes, code comments, or incomplete specifications.
 
 ### Key Principles
+
 - **Correctness over fluency** - Accurate documentation is prioritized over well-written documentation
 - **Preserve ambiguity** - Vague source content should produce vague but accurate documentation
 - **No invention** - AI cannot add features, steps, or details not present in source material
@@ -29,7 +31,8 @@
 ## Architecture
 
 ### High-Level Design
-```
+
+```txt
 ┌─────────────────────┐
 │   User Content      │ (Rough notes, code comments, specs)
 │   (VS Code Editor)  │

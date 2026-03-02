@@ -5,6 +5,7 @@
 ### Step 1: Have Some Content Ready
 
 Any rough notes or existing documentation:
+
 - Jira tickets
 - Meeting notes
 - Code comments
@@ -25,6 +26,7 @@ Any rough notes or existing documentation:
 ### Step 4: Choose Documentation Type
 
 Pick what you're creating:
+
 - **Procedure** - Step-by-step instructions
 - **Concept** - Explanations of how something works
 - **Troubleshooting** - Problem-solving guides
@@ -32,6 +34,7 @@ Pick what you're creating:
 ### Step 5: Describe Your Intent
 
 Type a brief description:
+
 - "Document the login flow"
 - "Explain the caching system"
 - "Troubleshoot deployment failures"
@@ -41,6 +44,7 @@ Type a brief description:
 The prompt opens in a new tab and is automatically copied to your clipboard.
 
 **Paste it into:**
+
 - Claude (Anthropic)
 - ChatGPT (OpenAI)
 - GitHub Copilot Chat
@@ -49,12 +53,14 @@ The prompt opens in a new tab and is automatically copied to your clipboard.
 ### Step 7: Get Your Documentation
 
 The AI will respond with either:
+
 - ✅ Structured documentation (if info is sufficient)
 - ❓ Clarifying questions (if critical info is missing)
 
 ### Step 8 (Optional): Preview Changes
 
 If you're revising existing docs:
+
 1. Paste AI output into a new file
 2. Press `Ctrl+Shift+P`
 3. Run: `Preview Documentation Rewrite Diff`
@@ -64,10 +70,12 @@ If you're revising existing docs:
 
 ## 🎯 What Makes This Different?
 
-### Without This Extension:
+### Without This Extension
+
 AI often invents features, changes terminology, and adds "helpful" details you never mentioned.
 
-### With This Extension:
+### With This Extension
+
 - **Preserves ambiguity** - Vague inputs produce accurate (if vague) outputs
 - **Prevents hallucinations** - AI can't invent features
 - **Blocks only when needed** - Asks questions only if documentation requires invention
@@ -80,13 +88,15 @@ AI often invents features, changes terminology, and adds "helpful" details you n
 ### Example 1: Incomplete Notes
 
 **Your input:**
-```
+
+```txt
 User clicks login. System checks credentials. 
 Redirect to dashboard if valid. Show error if not.
 Admin users get extra features.
 ```
 
 **What AI does:**
+
 - Documents it accurately
 - Preserves "extra features" (doesn't invent what they are)
 - Uses your terminology
@@ -95,7 +105,8 @@ Admin users get extra features.
 ### Example 2: Complete Content
 
 **Your input:**
-```
+
+```txt
 The homepage displays a login form with username 
 and password fields. When user clicks the blue 
 "Sign In" button, credentials are validated. 
@@ -104,6 +115,7 @@ see red error: "Invalid credentials."
 ```
 
 **What AI does:**
+
 - Preserves exact details (blue button, red error, "/dashboard")
 - Uses exact error message text
 - Doesn't add "Forgot Password" or other features
@@ -112,12 +124,14 @@ see red error: "Invalid credentials."
 ### Example 3: Missing Critical Info
 
 **Your input:**
-```
+
+```txt
 User completes the standard workflow and system 
 takes appropriate action.
 ```
 
 **What AI does:**
+
 - Stops and asks: "What is 'standard workflow'?"
 - Asks: "What is 'appropriate action'?"
 - Won't invent undefined behaviors
@@ -126,13 +140,15 @@ takes appropriate action.
 
 ## 💡 Tips for Best Results
 
-### ✅ Do:
+### ✅ Do
+
 - Include specific terminology you want preserved
 - Mention UI element labels exactly
 - Provide error message text when known
 - Include relevant technical details
 
-### ❌ Don't:
+### ❌ Don't
+
 - Worry about perfect formatting
 - Fill in details you don't know
 - Clean up rough notes first

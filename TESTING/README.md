@@ -35,7 +35,7 @@ Each response file includes:
 **Steps:**
 1. Open any input file from `inputs/`
 2. Select all content (Ctrl+A)
-3. Run: "Generate Documentation Prompt"
+3. Run: "Generate Documentation (Governed Mode)"
 4. Paste prompt into your AI assistant (Claude, ChatGPT)
 5. Compare actual AI response with simulated response
 

@@ -1,0 +1,11 @@
+## Test Input 29: Code Comment (Deployment Steps)
+
+```
+// Deployment Steps
+// 1. Build project first.
+// 2. Run tests. If tests pass → deploy. If tests fail → check logs.
+// 3. Upload files.
+// 4. Restart runtime.
+// 5. Verify deployment.
+// 6. Notify stakeholders.
+```

@@ -1,0 +1,10 @@
+## Test Input 44: Test Results — Regression Suite v2.5
+
+**Source type:** QA engineer Slack message to dev team
+
+Hey, ran the regression suite on the latest build. Most tests passed. A few failures in the edge case scenarios. Performance tests were borderline — some passed, some didn't. 
+
+The UI tests had a bunch of flaky ones, probably environment issues. Integration tests all passed except for the auth-related ones.
+
+Tested on the usual environments. Didn't test on all platforms yet. Some of the older test cases need updating.
+

@@ -1,0 +1,21 @@
+## Test Input 50: FAQ — User Account Management
+
+**Source type:** Compiled from support ticket patterns
+
+Q: How do I change my password?
+A: Go to account settings and change it.
+
+Q: How do I delete my account?
+A: Contact support. Takes some time.
+
+Q: Can I have multiple accounts?
+A: Depends on your plan.
+
+Q: How do I transfer my account to someone else?
+A: There's a process for that. Contact admin.
+
+Q: What happens to my data if I cancel?
+A: Data is retained for a while, then deleted.
+
+Q: How do I add team members?
+A: Admins can do this from the management area.

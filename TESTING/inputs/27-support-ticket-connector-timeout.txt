@@ -1,0 +1,8 @@
+## Test Input 27: Support Ticket (Connector Timeout Troubleshooting)
+
+**Ticket:** SUP-8812
+**Priority:** High
+**Component:** OPC UA Connector
+
+**Description:**
+Connector times out intermittently. Happens in certain environments. If timeout occurs, check logs. If ok, continue. Otherwise restart the connector. After restart should be ok. Might need to increase timeout value.

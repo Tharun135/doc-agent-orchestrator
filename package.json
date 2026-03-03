@@ -55,6 +55,10 @@
       {
         "command": "docAgent.runDemo",
         "title": "Run Governance Demo (Sample Input)"
+      },
+      {
+        "command": "docAgent.pasteAiResponse",
+        "title": "Paste AI Response and Run Governance Check"
       }
     ]
   },

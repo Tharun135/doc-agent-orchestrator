@@ -1,0 +1,9 @@
+## Test Input 38: Concept — Event-Driven Architecture
+
+**Source type:** Whiteboard notes from architecture workshop
+
+Event-driven architecture means services communicate via events. A producer emits events. A consumer subscribes to events. Events are stored in a broker. Messages are processed in order. 
+
+Benefits include loose coupling and scalability. Downside is complexity in debugging. Events can be replayed. Some events are guaranteed delivery, others are not. Ordering depends on the broker.
+
+Used in our system for the notification service and some other components.

@@ -1,0 +1,7 @@
+## Test Input 37: Reference — API Rate Limits
+
+**Source type:** Slack message from backend lead
+
+Rate limits apply to all API endpoints. Standard tier gets a certain number of requests per window. Enterprise tier gets more. Exceeding the limit returns an error. Some endpoints have stricter limits. Headers include rate limit info. Reset happens after the window expires. Retry after appropriate delay.
+
+There's a burst allowance for short spikes. Limits can be adjusted via configuration. Authentication affects which tier applies.

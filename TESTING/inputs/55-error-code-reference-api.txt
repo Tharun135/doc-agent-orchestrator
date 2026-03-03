@@ -1,0 +1,16 @@
+## Test Input 55: Error Code Reference — Platform API
+
+**Source type:** Partial list from backend developer
+
+API error codes:
+
+- 400: Bad request — something wrong with the input
+- 401: Auth error — credentials issue
+- 403: Forbidden — user doesn't have the right access
+- 404: Not found — resource doesn't exist
+- 409: Conflict — something already exists
+- 429: Rate limit exceeded — too many requests
+- 500: Server error — something went wrong internally
+- 503: Service unavailable — usually temporary
+
+Each error returns a message field. Some also include a details field. Retry logic recommended for 429 and 503.

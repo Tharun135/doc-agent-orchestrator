@@ -1,0 +1,12 @@
+## Test Input 33: Customer Email (File Import Problem)
+
+**From:** customer@acmecorp.com
+**To:** support@product.com
+**Subject:** Import not working
+
+Hi,
+
+We're trying to import our data but the import keeps failing. We export from our old system and try to import here. The file gets uploaded but then the system validates something and it fails. The error says something about format. We tried different formats but nothing works. All records should be imported but only some come through.
+
+Can you help?
+

@@ -1,0 +1,10 @@
+## Test Input 34: Design Doc (Notification System)
+
+# Notification System — Design Notes
+
+The notification system will send alerts via multiple channels. Users will receive notifications based on their preferences. Notifications are triggered by various system events. Each notification includes relevant details.
+
+Admins can configure notification rules. Some notification types require user acknowledgement. Unacknowledged notifications are escalated after some time. Failed notifications are retried several times.
+
+The new notification engine will replace the old one in the next release.
+

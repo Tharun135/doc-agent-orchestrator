@@ -1,0 +1,22 @@
+## Test Input 43: Breaking Changes — API v4 Migration
+
+**Source type:** Backend developer handover doc
+
+Breaking changes in v4:
+
+Authentication: Old token format no longer works. Use the new format.
+Endpoints: Several endpoints have been renamed. Old names return errors.
+Pagination: The old pagination parameters are removed. New parameters required.
+Response format: Some fields have been removed from responses. Structure has changed.
+Rate limiting: New stricter limits apply. Old limits no longer valid.
+Error codes: Some error codes have changed.
+
+Migration:
+- Update auth tokens before upgrading
+- Update endpoint URLs
+- Update pagination logic
+- Handle new response structure
+- Review error handling
+
+Old SDKs will not work. A migration guide exists.
+

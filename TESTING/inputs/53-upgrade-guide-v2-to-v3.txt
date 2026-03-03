@@ -1,0 +1,21 @@
+## Test Input 53: Upgrade Guide — v2 to v3 Migration
+
+**Source type:** Email from engineering lead to solution architects
+
+Upgrading from v2 to v3:
+
+Before upgrading:
+- Back up the database
+- Check compatibility
+- Review breaking changes
+
+Upgrade steps:
+1. Stop the service.
+2. Run the upgrade script.
+3. Update the config file to the new format.
+4. Restart the service.
+5. Verify the upgrade.
+
+If it fails, roll back using the standard rollback procedure.
+Some features will behave differently after upgrade.
+Certain integrations need to be reconfigured.

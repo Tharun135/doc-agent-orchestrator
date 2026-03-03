@@ -1,0 +1,21 @@
+## Test Input 45: Workarounds — Known Issues v2.4.x
+
+**Source type:** Customer success manager notes
+
+Known workarounds for current release:
+
+Issue 1: Export times out with large data.
+Workaround: Split into smaller batches. Use the export option.
+
+Issue 2: Dashboard doesn't load in some browsers.
+Workaround: Use a different browser or clear cache.
+
+Issue 3: SSO login fails for some users.
+Workaround: Use standard login. Contact admin if issue persists.
+
+Issue 4: Report generation fails occasionally.
+Workaround: Retry after some time.
+
+Issue 5: File upload fails above a certain size.
+Workaround: Compress the file first or split it.
+

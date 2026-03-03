@@ -1,0 +1,7 @@
+## Test Input 28: Internal Wiki (Data Retention Policy Note)
+
+# Data Retention — Quick Reference
+
+Records are deleted after the retention period expires. Some record types are exempt from standard deletion. Backups are created nightly. Archives are stored in the appropriate storage tier. Various compliance reports are generated monthly. Some exports are incomplete pending legal review.
+
+Old records are purged by the cleanup job. Certain configurations require admin approval before deletion. The new retention rules apply from the latest release.

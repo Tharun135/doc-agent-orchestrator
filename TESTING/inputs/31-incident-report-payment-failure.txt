@@ -1,0 +1,14 @@
+## Test Input 31: Incident Report (Payment Processing Failure)
+
+**Incident ID:** INC-2041
+**Severity:** P1
+**Date:** Q1 2026
+
+**Summary:**
+Payments were rejected intermittently during peak hours. Errors were logged but not actioned. The payment gateway was restarted. Service was restored after restart. Several transactions were left in a pending state. Refunds were issued for failed transactions. The root cause is under investigation.
+
+**Resolution steps taken:**
+1. Gateway was restarted by on-call team.
+2. Pending transactions were reprocessed.
+3. Customers were notified via email.
+4. Monitoring was increased.

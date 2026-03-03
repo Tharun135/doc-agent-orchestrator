@@ -1,0 +1,15 @@
+## Test Input 49: API Reference — Webhook Events
+
+**Source type:** Backend developer notes
+
+Webhooks send events to your endpoint. Register your endpoint URL. Choose which events to subscribe to.
+
+Event payload includes: event type, timestamp, and relevant data.
+
+Available events: various system events. Some events fire on state change. Retry logic built in. Delivery guaranteed in most cases.
+
+Authentication: include your secret in header.
+Signature included in request for verification.
+If signature doesn't match, reject the request.
+
+Response: return 200 to acknowledge. Other responses treated as failure.

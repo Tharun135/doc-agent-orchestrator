@@ -1,0 +1,16 @@
+## Test Input 41: Troubleshooting — Sync Failure
+
+**Source type:** Support team notes
+
+Sync fails in certain conditions. Common causes include connection issues, auth problems, or config errors. 
+
+If sync fails:
+- Check connection
+- Check credentials
+- Look at logs
+- Restart sync service if needed
+- Contact support if problem persists
+
+In some cases a firewall may block the connection. Proxy settings can cause issues too.
+
+If after restart sync still fails, escalate.

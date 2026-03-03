@@ -1,0 +1,24 @@
+## Test Input 39: Release Notes — Platform v3.0.0
+
+**Source type:** Draft from product team chat
+
+Version 3.0
+
+New:
+- New dashboard
+- Role-based access control added
+- Improved performance
+- Better logging
+
+Fixed:
+- Fixed issue with login
+- Fixed various bugs
+- Resolved a problem with exports
+
+Breaking:
+- Old API removed
+- Config format changed
+
+Known issues:
+- Dashboard slow in some browsers
+- Certain features not available in some regions

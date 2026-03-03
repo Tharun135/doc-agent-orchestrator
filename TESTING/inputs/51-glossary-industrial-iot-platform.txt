@@ -1,0 +1,18 @@
+## Test Input 51: Glossary — Industrial IoT Platform Terms
+
+**Source type:** Whiteboard session notes
+
+Key terms:
+
+- Device: a physical thing that connects
+- Connector: something that links devices to the platform
+- Tag: a data point coming from a device
+- Scan rate: how often data is collected
+- Broker: handles message routing
+- Payload: the data inside a message
+- Gateway: sits between devices and the broker  
+- Edge: the part of the system close to devices
+- Protocol: how devices communicate (there are several)
+- Subscription: how consumers get events
+
+Some of these terms overlap with general IT concepts but mean specific things here.

@@ -574,7 +574,51 @@ Might need firewall exception.`,
     }
   );
 
-  context.subscriptions.push(generateCmd, diffCmd, clarifyCmd, profileCmd, demoCmd);
+  // ---------------------------------------------------------------------------
+  // Paste AI Response — reads clipboard, opens beside source, auto-runs governance
+  // ---------------------------------------------------------------------------
+  const pasteAiCmd = vscode.commands.registerCommand(
+    "docAgent.pasteAiResponse",
+    async () => {
+      try {
+        if (!lastRewriteContext) {
+          vscode.window.showErrorMessage(
+            "No source context found. Please run 'Generate Documentation (Governed Mode)' first, then paste your AI response."
+          );
+          return;
+        }
+
+        const clipboardText = await vscode.env.clipboard.readText();
+        if (!clipboardText.trim()) {
+          vscode.window.showErrorMessage(
+            "Clipboard is empty. Copy the AI response to the clipboard, then run this command."
+          );
+          return;
+        }
+
+        // Open the AI response in an untitled editor beside the source
+        const aiDoc = await vscode.workspace.openTextDocument({
+          content: clipboardText.trim(),
+          language: "markdown",
+        });
+        await vscode.window.showTextDocument(aiDoc, {
+          viewColumn: vscode.ViewColumn.Beside,
+          preview: false,
+          preserveFocus: false,
+        });
+
+        // Automatically trigger the governance check against this document
+        await vscode.commands.executeCommand("docAgent.previewRewriteDiff");
+      } catch (error) {
+        vscode.window.showErrorMessage(
+          `Failed to load AI response: ${error instanceof Error ? error.message : "Unknown error"}`
+        );
+        console.error("Error in pasteAiResponse:", error);
+      }
+    }
+  );
+
+  context.subscriptions.push(generateCmd, diffCmd, clarifyCmd, profileCmd, demoCmd, pasteAiCmd);
 }
 
 // ---------------------------------------------------------------------------

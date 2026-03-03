@@ -1,0 +1,18 @@
+## Test Input 42: NFR — Platform Performance Requirements
+
+**Source type:** Architecture review meeting notes
+
+Performance requirements:
+- System should respond quickly
+- It should handle many concurrent users
+- Database queries must complete in acceptable time
+- File uploads should not timeout
+- The system should be available most of the time
+- Recovery after failure should be fast
+- Reports must generate within a reasonable time
+- API should respond faster under load than in the old version
+
+Security:
+- All data must be encrypted
+- Authentication required for all endpoints
+- Sessions should expire after some time

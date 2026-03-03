@@ -1,0 +1,17 @@
+## Test Input 54: UI Overview — Main Navigation
+
+**Source type:** UX designer's handover notes to tech writer
+
+Main navigation overview:
+
+Top bar: logo, search, notification bell, user menu.
+Left sidebar: main navigation links — dashboard, devices, reports, settings.
+Content area: main view, changes based on selection.
+Footer: version number, support link, legal info.
+
+Dashboard shows summary cards. Clicking a card opens the relevant detail view.
+Devices: lists all registered devices. Filters available.
+Reports: shows available reports. Generate from here.
+Settings: split into sections. Admins see more options.
+
+Some sections only visible to certain roles. Navigation adjusts based on permissions.

@@ -1,0 +1,16 @@
+## Test Input 48: Configuration Guide — Email Connector
+
+**Source type:** Engineer's notes on confluence
+
+Email connector config:
+
+- Set server address
+- Set port (depends on config)
+- Choose authentication method
+- Enter credentials
+- Set polling interval
+- Enable SSL if required
+- Test connection
+- Save settings
+
+Advanced options available for specific scenarios.

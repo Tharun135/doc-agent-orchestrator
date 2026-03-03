@@ -1,0 +1,19 @@
+## Test Input 47: Installation Guide — Agent Software
+
+**Source type:** README from engineering repo
+
+Installation steps:
+
+Prerequisites: supported OS, correct runtime version.
+
+Steps:
+1. Download the installer.
+2. Run the installer.
+3. Accept the license.
+4. Choose install location.
+5. Configure settings during setup.
+6. Finish installation.
+7. Start the service.
+8. Verify it is running.
+
+After installation, configure the agent to connect to the server. Use the config file.

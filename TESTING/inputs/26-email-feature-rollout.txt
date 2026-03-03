@@ -1,0 +1,14 @@
+## Test Input 26: Email Thread (Feature Rollout Instructions)
+
+**From:** ops-team@company.com
+**To:** all-staff@company.com
+**Subject:** New dashboard rollout
+
+Hi all,
+
+The new dashboard is being rolled out next week. Users will be migrated automatically. The old dashboard will be disabled after migration is complete. Access credentials are required. Admins get additional configuration options. Some users may need to update their settings. The migration will be done by the system.
+
+Let us know if you hit any issues.
+
+Thanks,
+Ops Team

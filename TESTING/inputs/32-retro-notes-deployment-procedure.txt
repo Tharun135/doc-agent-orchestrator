@@ -1,0 +1,15 @@
+## Test Input 32: Sprint Retrospective Notes (Deployment Procedure Issues)
+
+**Sprint 42 Retro — Action Items from Deployment Failures**
+
+Things that went wrong:
+- Deploy ran without proper checks
+- Files were uploaded to wrong location
+- Runtime was restarted too early
+- Rollback took too long — rollback procedure not documented
+
+What we'll do differently:
+1. Run the standard deployment checklist before deploying
+2. Verify target location before upload
+3. Wait until runtime is ready before proceeding
+4. Document the rollback procedure

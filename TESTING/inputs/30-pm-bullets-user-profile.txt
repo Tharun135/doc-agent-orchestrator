@@ -1,0 +1,16 @@
+## Test Input 30: Product Manager Notes (User Profile Feature)
+
+**Feature:** User profile management
+
+Notes from PM call:
+- User can edit their profile
+- User can upload a profile picture
+- User sets notification preferences (various options)
+- User can request account deletion
+- Admin can view all user profiles
+- Admin can reset any user's credentials
+- Some actions require approval
+- Changes are saved automatically
+- User receives confirmation
+
+Export profile data — multiple formats supported.

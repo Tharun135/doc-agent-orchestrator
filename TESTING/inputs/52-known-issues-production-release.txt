@@ -1,0 +1,18 @@
+## Test Input 52: Known Issues — Current Production Release
+
+**Source type:** Engineering team status update
+
+Known issues in current release:
+
+1. Bulk import fails above a certain file size.
+2. Reports take long to generate under heavy load.
+3. Some notification emails not delivered.
+4. Search returns incorrect results in some cases.
+5. Dashboard widget doesn't update in certain browsers.
+6. Export feature behaves differently depending on user role.
+7. Session timeout doesn't always trigger correctly.
+8. Audit log entries missing for some operations.
+9. Multi-select doesn't work in some scenarios.
+10. SSO redirect fails for users in certain regions.
+
+Workarounds pending. Fix timelines TBD.

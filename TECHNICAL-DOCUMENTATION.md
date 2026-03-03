@@ -4,19 +4,25 @@
 
 1. [Overview](#overview)
 2. [Architecture](#architecture)
-3. [How It Works](#how-it-works)
-4. [Core Components](#core-components)
-5. [Command Details](#command-details)
-6. [Governance System](#governance-system)
-7. [Prompt Generation Logic](#prompt-generation-logic)
-8. [Workflow Details](#workflow-details)
-9. [Extension API](#extension-api)
+3. [Gap Detection System](#gap-detection-system)
+4. [How It Works](#how-it-works)
+5. [Core Components](#core-components)
+6. [Command Details](#command-details)
+7. [Governance System](#governance-system)
+8. [Prompt Generation Logic](#prompt-generation-logic)
+9. [Workflow Details](#workflow-details)
+10. [Extension API](#extension-api)
 
 ---
 
 ## Overview
 
 **Documentation Agent Orchestrator** is a VS Code extension that acts as a governance layer between raw content and AI-generated documentation. It enforces strict rules to prevent AI hallucination while enabling AI to create structured documentation from rough notes, code comments, or incomplete specifications.
+
+The extension now includes:
+
+* A structured **gap detection engine** that proactively identifies documentation risks before generation.
+* A new end-to-end command that pastes AI output and immediately runs governance diff preview.
 
 ### Key Principles
 
@@ -25,6 +31,7 @@
 - **No invention** - AI cannot add features, steps, or details not present in source material
 - **Explicit uncertainty** - Ambiguous elements are explicitly documented in "Preserved Ambiguities" sections
 - **Question-driven clarification** - AI asks questions only when documentation generation is blocked
+- **Structured gap detection before rewrite** - Source is analysed for structural weaknesses before the prompt is built
 
 ---
 
@@ -48,52 +55,146 @@
            │
            ▼
 ┌─────────────────────┐
-│   Engine Layer      │
-│  - promptGenerator  │ (Core logic)
-│  - governance       │ (Rules)
-│  - types            │ (Type system)
-└──────────┬──────────┘
+│   Engine Layer        │
+│  - promptGenerator    │ (Core logic)
+│  - governance         │ (Rules)
+│  - questionDetector   │ (Gap detection)
+│  - types              │ (Type system)
+└──────────┬────────────┘
            │
            ▼
-┌─────────────────────┐
-│  Generated Prompt   │ (Markdown document)
-│  + Clipboard copy   │
-└──────────┬──────────┘
+┌─────────────────────────┐
+│  Generated Prompt       │ (Markdown document)
+│  + Clipboard copy       │
+└──────────┬──────────────┘
            │
            ▼
-┌─────────────────────┐
-│  External AI        │ (Claude, ChatGPT, etc.)
-│  (User pastes)      │
-└──────────┬──────────┘
+┌─────────────────────────┐
+│  External AI            │ (Claude, ChatGPT, etc.)
+│  (User pastes)          │
+└──────────┬──────────────┘
            │
            ▼
-┌─────────────────────┐
-│  AI Response        │
-└──────────┬──────────┘
+┌─────────────────────────┐
+│  AI Response            │
+└──────────┬──────────────┘
            │
            ▼
-┌─────────────────────┐
-│  Diff Preview       │ (VS Code diff viewer)
-│  Original vs New    │
-└─────────────────────┘
+┌─────────────────────────┐
+│  Paste AI Response Cmd  │
+│  (reads clipboard,      │
+│   opens beside source)  │
+└──────────┬──────────────┘
+           │
+           ▼
+┌─────────────────────────┐
+│  Diff Preview +         │ (VS Code diff viewer)
+│  Governance Panel       │  auto-triggered
+└─────────────────────────┘
 ```
 
 ### Project Structure
 ```
 doc-agent-orchestrator/
 ├── src/
-│   ├── extension.ts           # Entry point, command registration
+│   ├── extension.ts              # Entry point, command registration
 │   └── engine/
-│       ├── governance.ts      # Governance rules definition
-│       ├── promptGenerator.ts # Core prompt generation logic
-│       └── types.ts          # TypeScript type definitions
-├── out/                       # Compiled JavaScript (build output)
-├── DEMO/                      # Demo examples and guides
-├── TESTING/                   # Test cases (25 scenarios)
-├── package.json              # Extension manifest
-├── tsconfig.json             # TypeScript configuration
-└── README.md                 # User-facing documentation
+│       ├── governance.ts         # Governance rules definition
+│       ├── promptGenerator.ts    # Core prompt generation logic
+│       ├── questionDetector.ts   # Gap detection engine ← NEW
+│       └── types.ts             # TypeScript type definitions
+├── out/                          # Compiled JavaScript (build output)
+├── DEMO/                         # Demo examples and guides
+├── TESTING/                      # Test cases (55 scenarios)
+├── package.json                 # Extension manifest
+├── tsconfig.json                # TypeScript configuration
+└── README.md                    # User-facing documentation
 ```
+
+---
+
+## Gap Detection System
+
+The extension includes a dedicated gap detection engine in `questionDetector.ts`. Before a prompt is ever built, the source is scanned line-by-line and globally for structural documentation weaknesses that typically cause AI hallucination.
+
+### How Gap Detection Works
+
+For each line of source content, 31 pattern-based checkers run in sequence. When a gap is detected, the user is prompted to answer the specific question inside VS Code before the AI call is made. Answers are injected into the prompt as **pre-clarifications** — authoritative facts the AI uses directly.
+
+This means gaps are resolved by the human, not filled by the AI.
+
+### Gap Checker Categories
+
+#### Per-Line Checkers
+
+| # | Gap Type | Example Trigger | Question Asked |
+|---|---|---|---|
+| 1 | Action step with no UI location | `Upload files.` | Where in the UI does the user perform this step? |
+| 2 | Vague object | `System validates something.` | What exactly does the system validate? |
+| 3 | Undefined pass condition | `If ok → deploy.` | What specific indicator means the condition is met? |
+| 4 | Undefined error recovery | `If error → check logs.` | What should the user do? What does the error look like? |
+| 5 | Check logs with no log name | `Check logs.` | Which log? What to look for? |
+| 6 | Verification with no method | `Test connection.` | How? What does success look like? |
+| 7 | Set/configure with no value | `Set scan rate.` | What value or range? Include units. |
+| 8 | Default stated as unknown | `Port defaults to something.` | What is the actual default value? |
+| 9 | Placeholder tokens | `Enter <VALUE>.` | What is the actual value? |
+| 10 | Auth with no method | `Authentication required.` | What form do credentials take? |
+| 11 | Undefined standard process | `Follow the usual process.` | What specifically is this process? |
+| 12 | Restart with no wait condition | `Restart runtime.` | Must the user wait? For what? |
+| 13 | Vague enumeration | `Change settings, etc.` | What are the actual settings? |
+| 14 | Unqualified adjective | `Select the appropriate option.` | Which option specifically? |
+| 15 | Number with no unit | `Set timeout to 30.` | 30 what — ms, seconds, minutes? |
+| 16 | Reference to absent document | `Refer to the guide.` | What are the steps from that guide? |
+| 17 | Wait with no completion indicator | `Wait for it to finish.` | What does the user see when it finishes? |
+| 18 | Embedded conditional action | `May need to configure advanced settings.` | Where? What settings specifically? |
+| 19 | Role-based vague access | `Admins get extra options.` | Which options? Where do they appear? |
+| 20 | Vague subset requirement | `Some actions require approval.` | Which actions? What does approval involve? |
+| 21 | Passive voice without actor | `The file is uploaded.` | Who performs this — user, system, or scheduled job? |
+| 22 | Frequency/schedule unspecified | `Run the job.` | When? How often? Manual or scheduled? |
+| 23 | Multi-branch without convergence | `Otherwise, restart the service.` | After this branch, what is the next common step? |
+| 24 | Data format unspecified | `Export the file.` | What format — CSV, JSON, XML, XLSX? |
+| 25 | Version/environment unspecified | `In the new version.` | Which specific version or environment? |
+| 26 | Success count ambiguity | `All records should be imported.` | How many expected? What if fewer appear? |
+| 27 | Past-tense fix with vague condition | `Fixed crash in certain conditions.` | Which conditions specifically? |
+| 28 | Vague incompleteness status | `Some translations incomplete.` | Which translations? |
+| 29 | Declarative vague enumeration | `Fixed various UI glitches.` | Which glitches specifically? |
+| 30 | Fix with no described symptom | `Fixed an issue.` | What was the issue? Where did it occur? |
+| 31 | Third-person user action, no location | `User sets new password.` | Where in the UI? |
+
+#### Global (Whole-Source) Checkers
+
+| Checker | Trigger | Question |
+|---|---|---|
+| Implied prerequisites | Source contains `upload`, `deploy`, `credentials` | What must already exist before starting? |
+| Intent–source mismatch | Intent keywords not found in source | Is this the correct source file? |
+
+### False Positive Avoidance
+
+Checkers are deliberately constrained to avoid noise:
+
+- Checker 21 only triggers on curated action past participles, not state verbs like `is required`.
+- Checker 22 skips lines already containing timing words (`daily`, `every`, `nightly`, etc.).
+- Checker 23 skips lines that already declare convergence (`continue`, `proceed`, `return to step`).
+- Checker 24 skips lines that already name a format (`CSV`, `JSON`, `XML`, etc.).
+- Checker 29 skips if the vague quantifier is already followed by `require/need/must` (covered by checker 20).
+- Checker 31 skips lines where the action is clearly CLI/terminal.
+
+### Why This Matters
+
+Most AI hallucination is triggered by implicit assumptions in the source. Each checker targets a structural ambiguity pattern:
+
+| Pattern class | Checkers |
+|---|---|
+| Actor ambiguity | 21, 31 |
+| Temporal / schedule ambiguity | 22, 12 |
+| Branch logic ambiguity | 3, 4, 23 |
+| Data contract ambiguity | 24, 8, 9, 15 |
+| Version / scope ambiguity | 25, 11 |
+| Quantitative ambiguity | 26, 29 |
+| Location ambiguity | 1, 14, 18, 31 |
+| Incompleteness ambiguity | 27, 28, 30 |
+
+Resolving these before the AI runs reduces governance violations and eliminates the need for multi-pass clarification in most cases.
 
 ---
 
@@ -127,7 +228,22 @@ doc-agent-orchestrator/
     - Structured documentation, OR
     - Clarifying questions if generation is blocked
 
-#### Phase 3: Clarification Loop (Optional)
+#### Phase 3: Paste AI Response + Immediate Governance Check (NEW)
+
+Instead of manually copying the response and triggering the diff:
+
+11. **User runs `docAgent.pasteAiResponse`** — "Paste AI Response and Run Governance Check"
+12. **Extension**:
+    - Verifies source context exists (generateDocumentation was run first)
+    - Reads AI response from clipboard
+    - Opens it in a new untitled markdown editor **beside the source file** (`ViewColumn.Beside`)
+    - Automatically triggers `docAgent.previewRewriteDiff`
+13. **Profile picker opens** → user selects governance profile
+14. **Governance Panel opens immediately** — no manual steps required
+
+This creates a true end-to-end workflow with no manual editor setup.
+
+#### Phase 4: Clarification Loop (Optional)
 
 11. **If AI asks questions**:
 
@@ -160,12 +276,18 @@ doc-agent-orchestrator/
 ### 1. Extension Entry Point (`src/extension.ts`)
 
 **Responsibilities:**
-- Register three commands with VS Code
+- Register **four** commands with VS Code
 - Manage state between commands (context persistence)
 - Handle user input and validation
 - Coordinate with prompt generation engine
 - Manage clipboard operations
 - Open diff views
+
+**Registered Commands:**
+- `docAgent.generateDocumentation`
+- `docAgent.previewRewriteDiff`
+- `docAgent.provideClarifications`
+- `docAgent.pasteAiResponse` ← NEW
 
 **Key State Variables:**
 ```typescript
@@ -405,11 +527,48 @@ MISSING INFORMATION HANDLING:
 
 ---
 
-## Governance System
+### Command 4: `docAgent.pasteAiResponse`
+
+**Display Name:** "Paste AI Response and Run Governance Check"
+
+**Purpose:** Full automation of the post-AI review cycle — reads the AI response from clipboard, opens it beside the source, and immediately triggers governance validation.
+
+**Trigger:** Command Palette → "Paste AI Response and Run Governance Check"
+
+**Prerequisites:**
+- User must have previously run "Generate Documentation Prompt"
+- AI response must be copied to clipboard
+
+**Workflow:**
+1. Check if source context exists (`lastRewriteContext`)
+2. Read AI response from clipboard
+3. Validate clipboard is not empty
+4. Open AI response as an untitled markdown document in `ViewColumn.Beside`
+5. Automatically execute `docAgent.previewRewriteDiff`
+6. Profile picker opens → Governance Panel opens immediately
+
+**Error Handling:**
+- No prior prompt generation → Error: "No source context found. Run 'Generate Documentation Prompt' first."
+- Empty clipboard → Error: "Clipboard is empty. Copy the AI response first."
+- Command fails → Error with exception message
+
+**Result:**
+- AI response is visible in a clean editor beside the source
+- Diff preview and governance check are triggered automatically
+- No manual editor setup or diff trigger required
 
 ### Philosophy
 
 The governance system is the core differentiator of this extension. It transforms AI from a "helpful assistant that often lies" into a "constrained agent that preserves truth."
+
+Governance is now strengthened by:
+
+* **Structural ambiguity detection before generation** — 31 gap checkers catch missing actors, formats, schedules, branch convergence, version scopes, and quantitative ambiguity before the AI is called.
+* **Explicit quantitative and version validation** — checkers 15, 25, 26 enforce numeric and scope precision.
+* **Branch convergence enforcement** — checker 23 ensures multi-branch logic has a defined common path.
+* **Actor accountability enforcement** — checkers 21 and 31 ensure every action has a named performer.
+
+The system now addresses both **semantic hallucination** and **structural incompleteness**.
 
 ### Enforcement Mechanism
 
@@ -625,7 +784,21 @@ This prevents empty sections in output.
 
 ## Workflow Details
 
-### Workflow 1: Simple Documentation Generation
+### Workflow 1: Fast Path (NEW — Recommended)
+
+**Scenario:** Clean source, single pass, no manual steps
+
+1. Select content in VS Code
+2. Run "Generate Documentation Prompt"
+3. Answer any gap detection questions (or skip)
+4. Paste prompt into AI
+5. Copy AI response
+6. Run "Paste AI Response and Run Governance Check"
+7. Review Governance Panel → Accept or Override
+
+**Timeline:** 2–3 minutes. No manual editor setup required.
+
+### Workflow 2: Simple Documentation Generation
 
 **Scenario:** User has complete, clear source material
 
@@ -690,6 +863,7 @@ export function activate(context: vscode.ExtensionContext): void
 - `docAgent.generateDocumentation`
 - `docAgent.previewRewriteDiff`
 - `docAgent.provideClarifications`
+- `docAgent.pasteAiResponse` ← NEW
 
 ### Exported Deactivation Function
 
@@ -1200,12 +1374,16 @@ Governance Notes (only if applicable)
 
 **Documentation Agent Orchestrator** is a VS Code extension that bridges the gap between AI capability and documentation trustworthiness. It works by:
 
-1. **Injecting governance rules** into AI prompts
-2. **Structuring output** with task-specific templates
-3. **Preserving ambiguity** instead of inventing details
-4. **Enabling clarification loops** when needed
-5. **Providing diff previews** for validation
+1. **Running gap detection** on the source — 31 checkers identify structural weaknesses before the AI is called
+2. **Injecting governance rules** into AI prompts — zero-invention policy enforced at every generation
+3. **Structuring output** with task-specific templates
+4. **Preserving ambiguity** instead of inventing details
+5. **Enabling clarification loops** when needed
+6. **Providing diff previews and governance scoring** for validation
+7. **Automating the review cycle** — paste AI response and governance check trigger in one command
 
-The extension doesn't try to make AI smarter - it makes AI behavior **constrained, observable, and defensible**.
+The extension doesn't try to make AI smarter — it makes AI behaviour **constrained, observable, and defensible**.
 
-**Core insight:** AI is fluent but unreliable. By making AI preserve ambiguity and document uncertainty, the extension transforms it into a tool for creating accurate documentation from incomplete specifications.
+**Core insight:** AI is fluent but unreliable. By proactively resolving structural gaps before generation, enforcing zero-invention rules in the prompt, and making all governance violations visible, the extension transforms AI into a tool for creating accurate documentation from incomplete specifications.
+
+**Gap detection is not about catching bad AI. It is about not giving AI bad inputs.**

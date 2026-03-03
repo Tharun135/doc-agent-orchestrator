@@ -70,7 +70,7 @@ const checkers: Checker[] = [
   // Any line starting with an action verb and not already naming a UI location.
   (line) => {
     const actionVerb = line.match(
-      /^(add|build|click|check|close|configure|connect|create|delete|deploy|disable|download|edit|enable|enter|export|import|install|launch|load|log in|login|manage|map|navigate|open|remove|restart|run|save|select|set|start|stop|submit|switch|test|toggle|type|uninstall|update|upload|use|verify|view)\b/i
+      /^(add|build|click|check|close|configure|connect|create|delete|deploy|disable|download|edit|enable|enter|export|import|install|launch|load|log in|login|manage|map|navigate|open|remove|request|restart|run|save|select|set|start|stop|submit|switch|test|toggle|type|uninstall|update|upload|use|verify|view)\b/i
     );
     if (!actionVerb) { return null; }
     if (hasUiLocation(line)) { return null; }
@@ -245,9 +245,10 @@ const checkers: Checker[] = [
   },
 
   // ── 14. Unqualified adjective — "appropriate/correct/proper/suitable" + noun ──
-  // "Select the appropriate option" cannot be followed without knowing which one.
+  // "Select the appropriate option" / "takes appropriate action" cannot be followed
+  // without knowing which one or what it specifically means.
   (line) => {
-    if (!/\b(appropriate|correct|proper|suitable|relevant|right)\s+(option|value|setting|mode|type|format|method|config|configuration|profile|role|level|permission|protocol|channel|source|target|device|server|certificate|cert|key|file|folder|path|field|parameter|param)\b/i.test(line)) {
+    if (!/\b(appropriate|correct|proper|suitable|relevant|right)\s+(option|value|setting|mode|type|format|method|config|configuration|profile|role|level|permission|protocol|channel|source|target|device|server|certificate|cert|key|file|folder|path|field|parameter|param|action|behavior|behaviour|response|step|output|measure|procedure|process)\b/i.test(line)) {
       return null;
     }
     return {
@@ -354,6 +355,253 @@ const checkers: Checker[] = [
       placeholder: "e.g., a 'Manage Users' menu item and a 'System Logs' tab appear in the top navigation bar",
     };
   },
+
+  // ── 20. Vague subset + requirement — "Some actions require approval." ────────
+  // "some", "certain", "various" + noun + "require/need/must" with no named items.
+  // Cannot document without knowing which specific items are subject to the rule.
+  (line) => {
+    const m = line.match(
+      /\b(some|certain|several|various|multiple|many|a\s+few)\s+(\w+)\s+(require|need|must|are\s+subject\s+to|will\s+need)\s+(.+)$/i
+    );
+    if (!m) { return null; }
+    const noun = m[2];
+    const requirement = m[4].replace(/\.$/, "").trim();
+    return {
+      id: `vague-subset:${line.slice(0, 50)}`,
+      question: `The source says "${line}" — which specific ${noun} require ${requirement}? What does the ${requirement} process involve?`,
+      sourceContext: line,
+      placeholder: `e.g., list the specific ${noun} and describe the ${requirement} workflow`,
+    };
+  },
+
+  // ── 21. Passive voice without a named actor ───────────────────────────────
+  // "the file is uploaded", "records are processed" — who or what does this?
+  // Only fires on action-like past participles; ignores descriptive state verbs.
+  (line) => {
+    const m = line.match(/\b(is|are|was|were)\s+(\w+ed)\b/i);
+    if (!m) { return null; }
+    // Actor already named
+    if (/\bby\s+(the\s+)?(user|system|admin|operator|service|job|agent|scheduler|platform|server|client|extension)\b/i.test(line)) { return null; }
+    if (/\b(automatically|auto)\b/i.test(line)) { return null; }
+    const pp = m[2].toLowerCase();
+    const actionPastParticiples = [
+      'uploaded', 'processed', 'deployed', 'created', 'deleted', 'sent', 'exported',
+      'imported', 'transferred', 'submitted', 'triggered', 'executed', 'started',
+      'stopped', 'restarted', 'configured', 'installed', 'removed', 'updated',
+      'validated', 'checked', 'verified', 'generated', 'published', 'synced',
+      'downloaded', 'applied', 'scheduled', 'parsed', 'loaded', 'saved',
+    ];
+    if (!actionPastParticiples.includes(pp)) { return null; }
+    return {
+      id: `passive-no-actor:${line.slice(0, 50)}`,
+      question: `Who or what performs this action? Is this done by the user, the system, or an automated job? (Source: "${line}")`,
+      sourceContext: line,
+      placeholder: "e.g., the user manually uploads the file; or the system processes records automatically after save",
+    };
+  },
+
+  // ── 22. Frequency / schedule unspecified ─────────────────────────────────
+  // "run the job", "execute the script" — no time, trigger, or frequency stated.
+  (line) => {
+    if (!/\b(run|execute|trigger|schedule|start|invoke|launch)\s+(the\s+)?(job|task|script|process|workflow|pipeline|batch|sync|backup|report|export|import)\b/i.test(line)) {
+      return null;
+    }
+    if (/\b(daily|weekly|monthly|hourly|every|at\s+\d|cron|on\s+demand|manually|automatically|nightly|once|each|after|when)\b/i.test(line)) {
+      return null;
+    }
+    return {
+      id: `no-schedule:${line.slice(0, 50)}`,
+      question: `When and how often is this run? Is it triggered manually or on a schedule? (Source: "${line}")`,
+      sourceContext: line,
+      placeholder: "e.g., manually by the operator after each deployment; or nightly at 02:00 via cron",
+    };
+  },
+
+  // ── 23. Multi-branch without convergence ─────────────────────────────────
+  // "otherwise / else / if not" branch with no stated common next step.
+  // Catches the second arm of an if/else where the doc never says what both
+  // paths converge to.
+  (line) => {
+    const m = line.match(/^(otherwise|else|if\s+not|in\s+that\s+case)[,:]?\s+(.+)$/i);
+    if (!m) { return null; }
+    if (/\b(continue|proceed|go\s+to\s+step|then\s+continue|return\s+to|resume|end\s+the|complete|finish)\b/i.test(line)) { return null; }
+    return {
+      id: `branch-no-convergence:${line.slice(0, 50)}`,
+      question: `After the "${m[1]}" branch, what is the next common step? Do both paths rejoin, or does this branch end the procedure? (Source: "${line}")`,
+      sourceContext: line,
+      placeholder: "e.g., both paths continue to Step 5 — Enable Connector; or this branch ends the procedure here",
+    };
+  },
+
+  // ── 24. Data format unspecified ───────────────────────────────────────────
+  // "export the file", "import the data", "Export feature with multiple formats" — CSV? JSON? XML? XLSX?
+  (line) => {
+    const hasExportImportVerb = /\b(export|import|upload|download|send|transfer|load|read|write|parse|generate)\s+(the\s+)?(file|data|report|records?|output|input|spreadsheet|document|attachment)\b/i.test(line);
+    // Also catch declarative feature descriptions: "export/import feature/support with multiple/various formats"
+    const hasVagueFormatClaim = /\b(export|import|upload|download)\s+(feature|support|capability|option|function)\b.*\b(format|type)s?\b/i.test(line) ||
+      /\b(multiple|various|several|many)\s+(file\s+)?(format|type)s?\b/i.test(line);
+    if (!hasExportImportVerb && !hasVagueFormatClaim) {
+      return null;
+    }
+    if (/\b(csv|json|xml|xlsx?|pdf|txt|yaml|yml|parquet|avro|html|sql|zip|tar|gz|binary|base64|markdown|md)\b/i.test(line)) {
+      return null;
+    }
+    return {
+      id: `data-format:${line.slice(0, 50)}`,
+      question: `What specific file formats are supported or required? (Source: "${line}")`,
+      sourceContext: line,
+      placeholder: "e.g., CSV, JSON, and XLSX; or CSV with UTF-8 encoding only",
+    };
+  },
+
+  // ── 25. Version / environment unspecified ─────────────────────────────────
+  // "the new version", "the latest release", "the production environment"
+  // — cannot be documented without a specific identifier.
+  (line) => {
+    const m = line.match(/\b(new|latest|current|updated?|upgraded?|previous|old|legacy)\s+(version|release|build|environment|env|platform|system)\b/i);
+    if (!m) { return null; }
+    return {
+      id: `version-unspecified:${line.slice(0, 50)}`,
+      question: `Which specific version, build number, or environment does this apply to? (Source: "${line}")`,
+      sourceContext: line,
+      placeholder: "e.g., v3.2.0 and later; production environment only; applies from build 2024.1",
+    };
+  },
+
+  // ── 26. Success count ambiguity ───────────────────────────────────────────
+  // "all records should be imported" — how many? what if fewer appear?
+  (line) => {
+    if (!/\b(all|every)\s+(\w+\s+)*(record|item|row|entry|file|user|device|result|document)s?\b.*(should|will|must|are\s+expected\s+to)\b/i.test(line)) {
+      return null;
+    }
+    return {
+      id: `success-count:${line.slice(0, 50)}`,
+      question: `How many ${/records?/i.test(line) ? 'records' : 'items'} are expected in total? What should the user do if fewer appear? (Source: "${line}")`,
+      sourceContext: line,
+      placeholder: "e.g., expect 1,200 records; if fewer, open the import log and look for SKIPPED entries",
+    };
+  },
+
+  // ── 27. Past-tense fix/resolve with vague fault condition ────────────────────
+  // "Fixed crash on startup in certain conditions" — which conditions specifically?
+  // Covers release-note declarative past tense that checker 1 (imperative only) misses.
+  (line) => {
+    if (!/^(fixed|resolved|corrected|addressed|patched|repaired|prevented|eliminated|mitigated)\b/i.test(line)) { return null; }
+    if (!/\b(certain|some|specific|particular|undetermined|unknown|various|multiple|select|edge)\s+(conditions?|cases?|scenarios?|circumstances?|situations?|environments?|configurations?|instances?)\b/i.test(line)) { return null; }
+    return {
+      id: `vague-fault-condition:${line.slice(0, 50)}`,
+      question: `What are the specific conditions under which this occurred? (Source: "${line}")`,
+      sourceContext: line,
+      placeholder: "e.g., occurred when the config file was missing; on Windows only; when network was unavailable at startup",
+    };
+  },
+
+  // ── 28. Vague completion / incompleteness status ─────────────────────────
+  // "Some translations incomplete" / "Various settings missing" — which ones?
+  // Checker 20 only fires when followed by require/need/must; this catches bare
+  // status descriptions common in release notes and status updates.
+  (line) => {
+    const m = line.match(
+      /^(some|certain|various|multiple|several|many|a\s+few)\s+(\w+(?:\s+\w+)?)\s+(incomplete|missing|not\s+available|not\s+done|not\s+complete|not\s+finished|pending|absent|unfinished|untranslated|unavailable|broken|incorrect|incorrect)\b/i
+    );
+    if (!m) { return null; }
+    const noun = m[2].trim();
+    const status = m[3].trim();
+    return {
+      id: `vague-status:${line.slice(0, 50)}`,
+      question: `The source says "${line}" — which specific ${noun} are ${status}? List them or describe the scope.`,
+      sourceContext: line,
+      placeholder: `e.g., German and Japanese ${noun} are ${status}; affects the Settings and Notifications screens`,
+    };
+  },
+
+  // ── 29. Declarative vague enumeration — "various/multiple/several [noun]" ────────
+  // "Fixed various UI glitches" / "Export feature with multiple formats"
+  // Checker 13 catches trailing "etc."/"or whatever"; this catches leading
+  // vague quantifiers in declarative (non-imperative) statements.
+  // Checker 20 only fires with require/need/must — this catches the rest.
+  (line) => {
+    const m = line.match(
+      /\b(various|multiple|several|numerous|assorted)\s+(\w+(?:\s+\w+){0,2})\b/i
+    );
+    if (!m) { return null; }
+    // Already caught by checker 20 (with require/need/must)
+    if (/\b(require|need|must|are\s+subject\s+to|will\s+need)\b/i.test(line)) { return null; }
+    // Skip if the noun phrase is already a specific named list
+    if (/\b(\d+|first|second|third|following|listed|above|below)\b/i.test(line)) { return null; }
+    const noun = m[2].trim();
+    return {
+      id: `declarative-vague-enum:${line.slice(0, 50)}`,
+      question: `The source says "${line}" — what are the specific ${noun}? List each one individually.`,
+      sourceContext: line,
+      placeholder: `e.g., list each specific ${noun} by name`,
+    };
+  },
+
+  // ── 30. Past-tense fix with no described symptom or affected scope ─────────
+  // "Fixed memory leak in background process" is specific enough.
+  // "Fixed an issue" / "Resolved a problem" / "Addressed a bug" — these have
+  // no information and cannot be documented without knowing what the issue was.
+  (line) => {
+    if (!/^(fixed|resolved|corrected|addressed|patched)\b/i.test(line)) { return null; }
+    if (!/\b(an?\s+)?(issue|problem|bug|error|defect|fault|glitch)\b/i.test(line)) { return null; }
+    // Skip if a description follows: "Fixed an issue where..." / "Fixed an issue with X"
+    if (/\b(where|when|with|in|that|causing|related\s+to)\b/i.test(line)) { return null; }
+    return {
+      id: `fix-no-description:${line.slice(0, 50)}`,
+      question: `What was this issue? What symptom did the user experience, and in which part of the application? (Source: "${line}")`,
+      sourceContext: line,
+      placeholder: "e.g., the Save button became unresponsive after uploading a file larger than 10 MB",
+    };
+  },
+
+  // ── 31. Third-person user-subject action with no UI location ──────────────────
+  // Checker 1 only fires on bare imperative verbs ("Enter x", "Select y").
+  // Sources like Jira tickets, user stories, and acceptance criteria describe
+  // actions in third person: "User sets new password", "User can request reset",
+  // "Users need to reset their password" — checker 1 misses all of these.
+  // This checker catches any third-person user-subject action sentence and asks
+  // for the UI location when none is stated.
+  (line) => {
+    // Match: "User [modal] verb", "Users [modal] verb", "The user [modal] verb"
+    const m = line.match(
+      /^(?:the\s+)?users?(?:\s+(?:can|should|must|will|need\s+to|needs\s+to|is\s+able\s+to|are\s+able\s+to))?\s+(\w+)\b/i
+    );
+    if (!m) { return null; }
+    // Only fire for action verbs — skip state/auxiliary verbs
+    const verb = m[1].toLowerCase();
+    const nonActionVerbs = new Set([
+      'be', 'is', 'are', 'was', 'were', 'have', 'has', 'had', 'do', 'does',
+      'did', 'get', 'gets', 'got', 'see', 'sees', 'know', 'knows', 'need',
+      'needs', 'want', 'wants', 'receive', 'receives', 'find', 'finds',
+    ]);
+    if (nonActionVerbs.has(verb)) { return null; }
+    if (hasUiLocation(line)) { return null; }
+    // Skip if it's a CLI/terminal action
+    if (/\b(terminal|command\s+line|cli|shell|npm|pip|git\s+|bash|powershell)\b/i.test(line)) { return null; }
+    return {
+      id: `user-subject-no-location:${line.slice(0, 50)}`,
+      question: `Where in the UI does the user perform this action? (Source: "${line}")`,
+      sourceContext: line,
+      placeholder: "e.g., on the Login page, click 'Forgot password?'; or Settings > Account > Reset Password",
+    };
+  },
+
+  // ── 32. Incomplete step annotation — "(needs design)", "(TBD)", "(TODO)", "(pending)" ──
+  // Any workflow step annotated as not yet designed or defined cannot be
+  // documented — the content of the step is unknown. Ask what the actual
+  // steps are before generating.
+  (line) => {
+    if (!/\(\s*(needs?\s+design|tbd|todo|pending|needs?\s+input|to\s+be\s+confirmed|to\s+be\s+defined|not\s+designed|not\s+yet\s+defined|\?)\s*\)/i.test(line)) {
+      return null;
+    }
+    return {
+      id: `incomplete-annotation:${line.slice(0, 50)}`,
+      question: `This step is marked as incomplete: "${line}" — what are the actual steps the user performs here?`,
+      sourceContext: line,
+      placeholder: "Describe the specific UI steps, fields, or actions involved",
+    };
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -363,6 +611,44 @@ const checkers: Checker[] = [
 type GlobalChecker = (source: string) => DetectedQuestion[];
 
 const globalCheckers: GlobalChecker[] = [
+
+  // Open questions / TBD section — each bullet or numbered item is a blocking unknown.
+  // Sources such as feature specs, user stories, and Jira tickets frequently contain
+  // an explicit "Open questions" or "TBD" section. Every item in that section must be
+  // answered before documentation can be generated without inventing information.
+  (source) => {
+    const results: DetectedQuestion[] = [];
+    const lines = source.split(/\r?\n/);
+    let inOpenQuestionsSection = false;
+    for (const raw of lines) {
+      const line = raw.trim();
+      // Detect section heading (Markdown heading or bold label)
+      if (
+        /^#+\s*(open\s+questions?|questions?|gaps?|unknowns?|tbd|pending|open\s+items?):?\s*$/i.test(line) ||
+        /^\*\*(open\s+questions?|questions?|gaps?|unknowns?|tbd|pending|open\s+items?):?\s*\*\*\s*:?\s*$/i.test(line)
+      ) {
+        inOpenQuestionsSection = true;
+        continue;
+      }
+      // Exit section on any subsequent heading or horizontal rule
+      if (inOpenQuestionsSection && (/^#+\s+\S/.test(line) || /^---+$/.test(line))) {
+        inOpenQuestionsSection = false;
+        continue;
+      }
+      if (!inOpenQuestionsSection) { continue; }
+      // Capture bullet or numbered list items
+      const m = line.match(/^[-*+•]\s+(.+)$/) ?? line.match(/^\d+\.\s+(.+)$/);
+      if (!m) { continue; }
+      const itemText = m[1].trim();
+      results.push({
+        id: `open-question:${itemText.slice(0, 50)}`,
+        question: `The source lists this as an open question: "${itemText}" — what is the answer?`,
+        sourceContext: line,
+        placeholder: "Provide the specific answer to be included in the documentation",
+      });
+    }
+    return results;
+  },
 
   // Prerequisites: does the source imply anything must exist/be ready first?
   (source) => {
@@ -396,7 +682,8 @@ const globalCheckers: GlobalChecker[] = [
  */
 export function detectQuestions(
   source: string,
-  _taskType: TaskType
+  _taskType: TaskType,
+  userIntent?: string
 ): DetectedQuestion[] {
   const lines = source.split(/\r?\n/);
   const seen = new Set<string>();
@@ -424,6 +711,32 @@ export function detectQuestions(
   for (const gc of globalCheckers) {
     for (const q of gc(source)) {
       addIfNew(q);
+    }
+  }
+
+  // Intent-source mismatch check
+  if (userIntent) {
+    const stopwords = new Set([
+      "the", "a", "an", "and", "or", "for", "of", "in", "on", "to", "is",
+      "are", "was", "were", "be", "been", "being", "have", "has", "had",
+      "do", "does", "did", "will", "would", "could", "should", "may", "might",
+      "this", "that", "with", "from", "by", "at", "as", "it", "its",
+      "user", "users", "document", "documentation", "how", "what", "write",
+      "create", "generate", "make", "about", "process", "describe",
+    ]);
+    const intentKeywords = userIntent
+      .toLowerCase()
+      .split(/[\s,./\\]+/)
+      .filter(w => w.length > 3 && !stopwords.has(w));
+    const sourceLower = source.toLowerCase();
+    const matchedAny = intentKeywords.some(kw => sourceLower.includes(kw));
+    if (!matchedAny && intentKeywords.length > 0) {
+      addIfNew({
+        id: `intent-source-mismatch:${userIntent.slice(0, 50)}`,
+        question: `Your intent is "${userIntent}" but the source does not mention any related terms (${intentKeywords.slice(0, 3).join(", ")}…). Is this the correct source file? If yes, which part of the source covers this topic?`,
+        sourceContext: "(whole source)",
+        placeholder: "e.g., Yes, the Admin Settings section covers the login flow — proceed with this source",
+      });
     }
   }
 

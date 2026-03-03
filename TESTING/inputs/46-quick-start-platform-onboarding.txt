@@ -1,0 +1,15 @@
+## Test Input 46: Quick Start Guide — Platform Onboarding
+
+**Source type:** Onboarding email from customer success
+
+Welcome! Here's how to get started:
+
+1. Log in with your credentials.
+2. Set up your workspace.
+3. Add your first device or data source.
+4. Configure the connection settings.
+5. Run a test.
+6. Check the results.
+7. Invite your team members if needed.
+
+You're ready to go. Refer to the full documentation for advanced setup.

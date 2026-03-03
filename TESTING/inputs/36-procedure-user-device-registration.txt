@@ -1,0 +1,16 @@
+## Test Input 36: Procedure — Device Registration
+
+**Source type:** Internal notes from engineer handover
+
+Register a new device in the management console.
+Add device.
+Enter device name and serial number.
+Select the appropriate group.
+Assign credentials.
+Set scan interval.
+Enable the device.
+Check status.
+If active, proceed.
+If error, check logs.
+Restart agent if needed.
+Device should appear in device list.

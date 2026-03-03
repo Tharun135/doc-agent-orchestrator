@@ -1,0 +1,16 @@
+## Test Input 40: What's New — Version 2.5
+
+**Source type:** Product manager email to sales team
+
+Hi,
+
+Here's a summary of what's new in 2.5 for your conversations with customers:
+
+We added a bunch of new features this cycle. The big ones are the new reporting module, enhanced search, and some UX improvements. Reporting is faster now and supports more formats. Search got smarter — uses the new algorithm. 
+
+There are also improvements to how the system handles large datasets. Admins can do more things now. Users get a cleaner experience.
+
+Under the hood we rewrote the sync engine. Old sync configs should still work but some edge cases might not.
+
+Cheers,
+PM Team

@@ -1,5 +1,5 @@
 /**
- * promptGenerator.ts
+ * promptBuilder.ts
  *
  * Responsibility: Build the AI generation prompt ONLY.
  *
@@ -10,6 +10,7 @@
  * This file no longer contains:
  *   - generateQuestionsFromSource()   → deleted (replaced by questionDetector.ts)
  *   - gapCheckBlock_inline            → deleted (Pass 0 handles this)
+ *   - duplicate gapCheckBlock()       → consolidated into one private helper
  *   - switch statement for task types → replaced by OUTPUT_SPEC_MAP
  */
 
@@ -67,11 +68,10 @@ const OUTPUT_SPEC_MAP: Record<TaskType, () => string> = {
 export function generatePrompt(input: PromptInput): string {
   validatePromptInput(input);
 
-  const hasPreClarifications = !!(input.preClarifications?.trim());
-  const hasClarifications    = !!(input.clarifications?.trim());
+  const hasPreClarifications = !!input.preClarifications?.trim();
+  const hasClarifications    = !!input.clarifications?.trim();
   const hasAnyAnswers        = hasPreClarifications || hasClarifications;
 
-  // Pre-clarifications are collected BEFORE the first AI call (upfront Q&A in the extension).
   // ── Pass header (resolution pass only) ──────────────────────────────────
   const passHeader = (input.pass && input.pass > 1)
     ? `GENERATION PASS: ${input.pass}
@@ -122,20 +122,9 @@ ${templateContent}
 You are a Technical Documentation Agent.
 ${passHeader}
 REWRITE POLICY:
-- Ground every step in a source sentence — do not invent content with no source basis.
-- You MAY expand a step using answer text to produce fluent, readable prose.
-- When incorporating an answer, integrate it naturally into the sentence rather
-  than appending it in parentheses.
-- Prefer active, specific language: "the service starts automatically" over
-  "service starts"; "green status indicator" over a bare colour if the answer
-  implies a UI element.
-- Articles ("the", "a"), conjunctions, and light connective phrases are permitted
-  where they improve readability.
-- Step transformation pattern:
-    Source:  "If successful, service starts."
-    Answer:  "green indicator"
-    Output:  "If the validation is successful, indicated by a green status
-              indicator, the service starts automatically."
+- Use only words, concepts, and steps that exist in the source or the answers below.
+- One source sentence = one output step. Do not split, expand, or add purpose clauses.
+- Shorter and faithful is better than longer and invented.
 - If a section has no source-grounded content, omit it entirely — write nothing under it.
 
 ${clarificationsBlock}
@@ -200,36 +189,14 @@ function procedureOutputSpec(): string {
 ${gapCheckBlock()}
 GENERATE: Rewrite the source into a user-facing procedure.
 
-PROCEDURE INTRO SENTENCE:
-- Before the numbered steps, write one sentence in the form:
-  "To [user intent verb phrase], perform the following steps:"
-- Derive the verb phrase from the USER INTENT field, not the source.
-- Example: if userIntent is "deploy the connector" →
-  "To deploy the connector, perform the following steps:"
-
 STEP FORMATTING RULES:
-- Ground every step in a source sentence — do not invent content with no source basis.
-- You MAY expand a step using answer text to produce fluent, readable prose.
-- When incorporating an answer, integrate it naturally into the sentence.
+- One source sentence = one output step. Do not split or expand it.
+- Only include the action. Do not add purpose clauses ("to X"), location phrases
+  ("in the X section"), or result sentences unless the source contains them.
+- If the source says "Add new connector." → output "Add new connector." — nothing more.
+- Combine action and result ONLY when the source itself states both.
 - If a conditional or error branch ends without a stated next action, stop at
   the source's words. Do NOT add implied recovery steps.
-
-STEP EXPANSION FROM ANSWERS:
-- When an answer to a clarification question is prefixed "This answer contains multiple
-  sequential actions", each listed sub-step becomes its own numbered step in the procedure.
-- Do NOT collapse them back into one step.
-- Do NOT add connecting words like "and then" between them.
-
-NOTE FORMATTING RULE:
-- When a Note combines a source condition ("Admin may need to...") with an answer that
-  provides a navigation path, collapse them into one fluent sentence:
-    Correct:   "If required, configure advanced settings in Settings > Advanced Settings
-               on the Connector page."
-    Incorrect: "Admin may need to configure advanced settings. The Advanced Settings
-               option is available in the Settings page inside the Connector page."
-- Format navigation paths using > notation: "Settings > Advanced Settings"
-  not "the settings page inside the connector page".
-- The conditional word from the source ("may", "if required") must be preserved.
 
 PREREQUISITES RULES:
 - Only list a prerequisite if the source contains a sentence that is itself
@@ -247,7 +214,7 @@ Overview               ← Required
 Procedure              ← Required
 Notes                  ← OMIT if source has no notes or caveats
 Result                 ← OMIT if source states no result
-Preserved Ambiguities  ← OMIT only if nothing could be resolved by a follow-up answer
+Preserved Ambiguities  ← OMIT if nothing was vague or unresolved
 Governance Notes       ← OMIT if no governance rules were violated
 `;
 }

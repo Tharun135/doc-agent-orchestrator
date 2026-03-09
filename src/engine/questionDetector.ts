@@ -6,7 +6,7 @@
  * BEFORE the AI prompt is built — so the AI receives complete information on
  * the first call and produces a fully detailed document without a second pass.
  *
- * Contains 40 per-line pattern checkers + 2 global checkers.
+ * Contains 42 per-line pattern checkers + 2 global checkers.
  *
  * Approach:
  *   For every action step   → Does it say WHERE in the UI?
@@ -87,9 +87,9 @@ const checkers: Checker[] = [
     if (/\b(in\s+the\s+terminal|from\s+the\s+terminal|command\s+line|cli|shell|npm\s+run|pip\s+install|git\s+|bash\s|powershell\s)\b/i.test(line)) { return null; }
     return {
       id: `ui-location:${line.slice(0, 50)}`,
-      question: `Where in the UI does the user perform this step? (Source: "${line}")`,
+      question: `For the step "${line}": (a) Where in the UI does the user perform this? Provide the full navigation path or exact UI label. (b) What is the purpose of this step — what does it start, trigger, or enable?`,
       sourceContext: line,
-      placeholder: "e.g., Settings > Connectors > Add New, or the Deploy toolbar",
+      placeholder: "e.g., (a) Connector page > click Run Setup  (b) starts the deployment process",
     };
   },
 
@@ -117,9 +117,9 @@ const checkers: Checker[] = [
     }
     return {
       id: `condition-pass:${line.slice(0, 50)}`,
-      question: `What specific indicator means the condition is met? (Source: "${line}")`,
+      question: `For the step "${line}": (a) Does the user need to actively check a status indicator before proceeding, or does the next step happen automatically? (b) If they check, where is the indicator in the UI? (c) What exactly does it look like when the condition is met — color, label, icon, or message?`,
       sourceContext: line,
-      placeholder: "e.g., status shows 'Connected', green indicator, no errors in the log",
+      placeholder: "e.g., (a) user checks manually  (b) status bar at top of Connector page  (c) indicator turns green and shows 'Running'",
     };
   },
 
@@ -338,16 +338,16 @@ const checkers: Checker[] = [
       // Location known but subject is still vague
       return {
         id: `conditional-action-what:${line.slice(0, 50)}`,
-        question: `The source says "${line}" — what specifically is "${subject}"? List the fields or actions involved.`,
+        question: `For the step "${line}": (a) Where in the UI is this done? Provide the full navigation path. (b) What specific settings or parameters does the user configure here? List each one by name. (c) Under what condition is this required — always, or only in specific scenarios?`,
         sourceContext: line,
-        placeholder: "e.g., timeout value, retry count, log level",
+        placeholder: "e.g., (a) Settings > Advanced  (b) timeout (ms), retry count, log level  (c) only when deploying to production",
       };
     }
     return {
       id: `conditional-action-where:${line.slice(0, 50)}`,
-      question: `The source says "${line}" — where in the UI is this done, and what specifically is "${subject}"?`,
+      question: `For the step "${line}": (a) Where in the UI is this done? Provide the full navigation path. (b) What specific settings or parameters does the user configure here? List each one by name. (c) Under what condition is this required — always, or only in specific scenarios?`,
       sourceContext: line,
-      placeholder: "e.g., Settings > Advanced > configure timeout and retry values",
+      placeholder: "e.g., (a) Settings > Advanced  (b) timeout (ms), retry count, log level  (c) only when deploying to production",
     };
   },
 
@@ -780,6 +780,46 @@ const checkers: Checker[] = [
     }
     return null;
   },
+
+  // ── 42. System performs background action — should user wait? ─────────────────
+  // "System validates configuration", "Service initializes", "Platform loads data"
+  // User needs to know: (a) should they wait, (b) is there an indicator,
+  // (c) what specifically is being acted on.
+  (line) => {
+    if (!/^(system|service|application|platform|runtime)\s+(validates?|processes?|checks?|verifies?|initializes?|loads?|starts?|deploys?|configures?|scans?)\b/i.test(line)) {
+      return null;
+    }
+    if (/\b(wait|while|until|progress|indicator|status|automatically)\b/i.test(line)) {
+      return null;
+    }
+    const actionWord = line.match(/validates?|processes?|checks?|verifies?|initializes?|loads?|starts?|deploys?|configures?|scans?/i)?.[0] ?? "processes";
+    return {
+      id: `system-background:${line.slice(0, 50)}`,
+      question: `For the step "${line}": (a) Should the user wait while this happens, or does it occur automatically in the background? (b) Is there a visible progress indicator or status message? (c) What specifically is being ${actionWord} — what is the object (e.g., "connector configuration", "device settings")?`,
+      sourceContext: line,
+      placeholder: "e.g., (a) user waits  (b) no indicator  (c) connector configuration",
+    };
+  },
+
+  // ── 41. Vague search/find with no identification criteria ─────────────────────
+  // "Find the one you need.", "Locate the record.", "Search for the item." —
+  // the user cannot identify the correct item without knowing the lookup
+  // criteria (name, type, status, id). This blocks action.
+  (line) => {
+    if (!/^(find|locate|search\s+for|look\s+for|identify|select)\s+/i.test(line)) {
+      return null;
+    }
+    // Skip if identification criteria are already stated
+    if (/\b(named|called|with\s+the\s+name|where|that\s+(has|contains|matches)|by\s+(name|id|type|status))\b/i.test(line)) {
+      return null;
+    }
+    return {
+      id: `find-no-criteria:${line.slice(0, 50)}`,
+      question: `How does the user identify the correct item? What should they look for? (Source: "${line}")`,
+      sourceContext: line,
+      placeholder: "e.g., find it by name in the list; or look for the one with status 'Active'",
+    };
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -963,9 +1003,63 @@ export function detectQuestions(
 // Formatter
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Multi-action answer splitter
+// ---------------------------------------------------------------------------
+
+const ACTION_VERBS = new Set([
+  'add','build','click','close','configure','connect','create','delete','deploy',
+  'disable','download','edit','enable','enter','export','import','install','launch',
+  'load','manage','map','navigate','open','remove','restart','run','save','select',
+  'set','start','stop','submit','toggle','type','update','upload','verify','view',
+  'find','locate','choose',
+]);
+
+/**
+ * Splits an answer string into discrete steps when it contains multiple
+ * sequential actions joined by "and", commas, semicolons, or "then".
+ *
+ * "Open Connector page and select the connector, click on deploy"
+ *   → ["Open Connector page", "select the connector", "click on deploy"]
+ *
+ * Single-action answers and path-notation answers (e.g. "Settings > Advanced")
+ * are returned unchanged as a single-element array.
+ */
+function splitAnswerIntoSteps(answer: string): string[] {
+  // Leave path-notation answers untouched (they contain > or =>)
+  if (/[>]/.test(answer)) {
+    return [answer];
+  }
+
+  const parts = answer
+    .split(/,\s+(?=[a-z])|;\s*|\s+and\s+(?=[a-z])|\s+then\s+/i)
+    .map(p => p.trim())
+    .filter(Boolean);
+
+  const validParts = parts.filter(p => {
+    const firstWord = p.split(/\s+/)[0].toLowerCase().replace(/[.,]/, '');
+    return ACTION_VERBS.has(firstWord);
+  });
+
+  // Only split if every part starts with a recognised action verb
+  return validParts.length >= 2 ? validParts : [answer];
+}
+
 /**
  * Formats answered questions into the PRE-CLARIFICATIONS block injected
  * into the AI prompt.
+ *
+ * Multi-action answers are automatically expanded into numbered sub-steps
+ * so the AI sees them as distinct steps, not a single collapsed unit.
+ *
+ * Example input answer:  "Open Connector page and select the connector, click on deploy"
+ * Example output block:
+ *   [Q1] ...
+ *   [A1] This answer contains multiple sequential actions — treat each as a separate
+ *        numbered step in the procedure:
+ *     Step 1: Open Connector page
+ *     Step 2: select the connector
+ *     Step 3: click on deploy
  */
 export function formatPreClarifications(
   questions: DetectedQuestion[],
@@ -973,12 +1067,26 @@ export function formatPreClarifications(
 ): string {
   return questions
     .map((q, i) => {
-      const answer = answers[i]?.trim() || "(no answer provided)";
-      return `[Q${i + 1}] ${q.question}\n` +
+      const raw = answers[i]?.trim() || "(no answer provided)";
+      const steps = splitAnswerIntoSteps(raw);
+
+      let answerBlock: string;
+      if (steps.length > 1) {
+        const numbered = steps.map((s, j) => `    Step ${j + 1}: ${s}`).join("\n");
+        answerBlock =
+          `[A${i + 1}] This answer contains multiple sequential actions — ` +
+          `treat each as a separate numbered step in the procedure:\n${numbered}`;
+      } else {
+        answerBlock = `[A${i + 1}] ${raw}`;
+      }
+
+      return (
+        `[Q${i + 1}] ${q.question}\n` +
         (q.sourceContext !== "(whole source)"
           ? `       Source line: "${q.sourceContext}"\n`
           : "") +
-        `[A${i + 1}] ${answer}`;
+        answerBlock
+      );
     })
     .join("\n\n");
 }

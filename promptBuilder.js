@@ -1,5 +1,6 @@
+"use strict";
 /**
- * promptGenerator.ts
+ * promptBuilder.ts
  *
  * Responsibility: Build the AI generation prompt ONLY.
  *
@@ -10,50 +11,46 @@
  * This file no longer contains:
  *   - generateQuestionsFromSource()   → deleted (replaced by questionDetector.ts)
  *   - gapCheckBlock_inline            → deleted (Pass 0 handles this)
+ *   - duplicate gapCheckBlock()       → consolidated into one private helper
  *   - switch statement for task types → replaced by OUTPUT_SPEC_MAP
  */
-
-import { PromptInput, TaskType } from "./types";
-import { GOVERNANCE_RULES } from "./governance";
-import { getTemplateFor } from "./templates";
-
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.validatePromptInput = validatePromptInput;
+exports.generatePrompt = generatePrompt;
+const governance_1 = require("./governance");
+const templates_1 = require("./templates");
 // ─────────────────────────────────────────────────────────────────────────────
 // Input validation
 // ─────────────────────────────────────────────────────────────────────────────
-
-export function validatePromptInput(input: PromptInput): void {
-  if (!input.context?.trim()) {
-    throw new Error("Source content (context) is required.");
-  }
-  if (!input.userIntent?.trim()) {
-    throw new Error("User intent is required.");
-  }
-  if (!input.taskType) {
-    throw new Error("Task type is required.");
-  }
-  if (!(input.taskType in OUTPUT_SPEC_MAP)) {
-    throw new Error(`Unsupported task type: "${input.taskType}"`);
-  }
+function validatePromptInput(input) {
+    if (!input.context?.trim()) {
+        throw new Error("Source content (context) is required.");
+    }
+    if (!input.userIntent?.trim()) {
+        throw new Error("User intent is required.");
+    }
+    if (!input.taskType) {
+        throw new Error("Task type is required.");
+    }
+    if (!(input.taskType in OUTPUT_SPEC_MAP)) {
+        throw new Error(`Unsupported task type: "${input.taskType}"`);
+    }
 }
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Output spec map  (replaces the switch statement)
 // ─────────────────────────────────────────────────────────────────────────────
-
-const OUTPUT_SPEC_MAP: Record<TaskType, () => string> = {
-  "procedure":         procedureOutputSpec,
-  "concept":           conceptOutputSpec,
-  "troubleshooting":   troubleshootingOutputSpec,
-  "reference":         referenceOutputSpec,
-  "tutorial":          tutorialOutputSpec,
-  "release-notes":     releaseNotesOutputSpec,
-  "api-documentation": apiDocumentationOutputSpec,
+const OUTPUT_SPEC_MAP = {
+    "procedure": procedureOutputSpec,
+    "concept": conceptOutputSpec,
+    "troubleshooting": troubleshootingOutputSpec,
+    "reference": referenceOutputSpec,
+    "tutorial": tutorialOutputSpec,
+    "release-notes": releaseNotesOutputSpec,
+    "api-documentation": apiDocumentationOutputSpec,
 };
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Main export
 // ─────────────────────────────────────────────────────────────────────────────
-
 /**
  * Builds the AI generation prompt (Pass 1 / Pass N).
  *
@@ -64,50 +61,42 @@ const OUTPUT_SPEC_MAP: Record<TaskType, () => string> = {
  * This function does NOT perform gap detection. Call detectQuestions() from
  * questionDetector.ts before calling this.
  */
-export function generatePrompt(input: PromptInput): string {
-  validatePromptInput(input);
-
-  const hasPreClarifications = !!(input.preClarifications?.trim());
-  const hasClarifications    = !!(input.clarifications?.trim());
-  const hasAnyAnswers        = hasPreClarifications || hasClarifications;
-
-  // Pre-clarifications are collected BEFORE the first AI call (upfront Q&A in the extension).
-  // ── Pass header (resolution pass only) ──────────────────────────────────
-  const passHeader = (input.pass && input.pass > 1)
-    ? `GENERATION PASS: ${input.pass}
+function generatePrompt(input) {
+    validatePromptInput(input);
+    const hasPreClarifications = !!input.preClarifications?.trim();
+    const hasClarifications = !!input.clarifications?.trim();
+    const hasAnyAnswers = hasPreClarifications || hasClarifications;
+    // ── Pass header (resolution pass only) ──────────────────────────────────
+    const passHeader = (input.pass && input.pass > 1)
+        ? `GENERATION PASS: ${input.pass}
 This is a resolution pass. Preserved ambiguities from the previous pass have
 now been answered in the CLARIFICATIONS block below. Incorporate each answer
 as a factual statement and remove the corresponding item from
 "Preserved Ambiguities". Do not add invented content.
 `
-    : "";
-
-  // ── Clarification blocks ─────────────────────────────────────────────────
-  const preClarificationsSection = hasPreClarifications
-    ? `PRE-CLARIFICATIONS (collected before generation — authoritative, use directly):
+        : "";
+    // ── Clarification blocks ─────────────────────────────────────────────────
+    const preClarificationsSection = hasPreClarifications
+        ? `PRE-CLARIFICATIONS (collected before generation — authoritative, use directly):
 ${input.preClarifications}
 `
-    : "";
-
-  const clarificationsSection = hasClarifications
-    ? `CLARIFICATIONS (collected after previous pass — authoritative):
+        : "";
+    const clarificationsSection = hasClarifications
+        ? `CLARIFICATIONS (collected after previous pass — authoritative):
 ${input.clarifications}
 `
-    : "";
-
-  const clarificationsBlock = hasAnyAnswers
-    ? `CLARIFICATIONS PROVIDED — treat these as ground truth:
+        : "";
+    const clarificationsBlock = hasAnyAnswers
+        ? `CLARIFICATIONS PROVIDED — treat these as ground truth:
 ${preClarificationsSection}${clarificationsSection}`
-    : "";
-
-  // ── Template ─────────────────────────────────────────────────────────────
-  const template = getTemplateFor(input.taskType);
-  const templateContent = input.templateContent?.trim()
-    ? input.templateContent
-    : template.content;
-  const requiredSections = template.requiredSections;
-
-  const templateBlock = `
+        : "";
+    // ── Template ─────────────────────────────────────────────────────────────
+    const template = (0, templates_1.getTemplateFor)(input.taskType);
+    const templateContent = input.templateContent?.trim()
+        ? input.templateContent
+        : template.content;
+    const requiredSections = template.requiredSections;
+    const templateBlock = `
 OUTPUT STRUCTURE — Use exactly these headings in this order.
 Do not add or remove sections. Omit any section that has no source-grounded content.
 
@@ -116,30 +105,18 @@ ${requiredSections.map(s => `- ${s}`).join("\n")}
 TEMPLATE EXAMPLE:
 ${templateContent}
 `;
-
-  // ── Core prompt ──────────────────────────────────────────────────────────
-  const prompt = `SYSTEM:
+    // ── Core prompt ──────────────────────────────────────────────────────────
+    const prompt = `SYSTEM:
 You are a Technical Documentation Agent.
 ${passHeader}
 REWRITE POLICY:
-- Ground every step in a source sentence — do not invent content with no source basis.
-- You MAY expand a step using answer text to produce fluent, readable prose.
-- When incorporating an answer, integrate it naturally into the sentence rather
-  than appending it in parentheses.
-- Prefer active, specific language: "the service starts automatically" over
-  "service starts"; "green status indicator" over a bare colour if the answer
-  implies a UI element.
-- Articles ("the", "a"), conjunctions, and light connective phrases are permitted
-  where they improve readability.
-- Step transformation pattern:
-    Source:  "If successful, service starts."
-    Answer:  "green indicator"
-    Output:  "If the validation is successful, indicated by a green status
-              indicator, the service starts automatically."
+- Use only words, concepts, and steps that exist in the source or the answers below.
+- One source sentence = one output step. Do not split, expand, or add purpose clauses.
+- Shorter and faithful is better than longer and invented.
 - If a section has no source-grounded content, omit it entirely — write nothing under it.
 
 ${clarificationsBlock}
-${GOVERNANCE_RULES}
+${governance_1.GOVERNANCE_RULES}
 
 GOVERNANCE ENFORCEMENT:
 - If you would need to invent something to complete a step, omit it and flag it under Preserved Ambiguities.
@@ -159,14 +136,11 @@ SOURCE CONTENT (authoritative):
 ${input.context}
 ${templateBlock}
 ${OUTPUT_SPEC_MAP[input.taskType]()}`;
-
-  return prompt;
+    return prompt;
 }
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Shared gap-check block  (one canonical version, used by specs that need it)
 // ─────────────────────────────────────────────────────────────────────────────
-
 /**
  * Returns the gap-check instruction block.
  * Only injected into specs for task types where action steps are present
@@ -176,8 +150,8 @@ ${OUTPUT_SPEC_MAP[input.taskType]()}`;
  * This block is a last-resort safety net for gaps that slipped through
  * questionDetector.ts. It should rarely trigger in practice.
  */
-function gapCheckBlock(): string {
-  return `
+function gapCheckBlock() {
+    return `
 SAFETY CHECK (last resort — Pass 0 should have caught these):
 If you encounter a step where any of the following are still unknown, do NOT
 invent a value. List it under Preserved Ambiguities and continue.
@@ -190,46 +164,22 @@ invent a value. List it under Preserved Ambiguities and continue.
 Do not stop generation for these — list them and continue.
 `;
 }
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Per-task output specs
 // ─────────────────────────────────────────────────────────────────────────────
-
-function procedureOutputSpec(): string {
-  return `
+function procedureOutputSpec() {
+    return `
 ${gapCheckBlock()}
 GENERATE: Rewrite the source into a user-facing procedure.
 
-PROCEDURE INTRO SENTENCE:
-- Before the numbered steps, write one sentence in the form:
-  "To [user intent verb phrase], perform the following steps:"
-- Derive the verb phrase from the USER INTENT field, not the source.
-- Example: if userIntent is "deploy the connector" →
-  "To deploy the connector, perform the following steps:"
-
 STEP FORMATTING RULES:
-- Ground every step in a source sentence — do not invent content with no source basis.
-- You MAY expand a step using answer text to produce fluent, readable prose.
-- When incorporating an answer, integrate it naturally into the sentence.
+- One source sentence = one output step. Do not split or expand it.
+- Only include the action. Do not add purpose clauses ("to X"), location phrases
+  ("in the X section"), or result sentences unless the source contains them.
+- If the source says "Add new connector." → output "Add new connector." — nothing more.
+- Combine action and result ONLY when the source itself states both.
 - If a conditional or error branch ends without a stated next action, stop at
   the source's words. Do NOT add implied recovery steps.
-
-STEP EXPANSION FROM ANSWERS:
-- When an answer to a clarification question is prefixed "This answer contains multiple
-  sequential actions", each listed sub-step becomes its own numbered step in the procedure.
-- Do NOT collapse them back into one step.
-- Do NOT add connecting words like "and then" between them.
-
-NOTE FORMATTING RULE:
-- When a Note combines a source condition ("Admin may need to...") with an answer that
-  provides a navigation path, collapse them into one fluent sentence:
-    Correct:   "If required, configure advanced settings in Settings > Advanced Settings
-               on the Connector page."
-    Incorrect: "Admin may need to configure advanced settings. The Advanced Settings
-               option is available in the Settings page inside the Connector page."
-- Format navigation paths using > notation: "Settings > Advanced Settings"
-  not "the settings page inside the connector page".
-- The conditional word from the source ("may", "if required") must be preserved.
 
 PREREQUISITES RULES:
 - Only list a prerequisite if the source contains a sentence that is itself
@@ -247,13 +197,12 @@ Overview               ← Required
 Procedure              ← Required
 Notes                  ← OMIT if source has no notes or caveats
 Result                 ← OMIT if source states no result
-Preserved Ambiguities  ← OMIT only if nothing could be resolved by a follow-up answer
+Preserved Ambiguities  ← OMIT if nothing was vague or unresolved
 Governance Notes       ← OMIT if no governance rules were violated
 `;
 }
-
-function conceptOutputSpec(): string {
-  return `
+function conceptOutputSpec() {
+    return `
 GENERATE: Rewrite the source into a formal concept explanation.
 
 SECTION SUPPRESSION:
@@ -268,9 +217,8 @@ Preserved Ambiguities     ← OMIT if nothing was vague or unresolved
 Governance Notes          ← OMIT if no governance rules were violated
 `;
 }
-
-function troubleshootingOutputSpec(): string {
-  return `
+function troubleshootingOutputSpec() {
+    return `
 ${gapCheckBlock()}
 GENERATE: Rewrite the source into a troubleshooting guide.
 
@@ -287,9 +235,8 @@ Preserved Ambiguities  ← OMIT if nothing was vague or unresolved
 Governance Notes       ← OMIT if no governance rules were violated
 `;
 }
-
-function referenceOutputSpec(): string {
-  return `
+function referenceOutputSpec() {
+    return `
 GENERATE: Rewrite the source into a reference document.
 
 SECTION SUPPRESSION:
@@ -304,9 +251,8 @@ Preserved Ambiguities  ← OMIT if nothing was vague or unresolved
 Governance Notes       ← OMIT if no governance rules were violated
 `;
 }
-
-function tutorialOutputSpec(): string {
-  return `
+function tutorialOutputSpec() {
+    return `
 ${gapCheckBlock()}
 GENERATE: Rewrite the source into a tutorial.
 
@@ -323,9 +269,8 @@ Preserved Ambiguities  ← OMIT if nothing was vague or unresolved
 Governance Notes       ← OMIT if no governance rules were violated
 `;
 }
-
-function releaseNotesOutputSpec(): string {
-  return `
+function releaseNotesOutputSpec() {
+    return `
 GENERATE: Rewrite the source into release notes.
 
 SECTION SUPPRESSION:
@@ -341,9 +286,8 @@ Preserved Ambiguities  ← OMIT if nothing was vague or unresolved
 Governance Notes       ← OMIT if no governance rules were violated
 `;
 }
-
-function apiDocumentationOutputSpec(): string {
-  return `
+function apiDocumentationOutputSpec() {
+    return `
 GENERATE: Rewrite the source into API documentation.
 
 SECTION SUPPRESSION:
@@ -360,3 +304,4 @@ Preserved Ambiguities    ← OMIT if nothing was vague or unresolved
 Governance Notes         ← OMIT if no governance rules were violated
 `;
 }
+//# sourceMappingURL=promptBuilder.js.map

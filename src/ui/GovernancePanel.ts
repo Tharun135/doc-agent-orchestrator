@@ -3,6 +3,7 @@ import { GovernanceReport, RuleViolation, Severity } from "../engine/validation/
 import { DiffResult } from "./diffUtils";
 import { PreservedAmbiguity } from "../engine/ambiguityParser";
 import { analyzeInvention, InventionReport } from "../engine/inventionAnalyzer";
+import { groundOutput, GroundingReport } from "../engine/sourceGrounding";
 
 // ---------------------------------------------------------------------------
 // GovernancePanel
@@ -163,6 +164,8 @@ export class GovernancePanel {
     const ambigJson = JSON.stringify(ambiguities);
 
     const isBlocked = status === "blocked";
+    const groundingReport = groundOutput(sourceText, aiText);
+    const groundingPct = Math.round(groundingReport.groundingRatio * 100);
 
     return /* html */ `<!DOCTYPE html>
 <html lang="en">
@@ -420,6 +423,48 @@ export class GovernancePanel {
     margin: 0 4px;
   }
 
+  /* ---- Grounding table ---- */
+  .grounding-summary {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--vscode-panel-border, #333);
+    font-size: 11px;
+    line-height: 1.6;
+  }
+  .grounding-summary-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .grounding-stat { font-weight: 700; font-size: 13px; }
+  .grounding-hint {
+    margin-top: 6px;
+    padding: 6px 10px;
+    background: rgba(240, 100, 32, 0.1);
+    border-left: 3px solid #f06420;
+    border-radius: 0 3px 3px 0;
+    color: #f09060;
+    font-size: 11px;
+  }
+  .grounding-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+    font-family: var(--vscode-font-family, 'Segoe UI', sans-serif);
+  }
+  .grounding-table th {
+    position: sticky;
+    top: 0;
+    padding: 6px 8px;
+    background: var(--vscode-editor-background, #1e1e1e);
+    border-bottom: 1px solid var(--vscode-panel-border, #333);
+    text-align: left;
+    font-weight: 600;
+    color: #aaa;
+  }
+  .grounding-table td { padding: 5px 8px; border-bottom: 1px solid var(--vscode-panel-border, #333); vertical-align: top; }
+  .grounding-table tr:hover { background: var(--vscode-list-hoverBackground, #2a2a2a); }
+  .grounding-row-unanchored td { background: rgba(240, 64, 64, 0.08); }
+  .grounding-status { width: 28px; text-align: center; font-size: 14px; }
+  .grounding-sentence { max-width: 280px; word-break: break-word; }
+  .grounding-anchor { max-width: 240px; word-break: break-word; color: #888; font-style: italic; }
+  .grounding-sim { width: 52px; text-align: right; font-weight: 600; }
+
   /* ---- Footer ---- */
   .footer {
     position: fixed;
@@ -508,6 +553,10 @@ export class GovernancePanel {
     <div class="metric-value" style="color:#f08080">${diff.removedCount}</div>
     <div class="metric-label">Lines Removed</div>
   </div>
+  <div class="metric">
+    <div class="metric-value" style="color:${groundingPct >= 80 ? '#4ec94e' : groundingPct >= 60 ? '#f0c040' : '#f04040'}">${groundingPct}%</div>
+    <div class="metric-label">Grounding</div>
+  </div>
 </div>
 
 <!-- ======== Main panes ======== -->
@@ -532,6 +581,7 @@ export class GovernancePanel {
     <div class="pane-tabs">
       <button class="pane-tab active" data-tab="diff-view">📄 Diff View</button>
       <button class="pane-tab" data-tab="invention-view">📊 Invention Tracker</button>
+      <button class="pane-tab" data-tab="grounding-view">🔗 Grounding</button>
     </div>
     
     <!-- Diff tab content -->
@@ -546,6 +596,11 @@ export class GovernancePanel {
     <!-- Invention tracker tab content -->
     <div class="pane-tab-content" data-tab="invention-view" style="overflow-y: auto; flex: 1;">
       ${this._buildInventionTracker(sourceText, aiText)}
+    </div>
+
+    <!-- Grounding tab content -->
+    <div class="pane-tab-content" data-tab="grounding-view" style="overflow-y: auto; flex: 1;">
+      ${this._buildGroundingTab(groundingReport)}
     </div>
   </div>
 
@@ -725,6 +780,68 @@ export class GovernancePanel {
     `;
     
     return summaryHtml + tableHtml;
+  }
+
+  // -------------------------------------------------------------------------
+  // Grounding tab renderer
+  // -------------------------------------------------------------------------
+
+  private _buildGroundingTab(report: GroundingReport): string {
+    const anchoredCount = report.total - report.unanchoredCount;
+    const pct           = Math.round(report.groundingRatio * 100);
+    const pctColor      = pct >= 80 ? '#4ec94e' : pct >= 60 ? '#f0c040' : '#f04040';
+
+    const summaryHtml = `
+      <div class="grounding-summary">
+        <div class="grounding-summary-row">
+          <span class="grounding-stat" style="color:${pctColor}">${pct}% Source Grounding</span>
+          &nbsp;&middot;&nbsp; ${anchoredCount} anchored
+          &nbsp;&middot;&nbsp;
+          <span style="color:${report.unanchoredCount > 0 ? '#f04040' : '#4ec94e'}">${report.unanchoredCount} unanchored</span>
+          &nbsp;&middot;&nbsp; ${report.total} sentences analysed
+        </div>
+        ${report.unanchoredCount > 0
+          ? `<div class="grounding-hint">Unanchored sentences share no vocabulary with the source. They may represent invented workflow branches not traceable to the original content.</div>`
+          : `<div style="color:#4ec94e;margin-top:6px;font-size:11px">✅ All output sentences are traceable to the source.</div>`
+        }
+      </div>
+    `;
+
+    const tableRows = report.anchors
+      .filter(a => !(a.similarity === 1 && !a.anchor))
+      .map(a => {
+        const icon   = a.unanchored ? '🚨' : a.anchoredByAnswer ? '🟡' : '✅';
+        const cls    = a.unanchored ? 'grounding-row-unanchored' : '';
+        const simPct = Math.round(a.similarity * 100);
+        const simColor = simPct < 15 ? '#f04040' : simPct < 35 ? '#f0c040' : '#4ec94e';
+        const sent   = this._esc(
+          a.sentence.length > 110 ? a.sentence.slice(0, 110) + '…' : a.sentence
+        );
+        const anch   = a.anchor
+          ? this._esc(a.anchor.length > 90 ? a.anchor.slice(0, 90) + '…' : a.anchor)
+          : '<span style="color:#555">&mdash;</span>';
+        return `<tr class="${cls}">
+          <td class="grounding-status">${icon}</td>
+          <td class="grounding-sentence">${sent}</td>
+          <td class="grounding-anchor">${anch}</td>
+          <td class="grounding-sim" style="color:${simColor}">${simPct}%</td>
+        </tr>`;
+      })
+      .join('');
+
+    return summaryHtml + `
+      <table class="grounding-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Output Sentence</th>
+            <th>Closest Source Anchor</th>
+            <th>Match</th>
+          </tr>
+        </thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+    `;
   }
 
   // -------------------------------------------------------------------------

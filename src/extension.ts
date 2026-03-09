@@ -8,7 +8,7 @@ import { GovernanceProfile } from "./engine/validation/types";
 import { GovernancePanel } from "./ui/GovernancePanel";
 import { computeDiff } from "./ui/diffUtils";
 import { parsePreservedAmbiguities, formatClarifications } from "./engine/ambiguityParser";
-import { detectQuestions, formatPreClarifications } from "./engine/questionDetector";
+import { detectQuestions, formatPreClarifications, DetectedQuestion } from "./engine/questionDetector";
 
 let lastRewriteContext: {
   originalText: string;
@@ -117,33 +117,11 @@ export function activate(context: vscode.ExtensionContext) {
         let preClarifications: string | undefined;
 
         if (detectedQuestions.length > 0) {
-          const proceed = await vscode.window.showInformationMessage(
-            `📋 ${detectedQuestions.length} question${detectedQuestions.length === 1 ? '' : 's'} detected in your source. Answering them now will produce a complete document in one pass.`,
-            { modal: true },
-            "Answer Questions",
-            "Skip & Generate Anyway"
-          );
+          // Show Q&A WebView panel and collect all answers before any AI call
+          const answers = await showQAPanel(context.extensionUri, detectedQuestions);
 
-          if (proceed === "Answer Questions") {
-            const answers: string[] = [];
-            for (let i = 0; i < detectedQuestions.length; i++) {
-              const q = detectedQuestions[i];
-              const answer = await vscode.window.showInputBox({
-                title: `Question ${i + 1} of ${detectedQuestions.length}`,
-                prompt: q.question,
-                placeHolder: q.placeholder ?? "Enter your answer",
-                ignoreFocusOut: true,
-              });
-              if (answer === undefined) {
-                // User cancelled — stop asking, proceed without pre-clarifications
-                answers.splice(0);
-                break;
-              }
-              answers.push(answer.trim());
-            }
-            if (answers.length === detectedQuestions.length) {
-              preClarifications = formatPreClarifications(detectedQuestions, answers);
-            }
+          if (answers !== null && answers.length === detectedQuestions.length) {
+            preClarifications = formatPreClarifications(detectedQuestions, answers);
           }
         }
 
@@ -671,6 +649,342 @@ async function applyRewrite(
     await vscode.window.showTextDocument(newDoc, { preview: false });
   }
   vscode.window.showInformationMessage("✅ Rewrite applied successfully.");
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Q&A WebView panel
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Shows a WebView panel with one input per detected question.
+ * Returns an array of answer strings (same order as questions),
+ * or null if the user cancelled.
+ */
+async function showQAPanel(
+  extensionUri: vscode.Uri,
+  questions: DetectedQuestion[],
+): Promise<string[] | null> {
+  return new Promise((resolve) => {
+    const panel = vscode.window.createWebviewPanel(
+      "docGenQA",
+      `Answer ${questions.length} question${questions.length !== 1 ? "s" : ""} before generating`,
+      vscode.ViewColumn.Beside,
+      { enableScripts: true, retainContextWhenHidden: true, localResourceRoots: [extensionUri] },
+    );
+
+    panel.webview.html = buildQAHtml(questions);
+
+    panel.webview.onDidReceiveMessage((msg) => {
+      if (msg.type === "submit") {
+        panel.dispose();
+        resolve(msg.answers as string[]);
+      } else if (msg.type === "cancel") {
+        panel.dispose();
+        resolve(null);
+      }
+    });
+
+    // Closing the panel without submitting resolves as null (skip)
+    panel.onDidDispose(() => resolve(null));
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Gap type lookup
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Maps a DetectedQuestion id prefix to a human-readable gap type label
+ * and display icon. Used by the Gap Resolution Panel.
+ */
+function gapTypeFromId(id: string): { label: string; icon: string } {
+  const prefix = id.split(':')[0];
+  const MAP: Record<string, { label: string; icon: string }> = {
+    'ui-location':              { label: 'UI Location Missing',               icon: '\uD83D\uDDFA\uFE0F' },
+    'vague-object':             { label: 'Vague Action Object',               icon: '\u2753' },
+    'condition-pass':           { label: 'Success Indicator Missing',         icon: '\u2705' },
+    'error-recovery':           { label: 'Error Recovery Undefined',          icon: '\uD83D\uDEA8' },
+    'check-logs':               { label: 'Log Reference Missing',             icon: '\uD83D\uDCCB' },
+    'verify-method':            { label: 'Verification Method Missing',       icon: '\uD83D\uDD0D' },
+    'set-no-value':             { label: 'Parameter Value Missing',           icon: '\u2699\uFE0F' },
+    'unknown-default':          { label: 'Default Value Unspecified',         icon: '\uD83D\uDCCC' },
+    'placeholder':              { label: 'Placeholder Token Undefined',       icon: '\uD83D\uDD27' },
+    'auth-detail':              { label: 'Authentication Method Missing',     icon: '\uD83D\uDD11' },
+    'undefined-process':        { label: 'Process Steps Undefined',           icon: '\uD83D\uDCCB' },
+    'restart-wait':             { label: 'Restart Wait Condition Missing',    icon: '\u23F3' },
+    'vague-enum':               { label: 'Incomplete Enumeration',            icon: '\uD83D\uDCDD' },
+    'vague-adjective':          { label: 'Vague Selection Criteria',          icon: '\u2753' },
+    'no-unit':                  { label: 'Numeric Units Missing',             icon: '\uD83D\uDCCF' },
+    'absent-doc':               { label: 'External Reference Incomplete',     icon: '\uD83D\uDD17' },
+    'wait-no-indicator':        { label: 'Wait Completion Indicator Missing', icon: '\u23F3' },
+    'conditional-action-what':  { label: 'Conditional Action Undefined',      icon: '\uD83D\uDD00' },
+    'conditional-action-where': { label: 'Conditional Location Missing',      icon: '\uD83D\uDDFA\uFE0F' },
+    'role-vague-access':        { label: 'Role / Access Undefined',           icon: '\uD83D\uDC64' },
+    'vague-subset':             { label: 'Scope Selection Undefined',         icon: '\uD83D\uDD0D' },
+    'actor-ambiguity':          { label: 'Actor Ambiguity',                   icon: '\uD83D\uDC65' },
+    'data-format':              { label: 'Data Format Missing',               icon: '\uD83D\uDCC1' },
+    'intent-source-mismatch':   { label: 'Source / Intent Mismatch',         icon: '\u26A0\uFE0F' },
+  };
+  return MAP[prefix] ?? { label: 'Information Needed', icon: '\u2753' };
+}
+
+function buildQAHtml(questions: DetectedQuestion[]): string {
+  const cards = questions.map((q, i) => {
+    const { label, icon } = gapTypeFromId(q.id);
+    const hasSource = q.sourceContext !== '(whole source)';
+    return `
+    <div class="gap-card" id="card${i}">
+      <div class="gap-card-header">
+        <div class="gap-type-badge">
+          <span class="gap-icon">${icon}</span>
+          <span class="gap-label">${escHtml(label)}</span>
+        </div>
+        <label class="skip-toggle" title="Skip this question">
+          <input type="checkbox" class="skip-check" data-idx="${i}" id="skip${i}">
+          <span>Skip</span>
+        </label>
+      </div>
+      ${hasSource ? `<div class="source-line"><span class="source-tag">Source</span> <em>${escHtml(q.sourceContext)}</em></div>` : ''}
+      <div class="question-text">${escHtml(q.question)}</div>
+      <input
+        id="q${i}"
+        class="answer-input"
+        type="text"
+        placeholder="${escHtml(q.placeholder ?? 'Your answer (leave blank to skip)')}"
+        autocomplete="off"
+      />
+    </div>`;
+  }).join('');
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Gap Resolution Panel</title>
+  <style>
+    body {
+      font-family: var(--vscode-font-family);
+      padding: 16px 20px 80px;
+      color: var(--vscode-foreground);
+      background: var(--vscode-editor-background);
+      max-width: 740px;
+      margin: 0 auto;
+    }
+    h2 { margin: 0 0 4px; font-size: 1rem; }
+    .intro { margin-bottom: 18px; font-size: 0.82rem; opacity: 0.7; line-height: 1.5; }
+    .count-badge {
+      display: inline-block;
+      background: var(--vscode-badge-background, #4d4d4d);
+      color: var(--vscode-badge-foreground, #fff);
+      border-radius: 10px;
+      padding: 1px 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+    .gap-card {
+      border: 1px solid var(--vscode-panel-border, #3a3a3a);
+      border-radius: 5px;
+      margin-bottom: 14px;
+      padding: 12px 14px;
+      transition: border-color 0.15s, opacity 0.15s;
+    }
+    .gap-card.skipped { opacity: 0.4; }
+    .gap-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .gap-type-badge { display: flex; align-items: center; gap: 6px; }
+    .gap-icon { font-size: 1rem; line-height: 1; }
+    .gap-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--vscode-textLink-foreground, #4fc1ff);
+    }
+    .skip-toggle {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.78rem;
+      color: #888;
+      cursor: pointer;
+      user-select: none;
+    }
+    .skip-toggle input { cursor: pointer; }
+    .source-line {
+      font-size: 0.79rem;
+      background: var(--vscode-textBlockQuote-background, #2a2d2e);
+      border-left: 3px solid var(--vscode-textBlockQuote-border, #555);
+      padding: 4px 8px;
+      margin-bottom: 8px;
+      border-radius: 0 3px 3px 0;
+      color: #aaa;
+    }
+    .source-tag {
+      font-weight: 600;
+      margin-right: 4px;
+      color: #888;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+    }
+    .question-text {
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      line-height: 1.45;
+    }
+    .answer-input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 6px 8px;
+      font-size: 0.88rem;
+      background: var(--vscode-input-background);
+      color: var(--vscode-input-foreground);
+      border: 1px solid var(--vscode-input-border, #555);
+      border-radius: 3px;
+    }
+    .answer-input:focus {
+      outline: none;
+      border-color: var(--vscode-focusBorder, #007fd4);
+    }
+    .answer-input:disabled { opacity: 0.35; cursor: not-allowed; }
+    .footer-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      padding: 10px 20px;
+      background: var(--vscode-editor-background);
+      border-top: 1px solid var(--vscode-panel-border, #3a3a3a);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .footer-stat { flex: 1; font-size: 0.78rem; color: #888; }
+    button {
+      padding: 6px 18px;
+      border: none;
+      border-radius: 3px;
+      font-size: 0.88rem;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    #btnGenerate {
+      background: var(--vscode-button-background);
+      color: var(--vscode-button-foreground);
+    }
+    #btnGenerate:hover { background: var(--vscode-button-hoverBackground); }
+    #btnSkipAll {
+      background: var(--vscode-button-secondaryBackground, #3a3a3a);
+      color: var(--vscode-button-secondaryForeground, #ccc);
+    }
+  </style>
+</head>
+<body>
+  <h2>Documentation Gaps Detected <span class="count-badge">${questions.length}</span></h2>
+  <p class="intro">
+    The source is missing specific details needed for a complete, accurate document.
+    Answer what you can &mdash; blank answers and skipped items are excluded from the prompt.
+  </p>
+  ${cards}
+  <div class="footer-bar">
+    <span class="footer-stat" id="footerStat">0 / ${questions.length} answered</span>
+    <button type="button" id="btnSkipAll">Skip All &amp; Generate</button>
+    <button type="button" id="btnGenerate">Generate Prompt &rarr;</button>
+  </div>
+  <script>
+    const vscode = acquireVsCodeApi();
+    const total = ${questions.length};
+
+    // Skip checkbox toggles card opacity and disables its input
+    document.querySelectorAll('.skip-check').forEach(cb => {
+      cb.addEventListener('change', () => {
+        const idx   = cb.getAttribute('data-idx');
+        const card  = document.getElementById('card' + idx);
+        const input = document.getElementById('q' + idx);
+        if (cb.checked) {
+          card.classList.add('skipped');
+          input.disabled = true;
+          input.value = '';
+        } else {
+          card.classList.remove('skipped');
+          input.disabled = false;
+        }
+        updateStat();
+      });
+    });
+
+    function answeredCount() {
+      let count = 0;
+      for (let i = 0; i < total; i++) {
+        const skip  = document.getElementById('skip' + i);
+        const input = document.getElementById('q' + i);
+        if (skip && !skip.checked && input && input.value.trim()) { count++; }
+      }
+      return count;
+    }
+
+    function updateStat() {
+      const el = document.getElementById('footerStat');
+      if (el) { el.textContent = answeredCount() + ' / ' + total + ' answered'; }
+    }
+
+    document.querySelectorAll('.answer-input').forEach(el => {
+      el.addEventListener('input', updateStat);
+    });
+
+    function collectAnswers() {
+      const answers = [];
+      for (let i = 0; i < total; i++) {
+        const skip  = document.getElementById('skip' + i);
+        const input = document.getElementById('q' + i);
+        answers.push((skip && skip.checked) ? '' : (input ? input.value.trim() : ''));
+      }
+      return answers;
+    }
+
+    document.getElementById('btnGenerate').addEventListener('click', () => {
+      vscode.postMessage({ type: 'submit', answers: collectAnswers() });
+    });
+
+    document.getElementById('btnSkipAll').addEventListener('click', () => {
+      vscode.postMessage({ type: 'cancel' });
+    });
+
+    // Enter moves to next enabled input; Enter on last submits
+    document.querySelectorAll('.answer-input').forEach((el) => {
+      el.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const enabled = Array.from(document.querySelectorAll('.answer-input:not([disabled])'));
+          const curIdx  = enabled.indexOf(el);
+          if (curIdx >= 0 && curIdx < enabled.length - 1) {
+            enabled[curIdx + 1].focus();
+          } else {
+            document.getElementById('btnGenerate').click();
+          }
+        }
+      });
+    });
+
+    // Focus first enabled input on load
+    const first = document.querySelector('.answer-input:not([disabled])');
+    if (first) { first.focus(); }
+  </script>
+</body>
+</html>`;
+}
+
+function escHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 export function deactivate() {}

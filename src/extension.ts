@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { generatePrompt } from "./engine/promptGenerator";
 import { TaskType } from "./engine/types";
+import { getTemplateFor } from "./engine/templates";
 import { GovernanceValidator } from "./engine/validation/validator";
 import { GOVERNANCE_PROFILES, DEFAULT_PROFILE } from "./engine/validation/profiles";
 import { GovernanceProfile } from "./engine/validation/types";
@@ -93,8 +94,26 @@ export function activate(context: vscode.ExtensionContext) {
           return;
         }
 
+        // ── Template preview & edit: open the template so the user can modify it before gap detection ──
+        const tmpl = getTemplateFor(taskPick.value);
+        const templateDoc = await vscode.workspace.openTextDocument({ content: tmpl.content, language: "markdown" });
+        const templateEditor = await vscode.window.showTextDocument(templateDoc, { viewColumn: vscode.ViewColumn.Beside, preview: false });
+
+        const use = await vscode.window.showInformationMessage(
+          "Edit the template as needed. When ready, click 'Use Template' to continue.",
+          { modal: true },
+          "Use Template",
+          "Cancel"
+        );
+        if (use !== "Use Template") {
+          // User cancelled template selection — abort the generation flow
+          return;
+        }
+
+        const editedTemplateText = templateEditor.document.getText();
+
         // ── Upfront Q&A: detect gaps in source and ask user before first AI call ──
-        const detectedQuestions = detectQuestions(contextText, taskPick.value);
+        const detectedQuestions = detectQuestions(contextText, taskPick.value, editedTemplateText, userIntent);
         let preClarifications: string | undefined;
 
         if (detectedQuestions.length > 0) {
@@ -133,6 +152,7 @@ export function activate(context: vscode.ExtensionContext) {
           userIntent,
           context: contextText,
           preClarifications,
+          templateContent: editedTemplateText,
         });
 
         // Reset pass counter for a fresh generation run

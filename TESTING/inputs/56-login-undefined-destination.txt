@@ -1,0 +1,16 @@
+Source: Login Procedure
+
+1. Click login button.
+2. System checks credentials.
+3. If valid, redirect to dashboard.
+4. If invalid, show error message.
+Admin users get extra options to manage users.
+
+---
+
+Gaps to detect:
+Q1: Checker 3 — "If valid" without specific condition indicator
+Q2: Checker 4 — "If invalid" error recovery undefined
+Q3: Checker 19 — "extra options" vague access without specifics
+Q4: Checker 32 (NEW) — "redirect to dashboard" navigation without destination definition
+Q5: Global prereq — credentials mention without prerequisite clarity

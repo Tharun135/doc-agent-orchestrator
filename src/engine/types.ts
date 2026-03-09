@@ -20,4 +20,6 @@ export interface PromptInput {
   clarifications?: string;
   /** 1-based pass number. Pass 1 = initial generation; 2+ = ambiguity resolution rounds. */
   pass?: number;
+  /** Optional template content override (user-edited template). */
+  templateContent?: string;
 }

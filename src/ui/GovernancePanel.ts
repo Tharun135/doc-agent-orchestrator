@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { GovernanceReport, RuleViolation, Severity } from "../engine/validation/types";
 import { DiffResult } from "./diffUtils";
 import { PreservedAmbiguity } from "../engine/ambiguityParser";
+import { analyzeInvention, InventionReport } from "../engine/inventionAnalyzer";
 
 // ---------------------------------------------------------------------------
 // GovernancePanel
@@ -77,10 +78,11 @@ export class GovernancePanel {
     profileName: string,
     callbacks: PanelCallbacks,
     private readonly _ambiguities: PreservedAmbiguity[] = [],
-    private readonly _pass: number = 1
+    private readonly _pass: number = 1,
+    private readonly _sourceText: string = sourceText
   ) {
     this._panel = panel;
-    this._panel.webview.html = this._buildHtml(report, diff, aiText, profileName, _ambiguities, _pass);
+    this._panel.webview.html = this._buildHtml(report, diff, sourceText, aiText, profileName, _ambiguities, _pass);
 
     // Handle messages from webview
     this._panel.webview.onDidReceiveMessage(
@@ -130,6 +132,7 @@ export class GovernancePanel {
   private _buildHtml(
     report: GovernanceReport,
     diff: DiffResult,
+    sourceText: string,
     aiText: string,
     profileName: string,
     ambiguities: PreservedAmbiguity[] = [],
@@ -324,6 +327,99 @@ export class GovernancePanel {
   .diff-added   { background: rgba(50, 180, 50,  0.18); color: #80c880; }
   .diff-removed .ln, .diff-added .ln { color: #777; }
 
+  /* ---- Tabs ---- */
+  .pane-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--vscode-panel-border, #333);
+    background: var(--vscode-editor-background, #1e1e1e);
+  }
+  .pane-tab {
+    flex: 0 0 auto;
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    color: #888;
+    cursor: pointer;
+    font-size: 12px;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s ease;
+  }
+  .pane-tab:hover {
+    color: #aaa;
+  }
+  .pane-tab.active {
+    color: var(--vscode-foreground, #ccc);
+    border-bottom-color: #4090f0;
+  }
+  .pane-tab-content {
+    display: none;
+    overflow-y: auto;
+    flex: 1;
+  }
+  .pane-tab-content.active {
+    display: block;
+  }
+
+  /* ---- Invention table ---- */
+  .invention-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--vscode-font-family, 'Segoe UI', sans-serif);
+    font-size: 11px;
+  }
+  .invention-table th {
+    position: sticky;
+    top: 0;
+    padding: 6px 8px;
+    background: var(--vscode-editor-background, #1e1e1e);
+    border-bottom: 1px solid var(--vscode-panel-border, #333);
+    text-align: left;
+    font-weight: 600;
+    color: #aaa;
+    white-space: nowrap;
+  }
+  .invention-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--vscode-panel-border, #333);
+  }
+  .invention-table tr:hover { background: var(--vscode-list-hoverBackground, #2a2a2a); }
+  .inv-classified { font-weight: 600; }
+  .inv-preserved { color: #4ec94e; }
+  .inv-clarified { color: #4090f0; }
+  .inv-inferred { color: #f09020; }
+  .inv-invented { color: #f04040; }
+  .inv-strengthened { color: #f0c040; }
+  .inv-severity { font-size: 10px; padding: 2px 4px; border-radius: 2px; }
+  .inv-severity.low { background: rgba(78, 201, 78, 0.2); color: #4ec94e; }
+  .inv-severity.medium { background: rgba(240, 160, 32, 0.2); color: #f0a020; }
+  .inv-severity.high { background: rgba(240, 64, 64, 0.2); color: #f04040; }
+
+  /* ---- Invention summary ---- */
+  .invention-summary {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--vscode-panel-border, #333);
+    background: var(--vscode-editor-background, #1e1e1e);
+    font-size: 11px;
+    line-height: 1.5;
+  }
+  .invention-summary-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 4px 0;
+  }
+  .invention-summary-stat { font-weight: 600; }
+  .expansion-gauge {
+    display: inline-block;
+    width: 100px;
+    height: 12px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, #2d7d2d 0%, #f0c040 50%, #f04040 100%);
+    opacity: 0.6;
+    margin: 0 4px;
+  }
+
   /* ---- Footer ---- */
   .footer {
     position: fixed;
@@ -431,12 +527,26 @@ export class GovernancePanel {
   </div>
 
   <!-- Diff pane -->
-  <div class="pane" style="flex:1">
-    <div class="pane-header" style="display:flex;gap:0">
-      <span style="flex:1;padding-left:48px">Source</span>
-      <span style="flex:1;padding-left:48px">AI Output</span>
+  <div class="pane" style="flex:1; display: flex; flex-direction: column;">
+    <!-- Tab bar -->
+    <div class="pane-tabs">
+      <button class="pane-tab active" data-tab="diff-view">📄 Diff View</button>
+      <button class="pane-tab" data-tab="invention-view">📊 Invention Tracker</button>
     </div>
-    ${this._buildDiffTable(diff)}
+    
+    <!-- Diff tab content -->
+    <div class="pane-tab-content active" data-tab="diff-view" style="overflow-y: auto; flex: 1;">
+      <div class="pane-header" style="display:flex;gap:0">
+        <span style="flex:1;padding-left:48px">Source</span>
+        <span style="flex:1;padding-left:48px">AI Output</span>
+      </div>
+      ${this._buildDiffTable(diff)}
+    </div>
+    
+    <!-- Invention tracker tab content -->
+    <div class="pane-tab-content" data-tab="invention-view" style="overflow-y: auto; flex: 1;">
+      ${this._buildInventionTracker(sourceText, aiText)}
+    </div>
   </div>
 
 </div>
@@ -457,6 +567,22 @@ export class GovernancePanel {
 
 <script>
   const vscode = acquireVsCodeApi();
+
+  // Tab switching
+  document.querySelectorAll('.pane-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const tabName = tab.getAttribute('data-tab');
+      
+      // Remove active state from all tabs and contents
+      document.querySelectorAll('.pane-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.pane-tab-content').forEach(c => c.classList.remove('active'));
+      
+      // Add active state to clicked tab and corresponding content
+      tab.classList.add('active');
+      const selector = '[data-tab="' + tabName + '"]';
+      document.querySelector(selector).classList.add('active');
+    });
+  });
 
   document.getElementById('btnAccept')?.addEventListener('click', () => {
     vscode.postMessage({ command: 'accept' });
@@ -512,6 +638,93 @@ export class GovernancePanel {
         ${phrase}${context}${confidence}
       </div>
     `;
+  }
+
+  // -------------------------------------------------------------------------
+  // Invention Tracker renderer
+  // -------------------------------------------------------------------------
+
+  private _buildInventionTracker(sourceText: string, aiText: string): string {
+    const report = analyzeInvention(sourceText, aiText);
+    
+    // Build summary section
+    const summaryHtml = `
+      <div class="invention-summary">
+        <div class="invention-summary-row">
+          <span class="invention-summary-stat">✅ Preserved:</span>
+          <span>${report.stats.preserved}</span>
+          <span class="invention-summary-stat">🟡 Clarified:</span>
+          <span>${report.stats.clarified}</span>
+          <span class="invention-summary-stat">🟠 Inferred:</span>
+          <span>${report.stats.inferred}</span>
+        </div>
+        <div class="invention-summary-row">
+          <span class="invention-summary-stat">⚠️  Strengthened:</span>
+          <span>${report.stats.strengthened}</span>
+          <span class="invention-summary-stat">🔴 Invented:</span>
+          <span>${report.stats.invented}</span>
+          <span class="invention-summary-stat">Total Mappings:</span>
+          <span>${report.stats.total}</span>
+        </div>
+        <div class="invention-summary-row">
+          <span class="invention-summary-stat">Expansion Ratio:</span>
+          <span>${report.expansionRatio.toFixed(1)}%</span>
+          <span class="expansion-gauge"></span>
+          <span style="font-size: 10px; color: #888;">
+            ${report.expansionRatio <= 30 ? "✅" : report.expansionRatio <= 50 ? "🟡" : "⚠️ "}
+            ${report.summary}
+          </span>
+        </div>
+      </div>
+    `;
+    
+    // Build mappings table
+    const tableRows = report.mappings.map((mapping) => {
+      const classIcon = {
+        PRESERVED: "✅",
+        CLARIFIED: "🟡",
+        INFERRED: "🟠",
+        INVENTED: "🔴",
+        STRENGTHENED: "⚠️ ",
+      }[mapping.classification] || "?";
+      
+      const classColor = {
+        PRESERVED: "inv-preserved",
+        CLARIFIED: "inv-clarified",
+        INFERRED: "inv-inferred",
+        INVENTED: "inv-invented",
+        STRENGTHENED: "inv-strengthened",
+      }[mapping.classification] || "";
+      
+      return `<tr>
+        <td><span class="inv-classified ${classColor}">${classIcon} ${mapping.classification}</span></td>
+        <td style="font-size:10px;color:#888">${mapping.category}</td>
+        <td style="max-width: 250px; word-break: break-word;">${this._esc(mapping.sourcePhrase)}</td>
+        <td style="max-width: 250px; word-break: break-word;">${this._esc(mapping.outputPhrase)}</td>
+        <td><span class="inv-severity ${mapping.severity}">${mapping.severity.toUpperCase()}</span></td>
+        <td style="font-size:10px;color:#999;max-width:200px">${this._esc(mapping.reason)}</td>
+      </tr>`;
+    }).join("");
+    
+    const tableHtml = `
+      <table class="invention-table">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Category</th>
+            <th>Source Phrase</th>
+            <th>Output Phrase</th>
+            <th>Severity</th>
+            <th>Reason</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${tableRows}
+        </tbody>
+      </table>
+    `;
+    
+    return summaryHtml + tableHtml;
   }
 
   // -------------------------------------------------------------------------

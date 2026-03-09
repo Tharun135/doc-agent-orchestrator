@@ -6,6 +6,8 @@
  * BEFORE the AI prompt is built — so the AI receives complete information on
  * the first call and produces a fully detailed document without a second pass.
  *
+ * Contains 40 per-line pattern checkers + 2 global checkers.
+ *
  * Approach:
  *   For every action step   → Does it say WHERE in the UI?
  *   For every action step   → Does it say what success looks like?
@@ -13,6 +15,9 @@
  *   For every conditional   → Is the CONDITION defined?
  *   For every error branch  → Is the RECOVERY fully described?
  *   For every vague noun    → Is it specified?
+ *   For multi-step actions  → Should it be broken down?
+ *   For state transitions   → Is there a visible indicator?
+ *   For deployments         → Is there a rollback path?
  *   For the whole source    → Are there implied PREREQUISITES?
  *
  * Rules:
@@ -22,6 +27,7 @@
  */
 
 import { TaskType } from "./types";
+import { getTemplateFor } from "./templates";
 
 export interface DetectedQuestion {
   /** Unique identifier (used to match answer back to question). */
@@ -67,9 +73,12 @@ type Checker = (line: string, lineIndex: number) => DetectedQuestion | null;
 const checkers: Checker[] = [
 
   // ── 1. Action step with no UI location ────────────────────────────────────
-  // Any line starting with an action verb and not already naming a UI location.
+  // Any line starting with an action verb, or starting with a transitional word
+  // followed by an action verb (e.g. "Then deploy ...", "Next, select ...").
   (line) => {
-    const actionVerb = line.match(
+    // Strip a leading transitional word so "Then deploy ...", "Next select ..." are caught.
+    const stripped = line.replace(/^(then|next|now|also|finally|after\s+that)[,\s]+/i, "").trim();
+    const actionVerb = stripped.match(
       /^(add|build|click|check|close|configure|connect|create|delete|deploy|disable|download|edit|enable|enter|export|import|install|launch|load|log in|login|manage|map|navigate|open|remove|request|restart|run|save|select|set|start|stop|submit|switch|test|toggle|type|uninstall|update|upload|use|verify|view)\b/i
     );
     if (!actionVerb) { return null; }
@@ -279,10 +288,15 @@ const checkers: Checker[] = [
   },
 
   // ── 16. Reference to absent external document ─────────────────────────────
-  // "Refer to the guide", "see the documentation", "follow the instructions"
-  // The referenced document is not present — the user cannot follow the step.
+  // "Refer to the guide", "see the documentation", "follow the instructions",
+  // "See deploy section for more info", "see X section" — any cross-reference
+  // where the actual steps are not present in the source.
   (line) => {
-    if (!/\b(refer\s+to|see\s+the|follow\s+the|consult\s+the|per\s+the|according\s+to\s+the|check\s+the)\s+(guide|documentation|docs?|manual|instructions?|readme|wiki|runbook|kb|knowledge\s+base|article|spec|specification)\b/i.test(line)) {
+    const isDocRef =
+      /\b(refer\s+to|see\s+the|follow\s+the|consult\s+the|per\s+the|according\s+to\s+the|check\s+the)\s+(guide|documentation|docs?|manual|instructions?|readme|wiki|runbook|kb|knowledge\s+base|article|spec|specification)\b/i.test(line) ||
+      /\bsee\s+(\w[\w\s]{0,30}?)\s+section\b/i.test(line) ||
+      /\b(more\s+info|more\s+information|more\s+details?)\b/i.test(line);
+    if (!isDocRef) {
       return null;
     }
     return {
@@ -602,6 +616,170 @@ const checkers: Checker[] = [
       placeholder: "Describe the specific UI steps, fields, or actions involved",
     };
   },
+
+  // ── 33. Navigation to named destination without definition or path ───────────
+  // "redirect to dashboard", "go to home", "navigate to settings"
+  // — Destination is named but lacks definition: is it a page, section, what URL, how is user taken there?
+  // User cannot understand what screen they're navigating to or locate it in the UI.
+  (line) => {
+    const m = line.match(
+      /\b(redirect|navigate|go|forward|return|link|proceed|direct|move)\s+to\s+(?:the\s+)?([a-z][a-z\s]*?)(?:\s*(?:[,;.:]|$))/i
+    );
+    if (!m) { return null; }
+    const dest = m[2].trim();
+    // Skip if destination is a step/flow reference ("step 5", "next", "previous")
+    if (/^(step|next|previous|the\s+next|here|there)/.test(dest)) { return null; }
+    // Skip if destination already has path detail ("Settings > Security", "Home/Dashboard")
+    if (/[>\/\-]|settings|config|admin/i.test(dest)) { return null; }
+    // Skip if line already clarifies it's automatic or self-explanatory
+    if (/\b(automatic|automatically|auto|appears|opens|displays|loads|system|bounces|refreshes|immediately)\b/i.test(line)) {
+      return null;
+    }
+    return {
+      id: `unspec-nav-dest:${line.slice(0, 50)}`,
+      question: `What is the "${dest}"? What page or section is it, where does it appear in the UI, and how is the user taken there? (Source: "${line}")`,
+      sourceContext: line,
+      placeholder: `e.g., the ${dest} is the main workspace at /app/home, accessed automatically after login; or at the top navigation menu`,
+    };
+  },
+
+  // ── 34. Multi-step action collapsed into single sentence ──────────────────
+  // "Open settings and configure the timeout and enable the service"
+  // Multiple verbs in sequence that should be broken down into individual steps.
+  (line) => {
+    // Count action verbs in the line
+    const actionVerbs = [
+      'add', 'build', 'click', 'close', 'configure', 'connect', 'create', 'delete',
+      'deploy', 'disable', 'download', 'edit', 'enable', 'enter', 'export', 'import',
+      'install', 'launch', 'load', 'manage', 'map', 'navigate', 'open', 'remove',
+      'restart', 'run', 'save', 'select', 'set', 'start', 'stop', 'submit', 'toggle',
+      'type', 'update', 'upload', 'verify', 'view'
+    ];
+    const words = line.toLowerCase().split(/\s+/);
+    const verbCount = words.filter(w => actionVerbs.includes(w)).length;
+    
+    // Only trigger if 3+ action verbs in one sentence
+    if (verbCount < 3) { return null; }
+    
+    return {
+      id: `multi-step-collapsed:${line.slice(0, 50)}`,
+      question: `This sentence contains multiple actions: "${line}" — break this into individual numbered steps, each with its own UI location.`,
+      sourceContext: line,
+      placeholder: "e.g., Step 1: Open Settings > System. Step 2: Set timeout to 30 seconds. Step 3: Click Enable Service.",
+    };
+  },
+
+  // ── 35. State transition without visible indicator ────────────────────────
+  // "Service becomes active", "system is ready", "deployment completes"
+  // User cannot know when the state has changed without a visible indicator.
+  (line) => {
+    const m = line.match(/\b(becomes?|is\s+now|transitions?\s+to|changes?\s+to|goes?\s+to|enters?|reaches?)\s+(active|ready|available|online|idle|running|stopped|complete|finished|deployed|operational|initialized|configured)\b/i);
+    if (!m) { return null; }
+    // Skip if an indicator is already mentioned
+    if (/\b(indicator|status|message|prompt|appears?|shows?|displays?|icon|color|light|led|banner|notification|alert|dialog)\b/i.test(line)) {
+      return null;
+    }
+    const state = m[2];
+    return {
+      id: `state-transition:${line.slice(0, 50)}`,
+      question: `What visible indicator shows the user that the state is now "${state}"? (Source: "${line}")`,
+      sourceContext: line,
+      placeholder: `e.g., the status indicator turns green; a banner displays 'Service ${state}'; the connection icon changes to a checkmark`,
+    };
+  },
+
+  // ── 36. Navigation missing starting point ─────────────────────────────────
+  // "Go to Settings" — from where? Main menu? Dashboard? Burger menu?
+  // Navigation assumes the user knows the starting context.
+  (line) => {
+    if (!/^(go\s+to|navigate\s+to|open|access|click)\s+/i.test(line)) { return null; }
+    // Skip if the path is already complete (contains > or / path separators)
+    if (/[>\/]/.test(line)) { return null; }
+    // Skip if it's a top-level menu that's self-explanatory
+    if (/\b(home|dashboard|main\s+menu|start\s+page|login\s+page)\b/i.test(line)) { return null; }
+    return {
+      id: `partial-nav-path:${line.slice(0, 50)}`,
+      question: `From where does the user start this navigation? What's the full path? (Source: "${line}")`,
+      sourceContext: line,
+      placeholder: "e.g., from the main dashboard, click hamburger menu > Settings > Connectors",
+    };
+  },
+
+  // ── 37. Deployment/configuration change without rollback procedure ────────
+  // "Deploy to production", "Apply configuration changes", "Migrate database"
+  // User needs to know how to revert if something goes wrong.
+  (line) => {
+    if (!/\b(deploy|release|publish|apply|migrate|upgrade|update|push\s+to)\b/i.test(line)) {
+      return null;
+    }
+    // Skip if rollback/revert is mentioned in the same sentence
+    if (/\b(rollback|revert|undo|restore|back\s+out)\b/i.test(line)) { return null; }
+    // Only trigger for production/critical operations
+    if (!/\b(production|prod|live|critical|database|db|schema|migration)\b/i.test(line)) {
+      return null;
+    }
+    return {
+      id: `no-rollback:${line.slice(0, 50)}`,
+      question: `If this operation fails or needs to be reverted, what are the rollback steps? (Source: "${line}")`,
+      sourceContext: line,
+      placeholder: "e.g., run rollback script in /scripts/rollback.sh; or restore from backup at /backups/pre-deploy",
+    };
+  },
+
+  // ── 38. Scope selection without method ─────────────────────────────────────
+  // "Import selected tags", "Export chosen records", "Delete specific items"
+  // — "selected", "chosen", "specific" implies user selection but doesn't say how.
+  (line) => {
+    if (!/\b(selected|chosen|specific|specified|desired|relevant|applicable|marked|flagged|checked)\s+(\w+)s?\b/i.test(line)) {
+      return null;
+    }
+    // Skip if the selection method is already stated
+    if (/\b(check|select|choose|mark|flag|filter|click|pick|highlight)\b/i.test(line)) {
+      return null;
+    }
+    return {
+      id: `scope-selection-method:${line.slice(0, 50)}`,
+      question: `How does the user select or specify these items? (Source: "${line}")`,
+      sourceContext: line,
+      placeholder: "e.g., checkboxes next to each item; or filter dialog with search criteria",
+    };
+  },
+
+  // ── 39. Prerequisite stated with conditional trigger undefined ─────────────
+  // "May need elevated permissions", "Might require VPN connection"
+  // — under what specific conditions?
+  (line) => {
+    const m = line.match(/\b(may|might|could|sometimes)\s+(need|require)\s+(.+)$/i);
+    if (!m) { return null; }
+    const requirement = m[3].replace(/\.$/, "").trim();
+    return {
+      id: `conditional-prereq:${line.slice(0, 50)}`,
+      question: `Under what specific conditions is "${requirement}" required? (Source: "${line}")`,
+      sourceContext: line,
+      placeholder: `e.g., ${requirement} is required only when accessing production systems; or when the file size exceeds 100MB`,
+    };
+  },
+
+  // ── 40. Success outcome missing ────────────────────────────────────────────
+  // Action completes but no visible result stated.
+  // "Upload files." — then what? User needs to know what happens next.
+  (line) => {
+    if (!/^(upload|download|save|submit|send|transfer|deploy|apply|create|delete|remove|install|uninstall)\b/i.test(line)) {
+      return null;
+    }
+    // Skip if outcome is already stated
+    if (hasOutcome(line)) { return null; }
+    // Skip if it's a terminal step (period at end with no following context)
+    if (/\.$/.test(line) && line.split(/\s+/).length < 5) {
+      return {
+        id: `success-outcome:${line.slice(0, 50)}`,
+        question: `What does the user see when this step completes successfully? (Source: "${line}")`,
+        sourceContext: line,
+        placeholder: "e.g., a progress bar shows 100%, then a confirmation message appears; or the file list updates",
+      };
+    }
+    return null;
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -682,7 +860,8 @@ const globalCheckers: GlobalChecker[] = [
  */
 export function detectQuestions(
   source: string,
-  _taskType: TaskType,
+  taskType: TaskType,
+  templateText?: string,
   userIntent?: string
 ): DetectedQuestion[] {
   const lines = source.split(/\r?\n/);
@@ -697,12 +876,17 @@ export function detectQuestions(
   };
 
   // Per-line checks
-  for (const line of lines) {
-    const trimmed = line.trim();
+  for (let idx = 0; idx < lines.length; idx++) {
+    const rawLine = lines[idx];
+    const trimmed = rawLine.trim();
     if (!trimmed || trimmed.startsWith("#") || trimmed.startsWith("//")) { continue; }
+    // Strip leading list markers (e.g. "8. ", "- ", "* ") so checkers match
+    // action verbs correctly regardless of whether the source uses a numbered
+    // or bulleted list.
+    const normalized = trimmed.replace(/^(\d+[.)]\s+|[-*+•]\s+)/, "").trim();
 
     for (const checker of checkers) {
-      const q = checker(trimmed, lines.indexOf(line));
+      const q = checker(normalized, idx);
       if (q) { addIfNew(q); }
     }
   }
@@ -712,6 +896,38 @@ export function detectQuestions(
     for (const q of gc(source)) {
       addIfNew(q);
     }
+  }
+
+  // Template-required sections check: prefer user-supplied template text
+  // (from editor) if provided, otherwise use canonical template for taskType.
+  try {
+    let requiredSections: string[] = [];
+    if (templateText && templateText.trim()) {
+      // extract top-level headings from the template text
+      const lines = templateText.split(/\r?\n/);
+      for (const l of lines) {
+        const m = l.match(/^\s*#{1,4}\s*(.+)$/);
+        if (m) { requiredSections.push(m[1].trim()); }
+      }
+    }
+    if (requiredSections.length === 0 && taskType) {
+      const tmpl = getTemplateFor(taskType);
+      requiredSections = tmpl.requiredSections.slice();
+    }
+
+    for (const section of requiredSections) {
+      const re = new RegExp('^\\s*#{1,4}\\s*' + section.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'im');
+      if (!re.test(source)) {
+        addIfNew({
+          id: `missing-section:${section}`,
+          question: `The template requires a "${section}" section. Please provide content for this section.`,
+          sourceContext: '(whole source)',
+          placeholder: `Provide the ${section} content as a paragraph or bullet list.`,
+        });
+      }
+    }
+  } catch (e) {
+    // ignore template parsing errors
   }
 
   // Intent-source mismatch check

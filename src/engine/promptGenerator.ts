@@ -1,5 +1,6 @@
 import { PromptInput } from "./types";
 import { GOVERNANCE_RULES } from "./governance";
+import { getTemplateFor } from "./templates";
 
 export function generatePrompt(input: PromptInput): string {
   const hasPreClarifications = !!(input.preClarifications?.trim());
@@ -75,11 +76,91 @@ STEP 2 — GENERATE DOCUMENT  ← ONLY REACHED IF STEP 1 PASSED
 ═══════════════════════════════════════════════════════════════
 `;
 
+  // When no clarifications have been provided, attempt to extract
+  // a comprehensive set of candidate clarification questions from the
+  // source text so the extension can present them to the user before
+  // generation. Each question references the exact source sentence.
+  function generateQuestionsFromSource(src: string): string {
+    if (!src || !src.trim()) return '';
+    const sentences = src.match(/[^.!?]+[.!?]?/g) || [];
+    const questions: string[] = [];
+
+    const push = (q: string, s: string) => {
+      const safe = s.replace(/"/g, "'").trim();
+      questions.push(`${q} *(Source: "${safe}")`);
+    };
+
+    sentences.forEach(s => {
+      const t = s.trim();
+      if (!t) return;
+
+      // UI location missing for generic open/tab actions
+      if (/open\s+[A-Za-z0-9 _-]+tab\.?/i.test(t) || /open\s+[A-Za-z0-9 _-]+/i.test(t)) {
+        push('1. [Question] Where in the UI does the user perform this step? Provide the full navigation path or exact UI label.', t);
+        return;
+      }
+
+      // Right-click or ambiguous icon references
+      if (/right click|right-click|rightclick/i.test(t) || /icon next to/i.test(t)) {
+        push('2. [Question] Which icon exactly should be clicked? Provide the icon name, tooltip text, or distinguishing description.', t);
+        return;
+      }
+
+      // Generic click/import actions without target path
+      if (/click\s+import/i.test(t) || /click\s+[A-Za-z0-9 _-]+/i.test(t) && /click import/i.test(t.toLowerCase())) {
+        push('3. [Question] Where in the UI does this click occur? Provide the full navigation path or exact UI label.', t);
+        return;
+      }
+
+      // Selection method questions
+      if (/choose tags|choose|select tags|select/i.test(t)) {
+        push('4. [Question] How should the user select items? Provide exact selection method text (e.g., checkboxes, multi-select list, dialog).', t);
+        return;
+      }
+
+      // Connection / prerequisite phrasing
+      if (/connected to PLC|when connected to|need online connection|need online connection to PLC|online connection/i.test(t)) {
+        push('5. [Question] What exact prerequisite sentence should be listed (copy exact wording)?', t);
+        return;
+      }
+
+      // Loading / progress indicators
+      if (/loading might|might take time|progress|loading/i.test(t)) {
+        push('6. [Question] Is there an in-UI progress indicator or message? Provide the exact message text if present.', t);
+        return;
+      }
+
+      // Deploy references and cross-links
+      if (/deploy connection|deploy .* IIH Semantics|deploy section|see deploy section/i.test(t)) {
+        push('7. [Question] Provide the exact deploy step text or the file/UI reference to include verbatim.', t);
+        return;
+      }
+
+      // Generic vague or placeholder words
+      if (/\b(something|it|this)\b/i.test(t) || /if ok|if error|check logs|test connection|restart/i.test(t)) {
+        push('8. [Question] The sentence uses vague wording. Please specify what "something/it/this" refers to, and provide expected success or error follow-up text.', t);
+        return;
+      }
+
+      // Fallback: if sentence contains 'choose' or 'select' or ends with a short imperative, ask for clarification
+      if (/^\s*(Choose|Select|Click|Right click|Right-click)\b/i.test(t)) {
+        push('9. [Question] Please provide any missing UI labels, selection methods, or exact wording needed to perform this action.', t);
+        return;
+      }
+    });
+
+    if (questions.length === 0) return '';
+    // Number the questions sequentially for clarity.
+    const numbered = questions.map((q, i) => `${i + 1}. ${q}`).join('\n\n');
+    return `\n**Before I can write this document, I need the following information:**\n\n${numbered}\n\n`;
+  }
+
   const base = `
 SYSTEM:
 You are a Technical Documentation Agent. Your first task is always to check whether the source contains enough information to write a complete document. If information is missing, list your questions and stop. Do not generate an incomplete document.
 ${passHeader}
 ${gapCheckBlock_inline}
+${hasAnyAnswers ? '' : generateQuestionsFromSource(input.context)}
 ${GOVERNANCE_RULES}
 
 REWRITE POLICY:
@@ -106,21 +187,32 @@ SOURCE CONTENT (authoritative):
 ${input.context}
 `;
 
+  // Inject the selected template's skeleton and enforce headings. Prefer a
+  // user-edited template if one was provided via `input.templateContent`.
+  const template = getTemplateFor(input.taskType);
+  const templateContent = input.templateContent && input.templateContent.trim()
+    ? input.templateContent
+    : template.content;
+  // Derive required sections from the canonical template (not the edited body)
+  const requiredSections = template.requiredSections;
+  const templateBlock = `\nOUTPUT STRUCTURE — Use exactly these headings in this order. Do not add or remove sections.\n\n${requiredSections.map(s => `- ${s}`).join('\n')}\n\nTEMPLATE EXAMPLE:\n${templateContent}\n`;
+  const baseWithTemplate = base + templateBlock;
+
   switch (input.taskType) {
     case "procedure":
-      return base + procedureOutputSpec(hasAnyAnswers);
+      return baseWithTemplate + procedureOutputSpec(hasAnyAnswers);
     case "concept":
-      return base + conceptOutputSpec();
+      return baseWithTemplate + conceptOutputSpec();
     case "troubleshooting":
-      return base + troubleshootingOutputSpec(hasAnyAnswers);
+      return baseWithTemplate + troubleshootingOutputSpec(hasAnyAnswers);
     case "reference":
-      return base + referenceOutputSpec();
+      return baseWithTemplate + referenceOutputSpec();
     case "tutorial":
-      return base + tutorialOutputSpec(hasAnyAnswers);
+      return baseWithTemplate + tutorialOutputSpec(hasAnyAnswers);
     case "release-notes":
-      return base + releaseNotesOutputSpec();
+      return baseWithTemplate + releaseNotesOutputSpec();
     case "api-documentation":
-      return base + apiDocumentationOutputSpec();
+      return baseWithTemplate + apiDocumentationOutputSpec();
     default:
       throw new Error("Unsupported task type");
   }

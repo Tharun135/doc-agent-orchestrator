@@ -5,13 +5,14 @@
 1. [Overview](#overview)
 2. [Architecture](#architecture)
 3. [Gap Detection System](#gap-detection-system)
-4. [How It Works](#how-it-works)
-5. [Core Components](#core-components)
-6. [Command Details](#command-details)
-7. [Governance System](#governance-system)
-8. [Prompt Generation Logic](#prompt-generation-logic)
-9. [Workflow Details](#workflow-details)
-10. [Extension API](#extension-api)
+4. [The Three-Phase Pre-Generation Pipeline](#the-three-phase-pre-generation-pipeline)
+5. [How It Works](#how-it-works)
+6. [Core Components](#core-components)
+7. [Command Details](#command-details)
+8. [Governance System](#governance-system)
+9. [Prompt Generation Logic](#prompt-generation-logic)
+10. [Workflow Details](#workflow-details)
+11. [Extension API](#extension-api)
 
 ---
 
@@ -119,7 +120,7 @@ The extension includes a dedicated gap detection engine in `questionDetector.ts`
 
 ### How Gap Detection Works
 
-For each line of source content, 31 pattern-based checkers run in sequence. When a gap is detected, the user is prompted to answer the specific question inside VS Code before the AI call is made. Answers are injected into the prompt as **pre-clarifications** — authoritative facts the AI uses directly.
+For each line of source content, 40 pattern-based checkers run in sequence. When a gap is detected, the user is prompted to answer the specific question inside VS Code before the AI call is made. Answers are injected into the prompt as **pre-clarifications** — authoritative facts the AI uses directly.
 
 This means gaps are resolved by the human, not filled by the AI.
 
@@ -160,6 +161,15 @@ This means gaps are resolved by the human, not filled by the AI.
 | 29 | Declarative vague enumeration | `Fixed various UI glitches.` | Which glitches specifically? |
 | 30 | Fix with no described symptom | `Fixed an issue.` | What was the issue? Where did it occur? |
 | 31 | Third-person user action, no location | `User sets new password.` | Where in the UI? |
+| 32 | Navigation to undefined destination | `Redirect to dashboard.` | What is the dashboard? Where in the UI? How accessed? |
+| 33 | Incomplete step annotation | `(needs design)`, `(TBD)` | What are the actual steps? |
+| 34 | Multi-step action collapsed | `Open settings and configure timeout` | Break into individual steps with UI locations. |
+| 35 | State transition without indicator | `Service becomes active.` | What visible indicator shows this state change? |
+| 36 | Navigation missing starting point | `Go to Settings.` | From where? What's the full path? |
+| 37 | Deployment without rollback | `Deploy to production.` | What are the rollback steps if needed? |
+| 38 | Scope selection without method | `Import selected tags.` | How does user select/specify items? |
+| 39 | Conditional prerequisite undefined | `May need VPN connection.` | Under what specific conditions? |
+| 40 | Success outcome missing | `Upload files.` | What does user see when this completes? |
 
 #### Global (Whole-Source) Checkers
 
@@ -178,6 +188,13 @@ Checkers are deliberately constrained to avoid noise:
 - Checker 24 skips lines that already name a format (`CSV`, `JSON`, `XML`, etc.).
 - Checker 29 skips if the vague quantifier is already followed by `require/need/must` (covered by checker 20).
 - Checker 31 skips lines where the action is clearly CLI/terminal.
+- Checker 32 skips lines where automaticity is explicit (`system automatically redirects`, `appears immediately`, etc.).
+- Checker 34 only triggers when 3+ action verbs appear in one sentence.
+- Checker 35 skips lines that already mention visible indicators.
+- Checker 36 skips top-level navigation items (home, dashboard, main menu).
+- Checker 37 only triggers for production/critical operations.
+- Checker 38 skips lines where selection method is already stated.
+- Checker 40 checks for terminal action steps without visible outcome.
 
 ### Why This Matters
 
@@ -186,15 +203,193 @@ Most AI hallucination is triggered by implicit assumptions in the source. Each c
 | Pattern class | Checkers |
 |---|---|
 | Actor ambiguity | 21, 31 |
+| Navigation ambiguity | 32 |
 | Temporal / schedule ambiguity | 22, 12 |
 | Branch logic ambiguity | 3, 4, 23 |
 | Data contract ambiguity | 24, 8, 9, 15 |
 | Version / scope ambiguity | 25, 11 |
 | Quantitative ambiguity | 26, 29 |
-| Location ambiguity | 1, 14, 18, 31 |
-| Incompleteness ambiguity | 27, 28, 30 |
+| Location ambiguity | 1, 14, 18, 31, 32, 36 |
+| Incompleteness ambiguity | 27, 28, 30, 33 |
+
+New checkers added:
+- Multi-step collapse detection (34)
+- State transition indicators (35)
+- Navigation path completeness (36)
+- Deployment rollback procedures (37)
+- Scope selection methods (38)
+- Conditional prerequisite triggers (39)
+- Success outcome visibility (40)
 
 Resolving these before the AI runs reduces governance violations and eliminates the need for multi-pass clarification in most cases.
+
+---
+
+## The Three-Phase Pre-Generation Pipeline
+
+The extension operates on a strict **analyse → question → generate** pipeline. No AI call is made until every blocking gap in the source has been answered by a human. This is the core mechanism that enforces the zero-invention policy.
+
+```txt
+┌─────────────────────────────────────────────────────────┐
+│  PHASE 1 — GAP ANALYSIS                                 │
+│  Source content is scanned before any prompt is built.  │
+│  40 per-line checkers + 2 global checkers run in full.  │
+│  Every structural weakness is catalogued into a         │
+│  prioritised list of DetectedQuestion objects.          │
+└───────────────────────────┬─────────────────────────────┘
+                            │  gaps found?
+                            ▼
+┌─────────────────────────────────────────────────────────┐
+│  PHASE 2 — INTERACTIVE QUESTIONING                      │
+│  Each gap is shown to the user as a VS Code input box.  │
+│  The user answers in plain language.                    │
+│  Answers are captured as pre-clarifications.            │
+│  No AI involvement at this stage — human fills gaps.    │
+└───────────────────────────┬─────────────────────────────┘
+                            │  all answers collected
+                            ▼
+┌─────────────────────────────────────────────────────────┐
+│  PHASE 3 — ZERO-INVENTION PROMPT GENERATION             │
+│  Prompt is built from: source + answers + governance.   │
+│  Pre-clarifications are injected as authoritative facts.│
+│  AI is forbidden from adding anything not in this set.  │
+│  Output is a governed, complete, traceable document.    │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+### Phase 1 — Gap Analysis
+
+**What happens:** The source content is passed to `detectQuestions()` in `questionDetector.ts`. Every line is stripped of list markers (e.g., `"1. "`, `"- "`) and run through all 40 per-line checkers. Two global checkers then run across the full source.
+
+**What it detects:** The checkers target 9 structural ambiguity classes:
+
+| Class | What it means | Example trigger |
+|---|---|---|
+| Location ambiguity | Step has no UI location | `Upload files.` |
+| Actor ambiguity | No named performer | `The file is uploaded.` |
+| Value ambiguity | No value, unit, or default given | `Set timeout.` |
+| Branch logic ambiguity | Conditional with no defined outcome | `If ok → deploy.` |
+| Temporal ambiguity | Action with no timing or schedule | `Run the job.` |
+| Data contract ambiguity | Format, scope, or count unspecified | `Export the file.` |
+| Navigation ambiguity | Destination exists but path does not | `Go to Settings.` |
+| Verification ambiguity | Verification step with no method or success criteria | `Test connection.` |
+| Incompleteness ambiguity | Placeholder, TBD, or collapsed multi-step action | `(needs design)` |
+
+**Output:** A list of `DetectedQuestion` objects. Each carries:
+- A unique `id` (used to match answers back)
+- The `question` text shown to the user
+- The `sourceContext` — the exact source line that triggered it
+- An optional `placeholder` — a hint shown in the VS Code input box
+
+**Key rule:** If no gaps are detected, Phase 2 is skipped entirely and the system proceeds directly to Phase 3.
+
+**List-marker stripping (critical fix):** Before each line is passed to checkers, leading list markers are stripped:
+
+```typescript
+const normalized = trimmed.replace(/^(\d+[.)]\s+|[-*+•]\s+)/, "").trim();
+```
+
+This ensures that a step written as `"8. Check the status indicator."` is evaluated as `"Check the status indicator."` by checkers — so verb-anchored regex patterns such as `^(check|verify|confirm)` correctly fire. Without this, numbered or bulleted steps silently bypass checkers and gaps go undetected.
+
+**Deduplication:** Each question carries a deterministic `id`. The `seen` set in the main loop ensures the same gap is never asked twice, even if multiple lines trigger the same checker.
+
+---
+
+### Phase 2 — Interactive Questioning
+
+**What happens:** Each `DetectedQuestion` is presented to the user as a VS Code `showInputBox` call. The user types an answer in plain language. The system waits for each answer before proceeding — questions are asked sequentially.
+
+**Question ordering:** Questions are not re-prioritised at runtime. They are asked in the order checkers fire: per-line checkers run first (in line order), then global checkers. This naturally surfaces location and actor gaps first, because those checkers (1, 21, 31) run early in the checker array.
+
+**What the user provides:** Plain-language answers. Examples:
+
+| Question | Typical answer |
+|---|---|
+| Where in the UI does the user perform this step? | `Connector > Upload` |
+| What exactly does the system validate? | `Device connectivity` |
+| What specific indicator means the condition is met? | `No error in log` |
+| How does the user perform this verification and what does success look like? | `Click Validate — green tick appears` |
+
+**What happens to answers:** Each answer is stored alongside its question in an ordered list. After all questions are answered, the full Q+A list is passed to `formatPreClarifications()`, which formats it into a `PRE-CLARIFICATIONS` block:
+
+```
+PRE-CLARIFICATIONS (collected before generation — authoritative facts, use directly):
+[Q1] Where in the UI does the user perform this step? (Source: "Upload files.")
+       Source line: "Upload files."
+[A1] Connector > Upload
+
+[Q2] What exactly does the system validate? (Source: "System validates something.")
+       Source line: "System validates something."
+[A2] Device connectivity
+```
+
+**Why this matters:** Answers come from the human who knows the system — not from the AI. This is the only point in the pipeline where new information enters. After this phase, the information set is closed. The AI may not add anything beyond what is now in the source plus the pre-clarifications.
+
+**Skipping questions:** If the user leaves an answer blank, the system records `"(no answer provided)"`. The AI prompt instructs the AI to treat this as an unresolved gap and document it under Preserved Ambiguities — not to guess.
+
+---
+
+### Phase 3 — Zero-Invention Prompt Generation
+
+**What happens:** `generatePrompt()` in `promptGenerator.ts` assembles the final prompt from four authoritative inputs:
+
+1. **Governance rules** — injected verbatim from `governance.ts`
+2. **Pre-clarifications block** — the formatted Q+A from Phase 2
+3. **Source content** — the original text, marked as authoritative
+4. **Task-specific output structure** — defined by documentation type
+
+**The zero-invention contract:** The prompt instructs the AI that its information set is now complete and closed:
+
+```
+PRE-CLARIFICATIONS (collected before generation — authoritative facts, use directly):
+...
+
+SOURCE CONTENT (authoritative):
+...
+```
+
+The AI is told to treat both the source and the clarifications as the totality of available facts. It may not supplement them.
+
+**What the AI is explicitly forbidden from adding:**
+
+| Forbidden addition | Governance rule that blocks it |
+|---|---|
+| Purpose clauses (`"to do X"`, `"so that X"`) | Rewrite policy: one sentence = one step |
+| Navigation paths not in source or clarifications | Location gaps must be asked in Phase 2 |
+| Parameter details not stated (e.g., expanding `"credentials"` to `"username and password"`) | Terminology rule |
+| Prerequisite items inferred from steps | Prerequisite invention prohibition |
+| Confirmation or verification steps not in source | Strict forbidden list |
+| Scope generalisation (e.g., `"always restart"` from `"restart after deploy"`) | Strict forbidden list |
+
+**Ambiguity handling in Phase 3:** Even after Phase 2 questioning, some vagueness may remain — specifically vagueness that does not block action. The prompt distinguishes two types:
+
+- **ASK** — blocks action; must have been resolved in Phase 2
+- **PRESERVE** — does not block action; documented as-is under Preserved Ambiguities
+
+Examples of preserve cases:
+- `"Find the one you need."` — vague selection criteria, but user knows which one
+- `"Shows a message."` — message content unknown, but step is still actionable
+- `"May need firewall exception."` — conditional note; kept with original conditional wording
+
+**Section suppression:** If no prerequisites exist in the source or clarifications, the Prerequisites section is omitted entirely. If nothing was vague, Preserved Ambiguities is omitted. Empty sections are never generated.
+
+**Result:** A prompt that the AI can execute in a single pass, with no questions remaining and no information gaps that would require invention to fill.
+
+---
+
+### Why This Order Is Non-Negotiable
+
+The pipeline must run in the sequence analyse → question → generate. Reversing or skipping phases produces predictable failures:
+
+| If you skip... | What happens |
+|---|---|
+| Phase 1 (gap analysis) | Gaps reach the AI; AI fills them by hallucinating |  
+| Phase 2 (questioning) | Source is incomplete; AI invents to cover gaps |
+| Phase 3 governance rules | AI generates fluent but unreliable documentation |
+
+The extension enforces this by gating prompt construction: `generatePrompt()` is only called after question answers are collected.
 
 ---
 
@@ -563,10 +758,11 @@ The governance system is the core differentiator of this extension. It transform
 
 Governance is now strengthened by:
 
-* **Structural ambiguity detection before generation** — 31 gap checkers catch missing actors, formats, schedules, branch convergence, version scopes, and quantitative ambiguity before the AI is called.
+* **Structural ambiguity detection before generation** — 32 gap checkers catch missing actors, formats, schedules, branch convergence, version scopes, navigation destinations, and quantitative ambiguity before the AI is called.
 * **Explicit quantitative and version validation** — checkers 15, 25, 26 enforce numeric and scope precision.
 * **Branch convergence enforcement** — checker 23 ensures multi-branch logic has a defined common path.
 * **Actor accountability enforcement** — checkers 21 and 31 ensure every action has a named performer.
+* **Navigation clarity enforcement** — checker 32 ensures every navigation statement specifies the destination, path, and method.
 
 The system now addresses both **semantic hallucination** and **structural incompleteness**.
 
@@ -1374,7 +1570,7 @@ Governance Notes (only if applicable)
 
 **Documentation Agent Orchestrator** is a VS Code extension that bridges the gap between AI capability and documentation trustworthiness. It works by:
 
-1. **Running gap detection** on the source — 31 checkers identify structural weaknesses before the AI is called
+1. **Running gap detection** on the source — 40 checkers identify structural weaknesses before the AI is called
 2. **Injecting governance rules** into AI prompts — zero-invention policy enforced at every generation
 3. **Structuring output** with task-specific templates
 4. **Preserving ambiguity** instead of inventing details

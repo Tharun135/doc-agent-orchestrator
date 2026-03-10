@@ -28,6 +28,17 @@ let lastPromptContext: {
 /** The most recent AI-generated output text (used to parse preserved ambiguities). */
 let lastAiOutput: string | null = null;
 
+/** Pending context stored between 'Generate Documentation' and 'Use Template'. */
+let pendingTemplateContext: {
+  taskType: TaskType;
+  userIntent: string;
+  contextText: string;
+  templateDocUri: string;
+} | null = null;
+
+/** Status bar item shown while template mode is active. */
+let templateStatusBarItem: vscode.StatusBarItem | null = null;
+
 /** 1-based generation pass counter. Resets to 1 on each new docAgent.generateDocumentation run. */
 let currentPass: number = 1;
 
@@ -95,73 +106,32 @@ export function activate(context: vscode.ExtensionContext) {
           return;
         }
 
-        // ── Template preview & edit: open the template so the user can modify it before gap detection ──
+        // ── Template preview & edit ────────────────────────────────────────────────
+        // Open the template beside the source so the user can edit it.
+        // Generation continues when the user runs 'Use Template' (toolbar button or command palette).
         const tmpl = getTemplateFor(taskPick.value);
         const templateDoc = await vscode.workspace.openTextDocument({ content: tmpl.content, language: "markdown" });
-        const templateEditor = await vscode.window.showTextDocument(templateDoc, { viewColumn: vscode.ViewColumn.Beside, preview: false });
+        await vscode.window.showTextDocument(templateDoc, { viewColumn: vscode.ViewColumn.Beside, preview: false });
 
-        const use = await vscode.window.showInformationMessage(
-          "Template opened. Edit it if needed, then click 'Use Template' to continue.",
-          "Use Template"
-        );
-        if (use !== "Use Template") {
-          // User dismissed the notification — abort the generation flow
-          return;
-        }
-
-        const editedTemplateText = templateEditor.document.getText();
-
-        // ── Upfront Q&A: detect gaps in source and ask user before first AI call ──
-        const detectedQuestions = detectQuestions(contextText, taskPick.value, editedTemplateText, userIntent);
-        let preClarifications: string | undefined;
-
-        if (detectedQuestions.length > 0) {
-          // Show Q&A WebView panel and collect all answers before any AI call
-          const answers = await showQAPanel(context.extensionUri, detectedQuestions);
-
-          if (answers !== null && answers.length === detectedQuestions.length) {
-            preClarifications = formatPreClarifications(detectedQuestions, answers);
-          }
-        }
-
-        const prompt = generatePrompt({
+        // Store what we need to continue after the user finishes editing
+        pendingTemplateContext = {
           taskType: taskPick.value,
           userIntent,
-          context: contextText,
-          preClarifications,
-          templateContent: editedTemplateText,
-        });
-
-        // Reset pass counter for a fresh generation run
-        currentPass = 1;
-        lastAiOutput = null;
-
-        // Store context for potential clarifications
-        lastPromptContext = {
-          taskType: taskPick.value,
-          userIntent,
-          context: contextText,
-          preClarifications,
+          contextText,
+          templateDocUri: templateDoc.uri.toString(),
         };
 
-        // Copy to clipboard
-        await vscode.env.clipboard.writeText(prompt);
+        // Activate the toolbar button and status bar indicator
+        await vscode.commands.executeCommand("setContext", "docAgent.templateMode", true);
 
-        // Open prompt in new document for review and easy copying
-        const promptDoc = await vscode.workspace.openTextDocument({
-          content: prompt,
-          language: "markdown",
-        });
-        await vscode.window.showTextDocument(promptDoc, {
-          viewColumn: vscode.ViewColumn.Beside,
-          preview: false,
-        });
-
-        vscode.window.showInformationMessage(
-          preClarifications
-            ? `✅ Prompt generated with ${detectedQuestions.length} pre-answered question${detectedQuestions.length === 1 ? '' : 's'} and copied to clipboard. Review and paste into AI agent.`
-            : "✅ Prompt generated and copied to clipboard. Review and paste into AI agent."
-        );
+        if (templateStatusBarItem) { templateStatusBarItem.dispose(); }
+        templateStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+        templateStatusBarItem.text = "$(play) Doc Agent: Edit template, then click Use Template";
+        templateStatusBarItem.tooltip = "Click to continue documentation generation";
+        templateStatusBarItem.command = "docAgent.useTemplate";
+        templateStatusBarItem.show();
+        context.subscriptions.push(templateStatusBarItem);
+        // Generation continues in docAgent.useTemplate
       } catch (error) {
         vscode.window.showErrorMessage(
           `Failed to generate prompt: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -312,12 +282,18 @@ export function activate(context: vscode.ExtensionContext) {
                 answers.push(answer.trim());
               }
 
-              const clarifications = formatClarifications(resolveAmbiguities, answers);
+              const newClarifications = formatClarifications(resolveAmbiguities, answers);
               currentPass += 1;
 
-              // Store clarifications so a manual re-run also has them
+              // Accumulate clarifications across passes so previous rounds are never lost.
+              // Pass 2 answers + Pass 3 answers are both present in the Pass 3 prompt.
+              const accumulated = lastPromptContext.clarifications
+                ? `${lastPromptContext.clarifications}\n\n${newClarifications}`
+                : newClarifications;
+
+              // Store accumulated clarifications so a manual re-run also has them
               if (lastPromptContext) {
-                lastPromptContext = { ...lastPromptContext, clarifications };
+                lastPromptContext = { ...lastPromptContext, clarifications: accumulated };
               }
 
               const newPrompt = generatePrompt({
@@ -325,7 +301,7 @@ export function activate(context: vscode.ExtensionContext) {
                 userIntent: lastPromptContext.userIntent,
                 context: lastPromptContext.context,
                 preClarifications: lastPromptContext.preClarifications,
-                clarifications,
+                clarifications: accumulated,
                 pass: currentPass,
               });
 
@@ -618,7 +594,74 @@ Might need firewall exception.`,
     }
   );
 
-  context.subscriptions.push(generateCmd, diffCmd, clarifyCmd, profileCmd, demoCmd, pasteAiCmd);
+  const useTemplateCmd = vscode.commands.registerCommand(
+    "docAgent.useTemplate",
+    async () => {
+      try {
+        if (!pendingTemplateContext) {
+          vscode.window.showWarningMessage(
+            "No template generation in progress. Run 'Generate Documentation (Governed Mode)' first."
+          );
+          return;
+        }
+
+        const { taskType, userIntent, contextText, templateDocUri } = pendingTemplateContext;
+
+        // Read the template document by URI — works regardless of which editor is focused
+        const allDocs = vscode.workspace.textDocuments;
+        const templateDoc = allDocs.find(d => d.uri.toString() === templateDocUri);
+        const editedTemplateText = templateDoc ? templateDoc.getText() : getTemplateFor(taskType).content;
+
+        // Clear template mode
+        pendingTemplateContext = null;
+        await vscode.commands.executeCommand("setContext", "docAgent.templateMode", false);
+        if (templateStatusBarItem) { templateStatusBarItem.dispose(); templateStatusBarItem = null; }
+
+        // ── Upfront Q&A: detect gaps in source and ask user before first AI call ──
+        const detectedQuestions = detectQuestions(contextText, taskType, editedTemplateText, userIntent);
+        let preClarifications: string | undefined;
+
+        if (detectedQuestions.length > 0) {
+          const answers = await showQAPanel(context.extensionUri, detectedQuestions);
+          if (answers !== null && answers.length === detectedQuestions.length) {
+            preClarifications = formatPreClarifications(detectedQuestions, answers);
+          }
+        }
+
+        const prompt = generatePrompt({
+          taskType,
+          userIntent,
+          context: contextText,
+          preClarifications,
+          templateContent: editedTemplateText,
+        });
+
+        // Reset pass counter for a fresh generation run
+        currentPass = 1;
+        lastAiOutput = null;
+
+        lastPromptContext = { taskType, userIntent, context: contextText, preClarifications };
+
+        await vscode.env.clipboard.writeText(prompt);
+
+        const promptDoc = await vscode.workspace.openTextDocument({ content: prompt, language: "markdown" });
+        await vscode.window.showTextDocument(promptDoc, { viewColumn: vscode.ViewColumn.Beside, preview: false });
+
+        vscode.window.showInformationMessage(
+          preClarifications
+            ? `✅ Prompt generated with ${detectedQuestions.length} pre-answered question${detectedQuestions.length === 1 ? '' : 's'} and copied to clipboard. Review and paste into AI agent.`
+            : "✅ Prompt generated and copied to clipboard. Review and paste into AI agent."
+        );
+      } catch (error) {
+        vscode.window.showErrorMessage(
+          `Failed to apply template: ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
+        console.error("Error in useTemplate:", error);
+      }
+    }
+  );
+
+  context.subscriptions.push(generateCmd, diffCmd, clarifyCmd, profileCmd, demoCmd, pasteAiCmd, useTemplateCmd);
 }
 
 // ---------------------------------------------------------------------------

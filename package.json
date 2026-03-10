@@ -2,7 +2,7 @@
   "name": "doc-agent-orchestrator",
   "displayName": "Documentation Agent Orchestrator",
   "description": "Generate governance-driven AI prompts for technical documentation and preview rewrites with side-by-side diffs",
-  "version": "1.2.2",
+  "version": "1.2.4",
   "publisher": "TharunSebastian",
   "icon": "icon.png",
   "author": {
@@ -59,8 +59,22 @@
       {
         "command": "docAgent.pasteAiResponse",
         "title": "Paste AI Response and Run Governance Check"
+      },
+      {
+        "command": "docAgent.useTemplate",
+        "title": "Doc Agent: Use Template",
+        "icon": "$(play)"
       }
-    ]
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "docAgent.useTemplate",
+          "when": "docAgent.templateMode",
+          "group": "navigation"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

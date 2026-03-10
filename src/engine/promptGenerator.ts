@@ -100,13 +100,17 @@ ${input.clarifications}
 these answers when writing each affected step. A step whose gap has been answered
 must NOT remain vague or appear in Preserved Ambiguities:
 ${preClarificationsSection}${clarificationsSection}
-CLARIFICATION RESOLUTION RULES — apply these for every answer above:
-1. Locate the source step the answer resolves.
-2. Rewrite that step to include the clarified information as fluent prose.
-3. Do not leave the step in its original vague form.
+CLARIFICATION RESOLUTION RULES — MANDATORY, apply to every answer above:
+1. Locate the source step each answer resolves and rewrite it as complete, fluent prose.
+2. NEVER leave a step in its original vague form once its answer is known.
+3. NEVER treat a short or single-word answer as insufficient — a bare value like
+   "green indicator", "port 4840", or "Settings > Advanced" is authoritative and
+   MUST be woven into the affected step as a specific detail.
 4. Remove the corresponding item from Preserved Ambiguities — do not list it.
 5. Do not repeat the clarification as a standalone note unless it is a warning
    or condition from the source that belongs under Notes.
+6. If an answer resolves a location gap, rewrite the navigation path into every
+   affected step — do not leave any step locationless when the answer provides it.
 `
     : "";
 

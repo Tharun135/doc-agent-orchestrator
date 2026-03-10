@@ -200,12 +200,57 @@ function procedureOutputSpec(): string {
 ${gapCheckBlock()}
 GENERATE: Rewrite the source into a user-facing procedure.
 
-PROCEDURE INTRO SENTENCE:
-- Before the numbered steps, write one sentence in the form:
-  "To [user intent verb phrase], perform the following steps:"
-- Derive the verb phrase from the USER INTENT field, not the source.
-- Example: if userIntent is "deploy the connector" →
-  "To deploy the connector, perform the following steps:"
+STRUCTURAL INFERENCE RULES (procedure documents only):
+These rules expand what you may write beyond strict verbatim traceability.
+They apply only to structural sections (Overview, Prerequisites, Result, Notes).
+They do NOT permit inventing steps, parameters, or system behaviour.
+
+  Overview:
+  - Write one sentence as the first line of the Overview section.
+  - If the source has a title that describes a task ("Set Up X", "Configure X",
+    "Create X"), write: "This procedure describes how to [verb phrase from title]."
+  - Derive the verb phrase from the source title only. Do NOT use the USER INTENT field.
+  - Example: source title "Set Up an OPC UA Connector" →
+    "This procedure describes how to set up an OPC UA connector."
+  - If no source title is present, fall back to the USER INTENT field.
+  - One sentence only. Do not add purpose clauses.
+
+  Prerequisites:
+  - You MAY list prerequisites derived from required inputs implied by steps.
+  - Only derive a prerequisite when a step requires the user to supply a concrete
+    input (e.g. "Enter server address", "Configure authentication").
+  - Write the prerequisite as: "[Input noun from source] is available."
+    Example: "Enter server address." → "The OPC UA server address is available."
+    Example: "Configure authentication." + clarification "user name and password"
+             → "Valid user name and password are available."
+  - Do NOT introduce nouns not present in the source or clarifications.
+  - Do NOT add system access, environment, or permission prerequisites.
+  - If no steps imply concrete required inputs, omit Prerequisites entirely.
+
+  Result:
+  - If the last 1–2 steps indicate an enabled, confirmed, or verified final state,
+    write one sentence summarising the outcome.
+  - The sentence must restate what the final steps establish — nothing more.
+    Example: last steps "Enable the connector." + "Confirm data is flowing." →
+             "The connector is enabled and data is flowing."
+  - Prefer describing the final state over restating the last step's wording.
+    Good:  "The connector is active and data is flowing."
+    Avoid: "The user confirms data is flowing."
+  - Do NOT introduce system components, integrations, or purpose clauses not in source.
+  - If the final steps do not clearly indicate a definable outcome, omit Result.
+
+  Notes:
+  - Conditional or warning sentences from the source ("if", "may require",
+    "might require", "warning:") must be placed under Notes.
+  - Preserve the conditional word from the source ("might", "may", "if").
+
+STRUCTURAL INFERENCE RESTRICTIONS — even when inference is permitted:
+  - Do not invent new configuration parameters or field names.
+  - Do not add steps not present in the source.
+  - Do not introduce system components not mentioned in the source or clarifications.
+  - Do not add technical explanations beyond what the steps directly imply.
+  - Do not introduce new nouns that do not appear in the source or clarifications.
+  - Structural sections may summarise the source; they must not extend system behaviour.
 
 STEP FORMATTING RULES:
 - Ground every step in a source sentence — do not invent content with no source basis.
@@ -231,22 +276,17 @@ NOTE FORMATTING RULE:
   not "the settings page inside the connector page".
 - The conditional word from the source ("may", "if required") must be preserved.
 
-PREREQUISITES RULES:
-- Only list a prerequisite if the source contains a sentence that is itself
-  a prerequisite — not a step, not a note, not an implied dependency.
-- Do NOT derive prerequisites from steps or notes.
-- If the source has no explicit prerequisites, omit Prerequisites entirely.
-
 SECTION SUPPRESSION:
-- If a section has no source-grounded content, omit it entirely.
-- Omitting is correct. Filling with inferred content is a violation.
+- If a section has no source-grounded or inferrable content by the rules above,
+  omit it entirely.
+- Omitting is correct. Filling with ungrounded invented content is a violation.
 
 SECTIONS:
-Prerequisites          ← OMIT if source has no explicit prerequisites
-Overview               ← Required
+Overview               ← Required (intro sentence as first line)
+Prerequisites          ← OMIT if no steps imply concrete required inputs
 Procedure              ← Required
-Notes                  ← OMIT if source has no notes or caveats
-Result                 ← OMIT if source states no result
+Notes                  ← OMIT if source has no conditional or warning sentences
+Result                 ← OMIT if final steps do not indicate a clear outcome
 Preserved Ambiguities  ← OMIT only if nothing could be resolved by a follow-up answer
 Governance Notes       ← OMIT if no governance rules were violated
 `;
@@ -256,11 +296,18 @@ function conceptOutputSpec(): string {
   return `
 GENERATE: Rewrite the source into a formal concept explanation.
 
+INTRO SENTENCE:
+- Write one sentence as the very first line of the Overview section, in the form:
+  "This article [describes | provides an overview of] [topic]."
+- Derive [topic] from the source title or opening line first. If no source title is present, fall back to the USER INTENT field.
+- Example: source title "IIH Semantics overview:" → "This article provides an overview of IIH Semantics."
+- One sentence only. Never two. Do not repeat the document title.
+
 SECTION SUPPRESSION:
 - Omit any section that has no content grounded in the source.
 
 SECTIONS:
-Overview                  ← Required
+Overview                  ← Required — intro sentence as its first line
 Key Components            ← OMIT if source names no distinct components
 How It Works              ← OMIT if source describes no flow or sequence
 Important Considerations  ← OMIT if source has no caveats or constraints
@@ -274,11 +321,18 @@ function troubleshootingOutputSpec(): string {
 ${gapCheckBlock()}
 GENERATE: Rewrite the source into a troubleshooting guide.
 
+INTRO SENTENCE:
+- Write one sentence as the very first line of the Symptoms section, in the form:
+  "Use this guide to diagnose and resolve [problem]."
+- Derive [problem] from the source title or opening line first. If no source title is present, fall back to the USER INTENT field or the first symptom.
+- Example: source title "Connector failure troubleshooting:" → "Use this guide to diagnose and resolve connector failures."
+- One sentence only. Never two.
+
 SECTION SUPPRESSION:
 - Omit any section that has no content grounded in the source.
 
 SECTIONS:
-Symptoms               ← Required if source describes a problem
+Symptoms               ← Required — intro sentence as its first line
 Possible Causes        ← OMIT if source states no causes
 Verification Steps     ← OMIT if source states no diagnostic steps
 Resolution             ← OMIT if source states no resolution steps
@@ -292,11 +346,18 @@ function referenceOutputSpec(): string {
   return `
 GENERATE: Rewrite the source into a reference document.
 
+INTRO SENTENCE:
+- Write one sentence as the very first line of the Description section, in the form:
+  "This reference describes [subject]."
+- Derive [subject] from the source title or opening line first. If no source title is present, fall back to the USER INTENT field.
+- Example: source title "Connector API parameters:" → "This reference describes the connector API parameters."
+- One sentence only. Never two.
+
 SECTION SUPPRESSION:
 - Omit any section that has no content grounded in the source.
 
 SECTIONS:
-Description            ← Required
+Description            ← Required — intro sentence as its first line
 Parameters / Options   ← OMIT if source lists no parameters or options
 Example                ← OMIT if source provides no examples
 Related Information    ← OMIT if source references no related topics
@@ -310,11 +371,18 @@ function tutorialOutputSpec(): string {
 ${gapCheckBlock()}
 GENERATE: Rewrite the source into a tutorial.
 
+INTRO SENTENCE:
+- Write one sentence as the very first line of the Objective section, in the form:
+  "This tutorial guides you through [task]."
+- Derive [task] from the source title or opening line first. If no source title is present, fall back to the USER INTENT field.
+- Example: source title "Setting up a PLC connector:" → "This tutorial guides you through setting up a PLC connector."
+- One sentence only. Never two.
+
 SECTION SUPPRESSION:
 - Omit any section that has no content grounded in the source.
 
 SECTIONS:
-Objective              ← Required
+Objective              ← Required — intro sentence as its first line
 Prerequisites          ← OMIT if source has no explicit prerequisites
 Steps                  ← Required
 Verification           ← OMIT if source states no verification step
@@ -328,10 +396,19 @@ function releaseNotesOutputSpec(): string {
   return `
 GENERATE: Rewrite the source into release notes.
 
+INTRO SENTENCE:
+- Write one sentence as a standalone line BEFORE the first section heading
+  (before New Features, Bug Fixes, etc.), in the form:
+  "This document summarises the changes introduced in [version or scope]."
+- Derive [version or scope] from the source title or opening line first. If no source title is present, fall back to the USER INTENT field.
+- Example: source title "Release 2.4 changes:" → "This document summarises the changes introduced in version 2.4."
+- One sentence only. Never two. It stands alone — it is not inside any section.
+
 SECTION SUPPRESSION:
 - Omit any section that has no content grounded in the source.
 
 SECTIONS:
+[intro sentence — standalone, before all section headings]
 New Features           ← OMIT if source mentions no new features
 Improvements           ← OMIT if source mentions no improvements
 Bug Fixes              ← OMIT if source mentions no bug fixes
@@ -346,12 +423,19 @@ function apiDocumentationOutputSpec(): string {
   return `
 GENERATE: Rewrite the source into API documentation.
 
+INTRO SENTENCE:
+- Write one sentence as the very first line of the Description section, in the form:
+  "This reference describes the [endpoint or function name]."
+- Derive the name from the source title or opening line first. If no source title is present, fall back to the USER INTENT field.
+- Example: source title "/deploy endpoint reference:" → "This reference describes the /deploy endpoint."
+- One sentence only. Never two.
+
 SECTION SUPPRESSION:
 - Omit any section that has no content grounded in the source.
 
 SECTIONS:
 Endpoint / Function      ← Required
-Description              ← Required
+Description              ← Required — intro sentence as its first line
 Request / Parameters     ← OMIT if source lists no parameters
 Response / Return Value  ← OMIT if source describes no response
 Examples                 ← OMIT if source provides no examples

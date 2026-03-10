@@ -29,6 +29,19 @@
 import { TaskType } from "./types";
 import { getTemplateFor } from "./templates";
 
+export type QuestionIntent =
+  | "location"     // where the action occurs in the UI
+  | "input"        // values or data the user must supply
+  | "success"      // what a successful outcome looks like
+  | "environment"  // application or system context
+  | "actor"        // who performs the action
+  | "value"        // specific numeric/text value for a parameter
+  | "error"        // error appearance or recovery path
+  | "timing"       // schedule, frequency, or wait condition
+  | "format"       // data format or file type
+  | "scope"        // how items are selected or scoped
+  | "other";       // catch-all
+
 export interface DetectedQuestion {
   /** Unique identifier (used to match answer back to question). */
   id: string;
@@ -38,6 +51,8 @@ export interface DetectedQuestion {
   sourceContext: string;
   /** Optional placeholder text for the input box. */
   placeholder?: string;
+  /** Semantic category used for intent-based deduplication. */
+  intent?: QuestionIntent;
 }
 
 // ---------------------------------------------------------------------------
@@ -823,8 +838,145 @@ const checkers: Checker[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// Global source-level checks (run once on the full source, not per line)
+// Procedure model (lightweight structural extraction)
 // ---------------------------------------------------------------------------
+
+interface ProcedureStep {
+  action: string;  // lowercase first verb
+  object: string;  // rest of the phrase (noun/object)
+  raw: string;     // original trimmed text
+}
+
+interface ProcedureModel {
+  title: string | undefined;
+  steps: ProcedureStep[];
+}
+
+const INPUT_VERBS        = new Set(["enter", "provide", "supply", "upload", "specify", "type", "input", "set", "configure", "add", "map"]);
+const ACTIVATION_VERBS  = new Set(["enable", "start", "deploy", "activate", "run", "launch", "apply", "create"]);
+export const VERIFICATION_VERBS = new Set(["check", "verify", "confirm", "validate", "monitor", "test"]);
+
+function buildProcedureModel(source: string): ProcedureModel {
+  const lines = source.split(/\r?\n/);
+  let title: string | undefined;
+  const steps: ProcedureStep[] = [];
+  for (const raw of lines) {
+    const trimmed = raw.trim();
+    if (!title && /^#+\s+/.test(trimmed)) {
+      title = trimmed.replace(/^#+\s+/, "").trim();
+      continue;
+    }
+    const stripped = trimmed.replace(/^(\d+[.)]\s+|[-*+\u2022]\s+)/, "").trim();
+    if (!stripped || stripped === trimmed) { continue; }
+    const tokens = stripped.split(/\s+/);
+    if (tokens.length === 0) { continue; }
+    steps.push({
+      action: tokens[0].toLowerCase().replace(/\.$/, ""),
+      object: tokens.slice(1).join(" ").replace(/\.$/, "").trim(),
+      raw: stripped,
+    });
+  }
+  return { title, steps };
+}
+
+// ---------------------------------------------------------------------------
+// Intent inference — maps question IDs to semantic intent categories
+// ---------------------------------------------------------------------------
+
+function inferIntent(id: string): QuestionIntent {
+  if (/^(ui-location:|user-subject-no-location:|partial-nav-path:|unspec-nav-dest:|conditional-action-where:|proc-global-location)/.test(id)) { return "location"; }
+  if (/^(auth-detail:|prereq:|proc-no-prerequisites)/.test(id)) { return "input"; }
+  if (/^(verify-method:|condition-pass:|wait-no-indicator:|state-transition:|success-outcome:|proc-no-success-indicator|success-count:)/.test(id)) { return "success"; }
+  if (/^(proc-no-env-context|version-unspecified:)/.test(id)) { return "environment"; }
+  if (/^(passive-no-actor:|system-background:)/.test(id)) { return "actor"; }
+  if (/^(set-no-value:|no-unit:|unknown-default:|placeholder:)/.test(id)) { return "value"; }
+  if (/^(error-recovery:|check-logs:|no-rollback:)/.test(id)) { return "error"; }
+  if (/^(no-schedule:|restart-wait:)/.test(id)) { return "timing"; }
+  if (/^(data-format:)/.test(id)) { return "format"; }
+  if (/^(scope-selection-method:)/.test(id)) { return "scope"; }
+  return "other";
+}
+
+// ---------------------------------------------------------------------------
+// Procedure-specific completeness checks (run only for procedure task type)
+// ---------------------------------------------------------------------------
+
+type ProcedureChecker = (source: string) => DetectedQuestion | null;
+
+const procedureCompletenessCheckers: ProcedureChecker[] = [
+
+  // PC-1. No environment or application context anywhere in the source.
+  // If no UI/app mention exists, the user cannot know where to perform any step.
+  // This fires once at the source level — not per step.
+  (source) => {
+    const hasEnvContext = /\b(application|app|interface|ui|page|panel|screen|window|portal|dashboard|console|editor|manager|connector|menu|tab|dialog|module|platform|runtime|service|tool|system)\b/i.test(source);
+    if (hasEnvContext) { return null; }
+    return {
+      id: `proc-no-env-context`,
+      question: `In which application or interface does this procedure take place? Provide the application name and the starting page or section.`,
+      sourceContext: "(whole source)",
+      placeholder: "e.g., Industrial Edge Management UI > Connectors page; or MyApp > Settings > Integrations",
+    };
+  },
+
+  // PC-2. No prerequisite section and steps imply required concrete inputs.
+  // Uses the procedure model to identify which specific steps require user-supplied
+  // inputs, naming them in the question to make the ask more actionable.
+  (source) => {
+    const hasPrereqSection = /^\s*#{1,4}\s*(prerequisites?|before\s+you\s+start|requirements?)\b/im.test(source);
+    if (hasPrereqSection) { return null; }
+    const model = buildProcedureModel(source);
+    const inputSteps = model.steps.filter(s => INPUT_VERBS.has(s.action) && s.object);
+    if (inputSteps.length === 0) { return null; }
+    const examples = inputSteps.slice(0, 3).map(s => `"${s.raw}"`).join(", ");
+    return {
+      id: `proc-no-prerequisites`,
+      question: `Some steps require the user to supply or configure an input (e.g., ${examples}). What must the user have available before starting this procedure?`,
+      sourceContext: "(whole source)",
+      placeholder: "e.g., server address and port; valid credentials; configuration file in hand",
+    };
+  },
+
+  // PC-3. No clear success indicator at the end of the procedure.
+  // Uses the procedure model: only fires when activation steps exist but no
+  // verification steps and no outcome language appear anywhere in the source.
+  (source) => {
+    const model = buildProcedureModel(source);
+    if (model.steps.length === 0) { return null; }
+    // If any verification steps exist, the procedure already has a success check
+    const hasVerification = model.steps.some(s => VERIFICATION_VERBS.has(s.action));
+    if (hasVerification) { return null; }
+    // If source already contains outcome/result language, no need to ask
+    if (/\b(should\s+see|will\s+see|appears?|displays?|shows?|confirms?|completes?|succeeds?)\b/i.test(source)) { return null; }
+    // Only ask if the procedure has activation steps (something to confirm works)
+    const hasActivation = model.steps.some(s => ACTIVATION_VERBS.has(s.action));
+    if (!hasActivation) { return null; }
+    return {
+      id: `proc-no-success-indicator`,
+      question: `What does the user see or experience when the procedure completes successfully? What is the final outcome?`,
+      sourceContext: "(whole source)",
+      placeholder: "e.g., a green status indicator appears; a confirmation message is shown; the connector shows 'Running'",
+    };
+  },
+
+  // PC-4. All numbered steps are very short (≤ 4 words) — likely shallow notes,
+  // not fully described steps. This signals that the procedure needs elaboration.
+  (source) => {
+    const stepLines = source.split(/\r?\n/)
+      .map(l => l.trim())
+      .filter(l => /^(\d+[.)]\s+|[-*+•]\s+)/.test(l))
+      .map(l => l.replace(/^(\d+[.)]\s+|[-*+•]\s+)/, "").trim());
+    if (stepLines.length < 3) { return null; }
+    const shortSteps = stepLines.filter(l => l.split(/\s+/).length <= 4);
+    if (shortSteps.length < stepLines.length) { return null; } // some steps are longer — not shallow
+    return {
+      id: `proc-shallow-steps`,
+      question: `All steps in this procedure are very brief. For each step, can you provide more detail about what the user does and where? (e.g., which UI element to interact with and what input to provide)`,
+      sourceContext: "(whole source)",
+      placeholder: "e.g., 'Add connector' → In the Connectors list, click + Add and choose OPC UA from the dropdown",
+    };
+  },
+];
 
 type GlobalChecker = (source: string) => DetectedQuestion[];
 
@@ -935,6 +1087,71 @@ export function detectQuestions(
   for (const gc of globalCheckers) {
     for (const q of gc(source)) {
       addIfNew(q);
+    }
+  }
+
+  // Procedure-specific completeness checks and intent-based deduplication
+  if (taskType === "procedure") {
+    for (const pc of procedureCompletenessCheckers) {
+      const q = pc(source);
+      if (q) { addIfNew(q); }
+    }
+
+    // ── Apply intent tags to all gathered questions ────────────────────────
+    // Done here (after all checks) so every question has an intent tag
+    // before the collapse passes run.
+    for (const q of results) {
+      if (!q.intent) { q.intent = inferIntent(q.id); }
+    }
+
+    // ── Collapse location questions ────────────────────────────────────────
+    // When no UI context exists anywhere in the source and 2+ questions with
+    // location intent were generated, replace them with one global question.
+    // Rationale: asking "where for each step?" creates question fatigue; one
+    // broad "where does this procedure take place?" is more useful and still
+    // collects the same information.
+    const sourceHasAnyUiContext = hasUiLocation(source);
+    if (!sourceHasAnyUiContext) {
+      const locationIds = results
+        .filter(q => q.intent === "location" && q.id !== "proc-global-location")
+        .map(q => q.id);
+      if (locationIds.length >= 2) {
+        for (const id of locationIds) {
+          const idx = results.findIndex(q => q.id === id);
+          if (idx !== -1) { results.splice(idx, 1); seen.delete(id); }
+        }
+        addIfNew({
+          id: `proc-global-location`,
+          intent: "location",
+          question: `This procedure contains no UI location information for any step. Where in the application does the user perform these steps? Provide the application name and the full navigation path to the starting point.`,
+          sourceContext: "(whole source)",
+          placeholder: "e.g., Industrial Edge Management UI > Connectors > OPC UA Connectors > Add Connector",
+        });
+      }
+    }
+
+    // ── Collapse success questions ─────────────────────────────────────────
+    // When 3+ questions share the "success" intent they are all asking variants
+    // of "what does a successful result look like?". Replace with one global
+    // question that names the relevant source steps, so the author answers once.
+    const successQuestions = results.filter(q => q.intent === "success");
+    if (successQuestions.length >= 3) {
+      const sourceCues = successQuestions
+        .filter(q => q.sourceContext !== "(whole source)")
+        .map(q => `"${q.sourceContext}"`)
+        .slice(0, 4)
+        .join(", ");
+      for (const sq of successQuestions) {
+        const idx = results.findIndex(q => q.id === sq.id);
+        if (idx !== -1) { results.splice(idx, 1); seen.delete(sq.id); }
+      }
+      addIfNew({
+        id: `proc-global-success`,
+        intent: "success",
+        question: `This procedure contains several verification or confirmation steps (${sourceCues || "see source"}) but none describe what a successful result looks like. For each, what should the user see, observe, or receive to know it succeeded?`,
+        sourceContext: "(whole source)",
+        placeholder: "e.g., status indicator turns green; 'Running' label appears; data values appear in the tag list",
+      });
     }
   }
 

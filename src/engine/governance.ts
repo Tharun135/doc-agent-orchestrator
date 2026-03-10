@@ -57,10 +57,15 @@ ANSWER FIDELITY:
     NOT:    "Click Update Tags on the Edit Data Source page"
 
 PREREQUISITE INVENTION PROHIBITION:
-- Prerequisites must be copied from the source — they cannot be inferred, deduced, or derived from the steps
-- The fact that a step says "Enter server address" does NOT mean "server address is available" is a valid prerequisite
-- The fact that a step says "use credentials or cert" does NOT mean "credentials or certificate is available" is a valid prerequisite
-- If the source contains no sentence that reads as a prerequisite, the Prerequisites section MUST be omitted
+- For all document types EXCEPT procedure: prerequisites must be copied from the source
+  and cannot be inferred, deduced, or derived from the steps.
+- The fact that a step says "Enter server address" does NOT make "server address is available"
+  a valid prerequisite for concept, reference, troubleshooting, tutorial, or release-notes.
+- If the source contains no sentence that reads as a prerequisite (for these types),
+  the Prerequisites section MUST be omitted.
+- Exception — procedure documents: the STRUCTURAL INFERENCE RULES in the procedure output
+  spec permit deriving Prerequisites from required step inputs. See those rules for the
+  exact conditions and restrictions.
 
 NOTES vs PRESERVED AMBIGUITIES — decision rule:
 

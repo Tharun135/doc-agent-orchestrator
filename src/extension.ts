@@ -21,6 +21,7 @@ let lastPromptContext: {
   taskType: TaskType;
   userIntent: string;
   context: string;
+  preClarifications?: string;
   clarifications?: string;
 } | null = null;
 
@@ -100,13 +101,11 @@ export function activate(context: vscode.ExtensionContext) {
         const templateEditor = await vscode.window.showTextDocument(templateDoc, { viewColumn: vscode.ViewColumn.Beside, preview: false });
 
         const use = await vscode.window.showInformationMessage(
-          "Edit the template as needed. When ready, click 'Use Template' to continue.",
-          { modal: true },
-          "Use Template",
-          "Cancel"
+          "Template opened. Edit it if needed, then click 'Use Template' to continue.",
+          "Use Template"
         );
         if (use !== "Use Template") {
-          // User cancelled template selection — abort the generation flow
+          // User dismissed the notification — abort the generation flow
           return;
         }
 
@@ -142,6 +141,7 @@ export function activate(context: vscode.ExtensionContext) {
           taskType: taskPick.value,
           userIntent,
           context: contextText,
+          preClarifications,
         };
 
         // Copy to clipboard
@@ -324,6 +324,7 @@ export function activate(context: vscode.ExtensionContext) {
                 taskType: lastPromptContext.taskType,
                 userIntent: lastPromptContext.userIntent,
                 context: lastPromptContext.context,
+                preClarifications: lastPromptContext.preClarifications,
                 clarifications,
                 pass: currentPass,
               });
@@ -388,6 +389,7 @@ export function activate(context: vscode.ExtensionContext) {
           taskType: lastPromptContext.taskType,
           userIntent: lastPromptContext.userIntent,
           context: lastPromptContext.context,
+          preClarifications: lastPromptContext.preClarifications,
           clarifications: clarifications,
         });
 

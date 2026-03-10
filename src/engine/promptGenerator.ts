@@ -96,8 +96,18 @@ ${input.clarifications}
     : "";
 
   const clarificationsBlock = hasAnyAnswers
-    ? `CLARIFICATIONS PROVIDED — treat these as ground truth:
-${preClarificationsSection}${clarificationsSection}`
+    ? `CLARIFICATIONS PROVIDED — treat these as authoritative facts. You MUST use
+these answers when writing each affected step. A step whose gap has been answered
+must NOT remain vague or appear in Preserved Ambiguities:
+${preClarificationsSection}${clarificationsSection}
+CLARIFICATION RESOLUTION RULES — apply these for every answer above:
+1. Locate the source step the answer resolves.
+2. Rewrite that step to include the clarified information as fluent prose.
+3. Do not leave the step in its original vague form.
+4. Remove the corresponding item from Preserved Ambiguities — do not list it.
+5. Do not repeat the clarification as a standalone note unless it is a warning
+   or condition from the source that belongs under Notes.
+`
     : "";
 
   // ── Template ─────────────────────────────────────────────────────────────
@@ -121,9 +131,22 @@ ${templateContent}
   const prompt = `SYSTEM:
 You are a Technical Documentation Agent.
 ${passHeader}
+DOCUMENTATION RESPONSIBILITY:
+- You are responsible for generating all documentation structure sections:
+  Overview, Prerequisites, Procedure, Result, Notes.
+- These sections must NEVER be requested from the user.
+- The user provides only product-specific facts (UI paths, values, status indicators).
+- Generate the complete structure automatically from the source and clarifications.
+- The template may contain placeholder text such as "Explain what the procedure does.",
+  "List conditions required before starting.", or "Step-by-step instructions." — these
+  are structural hints only. Replace every placeholder entirely with generated content.
+  Never copy placeholder text into the output.
+
 REWRITE POLICY:
 - Ground every step in a source sentence — do not invent content with no source basis.
-- You MAY expand a step using answer text to produce fluent, readable prose.
+- When pre-clarification or clarification answers are provided, you MUST use them to
+  expand the affected steps into fluent, complete, user-facing prose. Do NOT leave a
+  step in its vague source form when an answer already clarifies it.
 - When incorporating an answer, integrate it naturally into the sentence rather
   than appending it in parentheses.
 - Prefer active, specific language: "the service starts automatically" over

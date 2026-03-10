@@ -1,4 +1,4 @@
-Editing data source in PLC connector:
+# Editing data source in PLC connector
 
 Go to data sources.
 Find the one you need.

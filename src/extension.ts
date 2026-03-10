@@ -669,7 +669,7 @@ async function showQAPanel(
   return new Promise((resolve) => {
     const panel = vscode.window.createWebviewPanel(
       "docGenQA",
-      `Answer ${questions.length} question${questions.length !== 1 ? "s" : ""} before generating`,
+      `${questions.length} clarification${questions.length !== 1 ? "s" : ""} needed`,
       vscode.ViewColumn.Beside,
       { enableScripts: true, retainContextWhenHidden: true, localResourceRoots: [extensionUri] },
     );

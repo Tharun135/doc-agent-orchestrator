@@ -142,6 +142,23 @@ DOCUMENTATION RESPONSIBILITY:
   are structural hints only. Replace every placeholder entirely with generated content.
   Never copy placeholder text into the output.
 
+GENERATION APPROACH — work through these stages internally before writing output:
+Stage 1 — Analyze: identify the core task, the action sequence, system behaviors,
+  and any optional or conditional steps present in the source.
+Stage 2 — Structure: generate every section from the template automatically.
+  Never ask the user for section content. Never leave a required section empty
+  unless there is genuinely no source-grounded content for it.
+Stage 3 — Refine: convert informal notes into numbered, actionable steps.
+  Incorporate all clarification answers. Apply the soft-ambiguity policy below.
+
+SOFT AMBIGUITY POLICY:
+- When the source contains hedging language ("maybe", "if needed", "or whatever",
+  "etc.", "and so on"), do NOT leave a gap — rewrite with appropriate conditional prose.
+- Example: "configure timeout or whatever" → "Configure connection settings such as
+  Polling Interval, Retry Count, or Connection Timeout as required."
+- Preserve the optional or conditional nature of the step in the output phrasing.
+- Do NOT generate user questions for soft-ambiguity language — rewrite it directly.
+
 REWRITE POLICY:
 - Ground every step in a source sentence — do not invent content with no source basis.
 - When pre-clarification or clarification answers are provided, you MUST use them to

@@ -5,9 +5,7 @@ export type TaskType =
   | "reference"
   | "tutorial"
   | "release-notes"
-  | "api-documentation";
-
-export interface PromptInput {
+  | "api-documentation";export interface PromptInput {
   taskType: TaskType;
   userIntent: string;
   context: string;
@@ -22,4 +20,6 @@ export interface PromptInput {
   pass?: number;
   /** Optional template content override (user-edited template). */
   templateContent?: string;
+  /** Custom user/organization style guide rules */
+  styleGuideRules?: string;
 }

@@ -9,165 +9,39 @@ export interface Template {
 export const TASK_TEMPLATES: Record<TaskType, Template> = {
   "procedure": {
     title: "Procedure",
-    requiredSections: ["Overview", "Prerequisites", "Procedure", "Result"],
-    content: `# Overview
-
-Explain what the procedure does.
-
-# Prerequisites
-
-List conditions required before starting.
-
-# Procedure
-
-1. Step-by-step instructions.
-
-# Result
-
-Describe what the user should see when completed.
-`
+    requiredSections: ["Task Title", "Purpose", "Prerequisites", "Procedure", "Result", "Troubleshooting"],
+    content: "### [Task Title Using -ing Form]\n\n**Purpose**: Brief one-sentence description of what the user accomplishes.\n\n**Prerequisites**:\n\n- Required access level or role\n- Required software/tools installed\n- Required configurations in place\n- Required knowledge or completed prior tasks\n\n**Estimated time**: X minutes\n\n### Procedure\n\n1. Navigate to **Menu > Submenu > Destination**.\n\n2. In the toolbar, click \"Action Button\".  \n    The [Dialog Name] dialog appears.\n\n3. In the \"Field Name\" field, enter `value`.\n\n4. From the \"Dropdown Name\" dropdown, select \"Option Name\".\n\n5. Click \"Apply\".  \n    The system processes the request. A success message appears: \"Action completed successfully.\"\n\n6. To verify the configuration, run the following command:\n\n    ```bash\n    command --verify\n    ```\n\n    Expected output:\n\n    ```\n    Status: Active\n    Configuration: Applied\n    ```\n\n### Result\n\nThe [feature/configuration/system] is now [state]. You can now [next possible action or capability unlocked].\n\n### Troubleshooting\n\n| Issue | Cause | Solution |\n| --- | --- | --- |\n| Error message appears | Brief explanation | Step-by-step fix |\n| Action fails | Brief explanation | Step-by-step fix |\n"
   },
-
   "concept": {
     title: "Concept",
-    requiredSections: ["Overview", "Key Components", "How It Works", "Important Considerations"],
-    content: `# Overview
-
-Describe the concept at a high level.
-
-# Key Components
-
-List and briefly describe the main components.
-
-# How It Works
-
-Explain processes and interactions.
-
-# Important Considerations
-
-Add caveats, limitations, or notes.
-`
+    requiredSections: ["Concept Name", "Overview", "Key characteristics", "How it works", "Use cases", "Comparison with related concepts", "Example", "Related topics"],
+    content: "### [Concept Name]\n\n**Overview**: One-paragraph explanation of what this is and why it matters.\n\n### Key characteristics\n\n- Characteristic 1\n- Characteristic 2\n- Characteristic 3\n\n### How it works\n\n[2-3 paragraphs explaining the underlying mechanism, workflow, or principle. Use diagrams where helpful.]\n\n1. First major step or component\n2. Second major step or component\n3. Third major step or component\n\n### Use cases\n\n**Use case 1: [Name]**  \nBrief description of when and why to use this approach.\n\n**Use case 2: [Name]**  \nBrief description of when and why to use this approach.\n\n### Comparison with related concepts\n\n| Aspect | This Concept | Alternative Concept |\n| --- | --- | --- |\n| Purpose | Description | Description |\n| Best for | Use case | Use case |\n| Limitation | Constraint | Constraint |\n\n### Example\n\n```language\n# Code example demonstrating the concept\nexample_implementation()\n```\n\n**Explanation**: Brief walkthrough of what the example demonstrates.\n\n### Related topics\n\n- [Link to related concept]\n- [Link to related procedure]\n"
   },
-
   "troubleshooting": {
     title: "Troubleshooting",
-    requiredSections: ["Symptoms", "Possible Causes", "Verification Steps", "Resolution"],
-    content: `# Symptoms
-
-Describe observable symptoms.
-
-# Possible Causes
-
-List likely causes.
-
-# Verification Steps
-
-Steps to reproduce or verify the issue.
-
-# Resolution
-
-Steps to resolve the problem.
-`
+    requiredSections: ["Troubleshooting Topic", "Symptom", "Diagnostic steps", "Common problems and solutions", "Advanced diagnostics", "Related topics"],
+    content: "### Troubleshooting [Problem Area]\n\n**Symptom**: Clear description of what the user observes when the problem occurs.\n\n### Diagnostic steps\n\n1. Check [first verification point].  \n    Run the following command:\n\n    ```bash\n    diagnostic_command\n    ```\n\n    Expected output if healthy:\n\n    ```\n    Status: OK\n    ```\n\n2. Verify [second verification point].  \n    Navigate to **Settings > System > Status** and confirm that \"State\" shows \"Active\".\n\n3. Review the log file at `/path/to/logfile.log` for error messages.  \n    Look for entries containing `ERROR` or `FAILED`.\n\n### Common problems and solutions\n\n#### Problem 1: [Specific error message or symptom]\n\n**Cause**: Brief explanation of why this happens.\n\n**Solution**:\n\n1. Stop the service:\n\n    ```bash\n    service stop application\n    ```\n\n2. Clear the cache directory:\n\n    ```bash\n    rm -rf /path/to/cache/*\n    ```\n\n3. Restart the service:\n\n    ```bash\n    service start application\n    ```\n\n4. Verify the service is running:\n\n    ```bash\n    service status application\n    ```\n\n    Expected output:\n\n    ```\n    Status: Running\n    PID: 12345\n    ```\n\n**Prevention**: How to avoid this issue in the future.\n\n---\n\n#### Problem 2: [Specific error message or symptom]\n\n**Cause**: Brief explanation of why this happens.\n\n**Solution**:\n\n[Step-by-step resolution]\n\n**Prevention**: How to avoid this issue in the future.\n\n---\n\n### Advanced diagnostics\n\nIf the above solutions do not resolve the issue:\n\n1. Enable debug logging:\n\n    ```bash\n    config set log_level=DEBUG\n    ```\n\n2. Reproduce the issue.\n\n3. Collect the debug log:\n\n    ```bash\n    logs export --output=/tmp/debug.log\n    ```\n\n4. Contact support with the debug log file and the following information:\n    - Application version: `app --version`\n    - Operating system: `uname -a`\n    - Exact error message\n    - Steps to reproduce\n\n### Related topics\n\n- [Link to related configuration guide]\n- [Link to log file reference]\n"
   },
-
   "reference": {
     title: "Reference",
-    requiredSections: ["Description", "Parameters / Options", "Example", "Related Information"],
-    content: `# Description
-
-Short description of the item.
-
-# Parameters / Options
-
-List parameters and options.
-
-# Example
-
-Provide an example usage.
-
-# Related Information
-
-Links or pointers to related docs.
-`
+    requiredSections: ["Reference Component", "Overview", "Configuration parameters", "Command-line options", "API endpoints", "Configuration file structure", "Environment variables", "Exit codes", "Related topics"],
+    content: "### [Component/Feature] Reference\n\n**Overview**: One-sentence description of what this reference covers.\n\n### Configuration parameters\n\n| Parameter | Type | Default Value | Description | Valid Range/Options |\n| --- | --- | --- | --- | --- |\n| `parameter_name` | String | `\"default\"` | What this controls | Allowed values or range |\n| `timeout_seconds` | Integer | `30` | Request timeout duration | 1-300 |\n| `enable_feature` | Boolean | `false` | Enables/disables feature | `true`, `false` |\n\n### Command-line options\n\n#### `command_name`\n\n**Syntax**:\n\n```bash\ncommand_name [OPTIONS] <required_arg> [optional_arg]\n```\n\n**Options**:\n\n| Option | Short | Description | Example |\n| --- | --- | --- | --- |\n| `--verbose` | `-v` | Enable verbose output | `command_name -v` |\n| `--output <path>` | `-o` | Specify output file | `command_name -o /tmp/out.txt` |\n| `--help` | `-h` | Display help message | `command_name -h` |\n\n**Examples**:\n\n```bash\n# Basic usage\ncommand_name input.txt\n\n# With verbose output and custom output location\ncommand_name -v -o /custom/path.txt input.txt\n\n# Multiple input files\ncommand_name file1.txt file2.txt file3.txt\n```\n\n### API endpoints\n\n#### GET `/api/resource`\n\n**Description**: Retrieves a list of resources.\n\n**Authentication**: Required (Bearer token)\n\n**Query parameters**:\n\n| Parameter | Type | Required | Description | Example |\n| --- | --- | --- | --- | --- |\n| `limit` | Integer | No | Maximum results to return | `?limit=50` |\n| `offset` | Integer | No | Number of results to skip | `?offset=100` |\n| `filter` | String | No | Filter expression | `?filter=status:active` |\n\n**Request example**:\n\n```http\nGET /api/resource?limit=10&filter=status:active HTTP/1.1\nHost: api.example.com\nAuthorization: Bearer <token>\n```\n\n**Response example** (200 OK):\n\n```json\n{\n  \"total\": 42,\n  \"items\": [\n    {\n      \"id\": \"res_123\",\n      \"name\": \"Resource Name\",\n      \"status\": \"active\"\n    }\n  ]\n}\n```\n\n**Error responses**:\n\n| Status Code | Description | Example Response |\n| --- | --- | --- |\n| 401 | Unauthorized (invalid token) | `{\"error\": \"Invalid token\"}` |\n| 403 | Forbidden (insufficient permissions) | `{\"error\": \"Access denied\"}` |\n| 429 | Rate limit exceeded | `{\"error\": \"Too many requests\"}` |\n\n### Configuration file structure\n\n**File location**: `/etc/application/config.yml`\n\n**Format**: YAML\n\n**Example**:\n\n```yaml\n# Server configuration\nserver:\n  host: \"0.0.0.0\"\n  port: 8080\n  timeout: 30\n\n# Database configuration\ndatabase:\n  host: \"localhost\"\n  port: 5432\n  name: \"app_db\"\n  pool_size: 10\n\n# Feature flags\nfeatures:\n  enable_caching: true\n  enable_analytics: false\n```\n\n**Schema validation**:\n\n- `server.host`: String, valid IP address or hostname\n- `server.port`: Integer, 1-65535\n- `server.timeout`: Integer, 1-300 (seconds)\n- `database.pool_size`: Integer, 1-100\n- `features.*`: Boolean\n\n### Environment variables\n\n| Variable | Description | Default | Example |\n| --- | --- | --- | --- |\n| `APP_ENV` | Deployment environment | `production` | `development`, `staging`, `production` |\n| `APP_LOG_LEVEL` | Logging verbosity | `INFO` | `DEBUG`, `INFO`, `WARN`, `ERROR` |\n| `APP_SECRET_KEY` | Application secret key | None (required) | `your-secret-key-here` |\n\n### Exit codes\n\n| Code | Meaning | Common Cause |\n| --- | --- | --- |\n| 0 | Success | Command completed without errors |\n| 1 | General error | Invalid input or configuration |\n| 2 | Missing argument | Required parameter not provided |\n| 127 | Command not found | Application not in PATH |\n\n### Related topics\n\n- [Link to getting started guide]\n- [Link to troubleshooting guide]\n"
   },
-
   "tutorial": {
     title: "Tutorial",
-    requiredSections: ["Objective", "Prerequisites", "Steps", "Verification", "Next Steps"],
-    content: `# Objective
-
-State the learning objective.
-
-# Prerequisites
-
-List what the learner needs.
-
-# Steps
-
-Step-by-step tutorial.
-
-# Verification
-
-How to confirm the tutorial succeeded.
-
-# Next Steps
-
-Suggested follow-ups.
-`
+    requiredSections: ["Tutorial Title", "What you will learn", "Prerequisites", "Overview", "Steps", "Testing your implementation", "Summary", "Next steps", "Troubleshooting"],
+    content: "### [Tutorial Title]: [Specific Goal]\n\n**What you will learn**:\n\n- Skill or concept 1\n- Skill or concept 2\n- Skill or concept 3\n\n**Prerequisites**:\n\n- Required knowledge level\n- Required software installed\n- Required accounts or access\n\n**Estimated time**: X minutes\n\n### Overview\n\n[1-2 paragraphs explaining what you will build/accomplish and why it matters. Set the context.]\n\n### Step 1: [First milestone]\n\n[Brief introduction to this step's goal.]\n\n1. Open the terminal and create a new project directory:\n\n    ```bash\n    mkdir my-project\n    cd my-project\n    ```\n\n2. Initialize the project:\n\n    ```bash\n    init --template=basic\n    ```\n\n    The initialization creates the following structure:\n\n    ```\n    my-project/\n    ├── config/\n    ├── src/\n    └── README.md\n    ```\n\n3. Verify the setup:\n\n    ```bash\n    validate\n    ```\n\n    Expected output:\n\n    ```\n    ✓ Configuration valid\n    ✓ Dependencies resolved\n    ```\n\n**What you accomplished**: Brief summary of this milestone.\n\n---\n\n### Step 2: [Second milestone]\n\n[Brief introduction to this step's goal.]\n\n1. Create a new configuration file:\n\n    ```yaml title=\"config/settings.yml\"\n    app_name: \"My Application\"\n    version: \"1.0.0\"\n    features:\n      - authentication\n      - logging\n    ```\n\n2. Apply the configuration:\n\n    ```bash\n    apply config/settings.yml\n    ```\n\n3. Test the configuration:\n\n    ```bash\n    test --config=config/settings.yml\n    ```\n\n**What you accomplished**: Brief summary of this milestone.\n\n---\n\n### Step 3: [Third milestone]\n\n[Continue pattern for each major step]\n\n---\n\n### Testing your implementation\n\n1. Run the complete test suite:\n\n    ```bash\n    test --all\n    ```\n\n2. Verify the expected output:\n\n    ```\n    ✓ Test 1: PASSED\n    ✓ Test 2: PASSED\n    ✓ Test 3: PASSED\n    \n    All tests passed (3/3)\n    ```\n\n### Summary\n\nYou have successfully [recap of what was accomplished]. You learned how to:\n\n- Concrete skill learned\n- Concrete skill learned\n- Concrete skill learned\n\n### Next steps\n\n- [Link to advanced tutorial building on this]\n- [Link to related concept explanation]\n- [Link to reference documentation]\n\n### Troubleshooting\n\n**Issue**: Something does not work as expected.  \n**Solution**: Check [specific verification point]. Ensure [specific configuration].\n"
   },
-
   "release-notes": {
     title: "Release Notes",
-    requiredSections: ["New Features", "Improvements", "Bug Fixes", "Breaking Changes", "Known Issues"],
-    content: `# New Features
-
-List new features.
-
-# Improvements
-
-List notable improvements.
-
-# Bug Fixes
-
-List fixes.
-
-# Breaking Changes
-
-Document any breaking changes.
-
-# Known Issues
-
-List known issues.
-`
+    requiredSections: ["Release Notes Title", "Overview", "New features", "Improvements", "Bug fixes", "Breaking changes", "Deprecated features", "Security updates", "Known issues", "Upgrade instructions", "System requirements", "Download", "Contributors"],
+    content: "### Release Notes for Version X.Y.Z\n\n**Release date**: YYYY-MM-DD\n\n**Release type**: Major / Minor / Patch\n\n### Overview\n\n[1-2 paragraphs summarizing the key changes, improvements, or themes of this release.]\n\n### New features\n\n#### [Feature Name]\n\nBrief description of what this feature does and why it matters.\n\n**How to use**:\n\n```bash\n# Example command or configuration\nnew_feature --enable\n```\n\n**Related documentation**: [Link to detailed guide]\n\n---\n\n#### [Feature Name]\n\nBrief description of what this feature does and why it matters.\n\n---\n\n### Improvements\n\n- **[Component]**: Description of improvement and its benefit\n- **[Component]**: Description of improvement and its benefit\n- **Performance**: Specific metric improvement (e.g., \"API response time reduced by 40%\")\n- **Usability**: Description of UX enhancement\n\n### Bug fixes\n\n- **[Component]**: Fixed issue where [symptom] occurred when [condition]. (Issue #123)\n- **[Component]**: Resolved error \"[error message]\" during [action]. (Issue #456)\n- **[Component]**: Corrected [specific behavior] to now [expected behavior]. (Issue #789)\n\n### Breaking changes\n\n#### [Change Title]\n\n**Impact**: Description of what breaks and which users are affected.\n\n**Migration path**:\n\n1. Update your configuration from:\n\n    ```yaml\n    # Old format (deprecated)\n    old_parameter: value\n    ```\n\n    to:\n\n    ```yaml\n    # New format\n    new_parameter: value\n    ```\n\n2. Run the migration command:\n\n    ```bash\n    migrate --from=v1 --to=v2\n    ```\n\n3. Verify the migration:\n\n    ```bash\n    validate --config\n    ```\n\n**Related documentation**: [Link to migration guide]\n\n---\n\n### Deprecated features\n\nThe following features are deprecated and will be removed in version X.Y.Z:\n\n- **[Feature Name]**: Use [alternative] instead. [Link to migration guide]\n- **[Feature Name]**: Use [alternative] instead. [Link to migration guide]\n\n### Security updates\n\n- **[CVE-YYYY-XXXXX]**: [Severity] - Description of vulnerability and fix. [Link to security advisory]\n- Updated dependency [package name] from version X.X to X.Y to address [security issue]\n\n### Known issues\n\n- **[Issue description]**: Workaround: [temporary solution]. Fix planned for version X.Y.Z. (Issue #999)\n- **[Issue description]**: Affects [specific scenario]. Investigating. (Issue #1000)\n\n### Upgrade instructions\n\n#### From version X.Y.Z\n\n1. Backup your current configuration:\n\n    ```bash\n    backup --output=/tmp/config_backup.tar.gz\n    ```\n\n2. Stop the application:\n\n    ```bash\n    service stop application\n    ```\n\n3. Install the new version:\n\n    ```bash\n    package install application=X.Y.Z\n    ```\n\n4. Run database migrations:\n\n    ```bash\n    migrate database\n    ```\n\n5. Start the application:\n\n    ```bash\n    service start application\n    ```\n\n6. Verify the upgrade:\n\n    ```bash\n    application --version\n    ```\n\n    Expected output: `Application version X.Y.Z`\n\n### System requirements\n\n- Operating System: Ubuntu 20.04+ / RHEL 8+ / Windows Server 2019+\n- Memory: 4 GB minimum, 8 GB recommended\n- Disk space: 10 GB available\n- Dependencies: Node.js 18+, Python 3.9+\n\n### Download\n\n- [Download for Linux (x64)](https://example.com/download/linux)\n- [Download for Windows (x64)](https://example.com/download/windows)\n- [Download for macOS (ARM)](https://example.com/download/macos)\n\n**Checksums**: [Link to checksums file]\n\n### Contributors\n\nWe would like to thank the following contributors to this release:\n\n- [@username1](https://github.com/username1)\n- [@username2](https://github.com/username2)\n"
   },
   "api-documentation": {
     title: "API Documentation",
-    requiredSections: ["Endpoint / Function", "Description", "Request / Parameters", "Response / Return Value", "Examples", "Error Handling"],
-    content: `# Endpoint / Function
-
-Describe the endpoint or function name.
-
-# Description
-
-Short description of what the endpoint does.
-
-# Request / Parameters
-
-List request parameters, types, and descriptions.
-
-# Response / Return Value
-
-Describe the response format and fields.
-
-# Examples
-
-Provide example requests and responses.
-
-# Error Handling
-
-List error codes and handling guidance.
-`
-  },
+    requiredSections: ["API Name", "Authentication", "Endpoints", "Error handling", "SDKs and libraries", "Changelog"],
+    content: "### [API Name] API Reference\n\n**Base URL**: `https://api.example.com/v1`\n\n**Authentication**: Bearer token (OAuth 2.0)\n\n**Rate limits**: 1000 requests per hour per API key\n\n### Authentication\n\nTo authenticate requests, include your API key in the Authorization header:\n\n```http\nAuthorization: Bearer YOUR_API_KEY\n```\n\n**Obtaining an API key**:\n\n1. Navigate to **Account > API Keys**.\n2. Click \"Generate New Key\".\n3. Copy the key and store it securely.\n\n### Endpoints\n\n#### Create Resource\n\n```http\nPOST /resources\n```\n\nCreates a new resource.\n\n**Headers**:\n\n| Header | Value | Required |\n| --- | --- | --- |\n| `Content-Type` | `application/json` | Yes |\n| `Authorization` | `Bearer <token>` | Yes |\n\n**Request body**:\n\n```json\n{\n  \"name\": \"Resource Name\",\n  \"type\": \"standard\",\n  \"configuration\": {\n    \"enabled\": true,\n    \"timeout\": 30\n  }\n}\n```\n\n**Parameters**:\n\n| Field | Type | Required | Description | Constraints |\n| --- | --- | --- | --- | --- |\n| `name` | String | Yes | Resource display name | 1-100 characters |\n| `type` | String | Yes | Resource type | `standard`, `premium`, `enterprise` |\n| `configuration.enabled` | Boolean | No | Enable resource | Default: `true` |\n| `configuration.timeout` | Integer | No | Timeout in seconds | 1-300, Default: 30 |\n\n**Response** (201 Created):\n\n```json\n{\n  \"id\": \"res_abc123\",\n  \"name\": \"Resource Name\",\n  \"type\": \"standard\",\n  \"status\": \"active\",\n  \"created_at\": \"2024-03-20T10:30:00Z\"\n}\n```\n\n**Error responses**:\n\n| Status | Description | Example |\n| --- | --- | --- |\n| 400 | Invalid request body | `{\"error\": \"Invalid type value\"}` |\n| 401 | Unauthorized | `{\"error\": \"Invalid API key\"}` |\n| 409 | Resource already exists | `{\"error\": \"Resource name already in use\"}` |\n| 429 | Rate limit exceeded | `{\"error\": \"Rate limit exceeded. Retry after 3600s\"}` |\n\n---\n\n#### List Resources\n\n```http\nGET /resources\n```\n\nRetrieves a paginated list of resources.\n\n**Query parameters**:\n\n| Parameter | Type | Required | Description | Default |\n| --- | --- | --- | --- | --- |\n| `page` | Integer | No | Page number | 1 |\n| `per_page` | Integer | No | Results per page | 20 |\n| `type` | String | No | Filter by type | All types |\n| `status` | String | No | Filter by status | All statuses |\n\n**Response** (200 OK):\n\n```json\n{\n  \"data\": [\n    {\n      \"id\": \"res_abc123\",\n      \"name\": \"Resource 1\",\n      \"type\": \"standard\",\n      \"status\": \"active\"\n    }\n  ],\n  \"pagination\": {\n    \"page\": 1,\n    \"per_page\": 20,\n    \"total\": 42,\n    \"total_pages\": 3\n  }\n}\n```\n\n### Error handling\n\nAll errors follow this format:\n\n```json\n{\n  \"error\": {\n    \"code\": \"ERROR_CODE\",\n    \"message\": \"Human-readable error message\",\n    \"details\": {\n      \"field\": \"Additional context\"\n    }\n  }\n}\n```\n\n**Common error codes**:\n\n| Code | HTTP Status | Description |\n| --- | --- | --- |\n| `INVALID_REQUEST` | 400 | Request body validation failed |\n| `UNAUTHORIZED` | 401 | Invalid or missing API key |\n| `FORBIDDEN` | 403 | Insufficient permissions |\n| `NOT_FOUND` | 404 | Resource does not exist |\n| `RATE_LIMITED` | 429 | Too many requests |\n| `INTERNAL_ERROR` | 500 | Server error |\n\n### SDKs and libraries\n\n- [Python SDK](https://github.com/example/python-sdk)\n- [JavaScript SDK](https://github.com/example/js-sdk)\n- [Ruby SDK](https://github.com/example/ruby-sdk)\n\n### Changelog\n\n- **v1.2.0** (2024-03-20): Added `configuration.timeout` parameter\n- **v1.1.0** (2024-02-15): Added `type` filter to list endpoint\n- **v1.0.0** (2024-01-01): Initial release\n"
+  }
 };
 
 export function getTemplateFor(taskType: TaskType): Template {

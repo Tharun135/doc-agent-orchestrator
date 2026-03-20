@@ -6,6 +6,8 @@ import { getTemplateFor } from './engine/templates';
 import { computeDiff, DiffResult } from './diffUtils';
 import { parsePreservedAmbiguities, formatClarifications } from './engine/ambiguityParser';
 import type { PreservedAmbiguity } from './engine/ambiguityParser';
+import { DEFAULT_STYLE_GUIDE } from './engine/defaultStyleGuide';
+import Tesseract from 'tesseract.js';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // State
@@ -26,6 +28,7 @@ interface AppState {
   resolveAnswers: string[];
   pass: number;
   templateOverride: string | null;
+  styleGuideRules: string;
 }
 
 const state: AppState = {
@@ -44,6 +47,7 @@ const state: AppState = {
   resolveAnswers: [],
   pass: 1,
   templateOverride: null,
+  styleGuideRules: DEFAULT_STYLE_GUIDE,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -171,7 +175,14 @@ function renderStep1() {
     </div>
 
     <div class="card">
-      <label class="field-label" for="source-input">Your source text</label>
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px;">
+        <label class="field-label" for="source-input" style="margin-bottom: 0;">Your source text</label>
+        <label class="ocr-btn" id="ocr-upload-btn" title="Extract text from an image">
+          📸 Upload Image (OCR)
+          <input type="file" id="ocr-file-input" accept="image/*" style="display:none;">
+        </label>
+      </div>
+      <div id="ocr-loading" style="display:none; color:var(--accent); font-size:12px; margin-bottom:8px; animation: pulse 1.5s infinite;">⏳ Initializing Local OCR engine & Extracting... Please wait.</div>
       <textarea id="source-input" placeholder="Paste or type your rough notes here...
 e.g.
 # Database Migration
@@ -193,6 +204,17 @@ Backup database first maybe?"></textarea>
       <div id="template-editor-content" style="display: none;">
         <div class="text-muted" style="margin-bottom: 12px;">Customize the structure section for the generated prompt here. Doing so will override the default template.</div>
         <textarea id="template-input" style="min-height: 200px;"></textarea>
+      </div>
+    </div>
+
+    <div class="card mt-16" id="style-card">
+      <div class="qa-header" style="margin-bottom: 10px; cursor: pointer; user-select: none;" id="toggle-style-btn">
+        <label class="field-label" style="margin:0; cursor: pointer;">💅 Custom Style Guide (Optional)</label>
+        <span id="style-toggle-icon" style="color:var(--text-muted); font-size: 12px;">▼ Show</span>
+      </div>
+      <div id="style-editor-content" style="display: none;">
+        <div class="text-muted" style="margin-bottom: 12px;">Paste your organization's terminology, tone, or formatting rules here. These will be strictly enforced by the AI.</div>
+        <textarea id="style-input" placeholder="e.g. Always capitalize 'Platform'. Never use the word 'simply'. Use active voice." style="min-height: 120px;"></textarea>
       </div>
     </div>
 
@@ -246,6 +268,59 @@ Backup database first maybe?"></textarea>
   srcInput.addEventListener('input', () => { state.sourceText = srcInput.value; });
   intentInput.addEventListener('input', () => { state.userIntent = intentInput.value; });
 
+  const ocrInput = document.getElementById('ocr-file-input') as HTMLInputElement;
+  const ocrBtn = document.getElementById('ocr-upload-btn')!;
+  const ocrLoading = document.getElementById('ocr-loading')!;
+
+  async function performOCR(file: File) {
+    ocrBtn.style.pointerEvents = 'none';
+    ocrBtn.style.opacity = '0.5';
+    ocrLoading.style.display = 'block';
+    
+    try {
+      showToast('Downloading OCR model & Extracting text...', 'info');
+      const result = await Tesseract.recognize(file, 'eng');
+      const text = result.data.text.trim();
+      
+      if (text) {
+        state.sourceText = state.sourceText ? state.sourceText + '\\n\\n' + text : text;
+        srcInput.value = state.sourceText;
+        showToast('Text extracted successfully!', 'success');
+      } else {
+        showToast('No readable text found in the image.', 'error');
+      }
+    } catch (e) {
+      console.error(e);
+      showToast('OCR failed. Could not read image.', 'error');
+    } finally {
+      ocrBtn.style.pointerEvents = 'auto';
+      ocrBtn.style.opacity = '1';
+      ocrLoading.style.display = 'none';
+      ocrInput.value = ''; // reset file input
+    }
+  }
+
+  ocrInput.addEventListener('change', (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    performOCR(file);
+  });
+
+  srcInput.addEventListener('paste', (e) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (const item of items) {
+      if (item.type.indexOf('image/') !== -1) {
+        const file = item.getAsFile();
+        if (file) {
+          e.preventDefault();
+          performOCR(file);
+          break;
+        }
+      }
+    }
+  });
+
   const toggleBtn = document.getElementById('toggle-template-btn');
   if (toggleBtn) {
     toggleBtn.addEventListener('click', () => {
@@ -269,6 +344,29 @@ Backup database first maybe?"></textarea>
     }
     tplInput.addEventListener('input', () => {
       state.templateOverride = tplInput.value;
+    });
+  }
+
+  const toggleStyleBtn = document.getElementById('toggle-style-btn');
+  if (toggleStyleBtn) {
+    toggleStyleBtn.addEventListener('click', () => {
+      const content = document.getElementById('style-editor-content')!;
+      const icon = document.getElementById('style-toggle-icon')!;
+      if (content.style.display === 'none') {
+        content.style.display = 'block';
+        icon.textContent = '▲ Hide';
+      } else {
+        content.style.display = 'none';
+        icon.textContent = '▼ Show';
+      }
+    });
+  }
+
+  const styleInput = document.getElementById('style-input') as HTMLTextAreaElement;
+  if (styleInput) {
+    styleInput.value = state.styleGuideRules;
+    styleInput.addEventListener('input', () => {
+      state.styleGuideRules = styleInput.value;
     });
   }
 
@@ -412,6 +510,7 @@ function buildPromptAndGoToStep3() {
     preClarifications: state.preClarifications,
     pass: state.pass,
     templateContent: state.templateOverride || undefined,
+    styleGuideRules: state.styleGuideRules || undefined,
   });
 
   renderStep3();
@@ -699,6 +798,7 @@ function renderAmbiguitySection() {
       clarifications: newClarifications,
       pass: state.pass,
       templateContent: state.templateOverride || undefined,
+      styleGuideRules: state.styleGuideRules || undefined,
     });
 
     showToast(`Pass ${state.pass} prompt generated with ${answeredAmbigs.length} resolved gap${answeredAmbigs.length !== 1 ? 's' : ''}!`, 'success');
@@ -760,6 +860,7 @@ function resetState() {
     resolveAnswers: [],
     pass: 1,
     templateOverride: null,
+    styleGuideRules: DEFAULT_STYLE_GUIDE,
   });
 }
 
@@ -771,7 +872,14 @@ function bootstrap() {
   app.innerHTML = `
     <!-- Header -->
     <header class="app-header">
-      <div class="logo">📄</div>
+      <div class="logo">
+        <svg class="logo-icon" viewBox="0 0 24 24">
+          <path class="logo-doc-path" d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline class="logo-doc-path" points="14 2 14 8 20 8"></polyline>
+          <line class="logo-line d1" x1="16" y1="13" x2="8" y2="13"></line>
+          <line class="logo-line d2" x1="16" y1="17" x2="8" y2="17"></line>
+        </svg>
+      </div>
       <div>
         <div class="app-title">Documentation Agent Orchestrator</div>
         <div class="app-subtitle">Governance-driven AI prompts for technical writers</div>

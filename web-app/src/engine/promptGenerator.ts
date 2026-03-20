@@ -131,6 +131,14 @@ TEMPLATE EXAMPLE:
 ${templateContent}
 `;
 
+  // ── Style Guide ──────────────────────────────────────────────────────────
+  const styleGuideBlock = input.styleGuideRules?.trim()
+    ? `CUSTOM STYLE GUIDE RULES — MANDATORY:
+You must strictly follow these organizational formatting and terminology rules:
+${input.styleGuideRules}
+`
+    : "";
+
   // ── Core prompt ──────────────────────────────────────────────────────────
   const prompt = `SYSTEM:
 You are a Technical Documentation Agent.
@@ -183,6 +191,7 @@ REWRITE POLICY:
 - If a section has no source-grounded content, omit it entirely — write nothing under it.
 
 ${clarificationsBlock}
+${styleGuideBlock}
 ${GOVERNANCE_RULES}
 
 GOVERNANCE ENFORCEMENT:

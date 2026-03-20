@@ -624,7 +624,12 @@ Might need firewall exception.`,
         if (detectedQuestions.length > 0) {
           const answers = await showQAPanel(context.extensionUri, detectedQuestions);
           if (answers !== null && answers.length === detectedQuestions.length) {
-            preClarifications = formatPreClarifications(detectedQuestions, answers);
+            // Only include questions that received a non-empty answer
+            const answeredQuestions = detectedQuestions.filter((_, i) => answers[i].trim().length > 0);
+            const answeredValues    = answers.filter(a => a.trim().length > 0);
+            if (answeredQuestions.length > 0) {
+              preClarifications = formatPreClarifications(answeredQuestions, answeredValues);
+            }
           }
         }
 
@@ -710,6 +715,11 @@ async function showQAPanel(
   questions: DetectedQuestion[],
 ): Promise<string[] | null> {
   return new Promise((resolve) => {
+    let settled = false;
+    const settle = (value: string[] | null) => {
+      if (!settled) { settled = true; resolve(value); }
+    };
+
     const panel = vscode.window.createWebviewPanel(
       "docGenQA",
       `${questions.length} clarification${questions.length !== 1 ? "s" : ""} needed`,
@@ -721,16 +731,17 @@ async function showQAPanel(
 
     panel.webview.onDidReceiveMessage((msg) => {
       if (msg.type === "submit") {
+        settle(msg.answers as string[]);
         panel.dispose();
-        resolve(msg.answers as string[]);
       } else if (msg.type === "cancel") {
+        settle(null);
         panel.dispose();
-        resolve(null);
       }
     });
 
-    // Closing the panel without submitting resolves as null (skip)
-    panel.onDidDispose(() => resolve(null));
+    // Closing the panel without submitting resolves as null (skip).
+    // The settled guard ensures this does not overwrite a prior submit resolution.
+    panel.onDidDispose(() => settle(null));
   });
 }
 
@@ -997,7 +1008,7 @@ function buildQAHtml(questions: DetectedQuestion[]): string {
     });
 
     document.getElementById('btnSkipAll').addEventListener('click', () => {
-      vscode.postMessage({ type: 'cancel' });
+      vscode.postMessage({ type: 'submit', answers: Array.from({ length: total }, () => '') });
     });
 
     // Enter moves to next enabled input; Enter on last submits

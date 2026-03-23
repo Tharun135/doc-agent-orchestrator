@@ -207,9 +207,9 @@ function renderStep1() {
     <div class="card">
       <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px;">
         <label class="field-label" for="source-input" style="margin-bottom: 0;">Your source text</label>
-        <label class="upload-btn" id="source-upload-btn" title="Upload an image, text, or markdown file">
+        <label class="upload-btn" id="source-upload-btn" title="Upload an image, PDF, text, or markdown file">
           📄 Upload document
-          <input type="file" id="source-file-input" accept="image/*, .txt, .md, .markdown, .json" style="display:none;">
+          <input type="file" id="source-file-input" accept="image/*, .pdf, .txt, .md, .markdown, .json" style="display:none;">
         </label>
       </div>
       <div id="ocr-loading" style="display:none; color:var(--accent); font-size:12px; margin-bottom:8px; animation: pulse 1.5s infinite;">⏳ Initializing Local OCR engine & Extracting... Please wait.</div>

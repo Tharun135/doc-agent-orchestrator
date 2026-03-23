@@ -8,6 +8,10 @@ import { parsePreservedAmbiguities, formatClarifications } from './engine/ambigu
 import type { PreservedAmbiguity } from './engine/ambiguityParser';
 import { DEFAULT_STYLE_GUIDE } from './engine/defaultStyleGuide';
 import Tesseract from 'tesseract.js';
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Worker configuration for PDF.js - matches installed version automatically via CDN
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // State
@@ -327,6 +331,47 @@ Backup database first maybe?"></textarea>
         ocrLoading.style.display = 'none';
         uploadInput.value = ''; 
       }
+    } else if (file.type === 'application/pdf') {
+      // Handle PDF
+      uploadBtn.style.pointerEvents = 'none';
+      uploadBtn.style.opacity = '0.5';
+      ocrLoading.style.display = 'block';
+      ocrLoading.textContent = '⏳ Extracting text from PDF... Please wait.';
+
+      try {
+        showToast('Extracting text from PDF...', 'info');
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        let fullText = '';
+        
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const textContent = await page.getTextContent();
+          
+          // Reconstruct page text (pdf.js items can be out of flow)
+          const pageText = textContent.items
+            .map((item: any) => item.str)
+            .join(' ');
+          fullText += pageText + '\n\n';
+        }
+
+        const text = fullText.trim();
+        if (text) {
+          state.sourceText = state.sourceText ? state.sourceText + '\n\n' + text : text;
+          srcInput.value = state.sourceText;
+          showToast('Text extracted from PDF successfully!', 'success');
+        } else {
+          showToast('No readable text found in the PDF.', 'warning');
+        }
+      } catch (e) {
+        console.error(e);
+        showToast('PDF extraction failed. Could not read file.', 'error');
+      } finally {
+        uploadBtn.style.pointerEvents = 'auto';
+        uploadBtn.style.opacity = '1';
+        ocrLoading.style.display = 'none';
+        uploadInput.value = '';
+      }
     } else if (file.type === 'text/plain' || file.name.endsWith('.md') || file.name.endsWith('.markdown') || file.name.endsWith('.json')) {
       // Handle Text/Markdown
       const reader = new FileReader();
@@ -345,7 +390,7 @@ Backup database first maybe?"></textarea>
       };
       reader.readAsText(file);
     } else {
-      showToast('Unsupported file format. Please upload an image, text, or markdown file.', 'warning');
+      showToast('Unsupported file format. Please upload an image, PDF, text, or markdown file.', 'warning');
       uploadInput.value = '';
     }
   }
@@ -1099,7 +1144,7 @@ function bootstrap() {
           <div class="manual-section">
             <h2><span class="info-icon">🎮</span> How to operate</h2>
             <div class="manual-step">
-              <p><strong>Step 1: Input & intent</strong> — Paste your source text or upload an image. Select the type of documentation you need and describe what you want the AI to do (the "intent").</p>
+              <p><strong>Step 1: Input & intent</strong> — Paste your source text or upload an image or PDF. Select the type of documentation you need and describe what you want the AI to do (the "intent").</p>
             </div>
             <div class="manual-step">
               <p><strong>Step 2: Resolve gaps</strong> — Review the list of detected information gaps. Click and type your answers to help the AI understand the missing context. If you don't know an answer, you can skip it.</p>

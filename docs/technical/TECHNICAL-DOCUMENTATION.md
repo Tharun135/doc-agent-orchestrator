@@ -97,19 +97,21 @@ The extension now includes:
 ### Project Structure
 ```
 doc-agent-orchestrator/
-├── src/
+├── src/                          # Extension source (TypeScript)
 │   ├── extension.ts              # Entry point, command registration
-│   └── engine/
-│       ├── governance.ts         # Governance rules definition
-│       ├── promptGenerator.ts    # Core prompt generation logic
-│       ├── questionDetector.ts   # Gap detection engine ← NEW
-│       └── types.ts             # TypeScript type definitions
+│   └── engine/                   # Core governance & detection logic
 ├── out/                          # Compiled JavaScript (build output)
-├── DEMO/                         # Demo examples and guides
-├── TESTING/                      # Test cases (55 scenarios)
-├── package.json                 # Extension manifest
-├── tsconfig.json                # TypeScript configuration
-└── README.md                    # User-facing documentation
+├── docs/                         # Projects documentation
+│   ├── guides/                   # User guides and quickstarts
+│   ├── technical/                # Deep dives into system logic
+│   ├── demo/                     # Sample inputs and walkthroughs
+│   └── CHANGELOG.md              # Project history
+├── tests/                        # Manual test cases and validation scripts
+├── releases/                     # Compiled VSIX packages
+├── web-app/                      # Standalone web version of the orchestrator
+├── package.json                  # Extension manifest
+├── tsconfig.json                 # TypeScript configuration
+└── README.md                     # Main repository landing page
 ```
 
 ---

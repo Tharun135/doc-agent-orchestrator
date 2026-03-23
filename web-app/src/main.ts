@@ -178,7 +178,7 @@ function renderStep1() {
       <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px;">
         <label class="field-label" for="source-input" style="margin-bottom: 0;">Your source text</label>
         <label class="ocr-btn" id="ocr-upload-btn" title="Extract text from an image">
-          📸 Upload Image (OCR)
+          📸 Upload Image
           <input type="file" id="ocr-file-input" accept="image/*" style="display:none;">
         </label>
       </div>

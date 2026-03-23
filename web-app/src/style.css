@@ -490,6 +490,35 @@ body {
 
 .step-line.done { background: var(--success); opacity: 0.5; }
 
+/* ── Document Upload Button ───────────────────────── */
+.upload-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.upload-btn:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: var(--accent);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--accent-glow);
+}
+
+.upload-btn:active {
+  transform: translateY(0);
+}
+
 /* ── Workflow Diagram ───────────────────────────────── */
 .workflow-diagram {
   background: rgba(255,255,255,0.03);
@@ -1016,23 +1045,25 @@ textarea { min-height: 220px; font-family: var(--font-mono); font-size: 13px; }
 }
 
 /* OCR Upload Button */
-.ocr-btn {
-  font-size: 13px;
+.upload-btn {
   color: var(--accent);
   cursor: pointer;
-  padding: 6px 12px;
+  padding: 6px 14px;
   border-radius: var(--radius-sm);
   background: rgba(99,132,255,0.1);
   transition: all var(--transition);
   font-weight: 500;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  border: 1px solid var(--accent-glow);
 }
 
-.ocr-btn:hover {
-  background: rgba(99,132,255,0.2);
-  transform: translateY(-1px);
+.upload-btn:hover {
+  background: rgba(99,132,255,0.18);
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 15px var(--accent-glow);
+  border-color: var(--accent);
 }
 
 @keyframes pulse {

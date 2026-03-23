@@ -201,9 +201,9 @@ function renderStep1() {
     <div class="card">
       <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px;">
         <label class="field-label" for="source-input" style="margin-bottom: 0;">Your source text</label>
-        <label class="ocr-btn" id="ocr-upload-btn" title="Extract text from an image">
-          📸 Upload Image
-          <input type="file" id="ocr-file-input" accept="image/*" style="display:none;">
+        <label class="upload-btn" id="source-upload-btn" title="Upload an image, text, or markdown file">
+          📄 Upload Document
+          <input type="file" id="source-file-input" accept="image/*, .txt, .md, .markdown, .json" style="display:none;">
         </label>
       </div>
       <div id="ocr-loading" style="display:none; color:var(--accent); font-size:12px; margin-bottom:8px; animation: pulse 1.5s infinite;">⏳ Initializing Local OCR engine & Extracting... Please wait.</div>
@@ -292,43 +292,69 @@ Backup database first maybe?"></textarea>
   srcInput.addEventListener('input', () => { state.sourceText = srcInput.value; });
   intentInput.addEventListener('input', () => { state.userIntent = intentInput.value; });
 
-  const ocrInput = document.getElementById('ocr-file-input') as HTMLInputElement;
-  const ocrBtn = document.getElementById('ocr-upload-btn')!;
+  const uploadInput = document.getElementById('source-file-input') as HTMLInputElement;
+  const uploadBtn = document.getElementById('source-upload-btn')!;
   const ocrLoading = document.getElementById('ocr-loading')!;
 
-  async function performOCR(file: File) {
-    ocrBtn.style.pointerEvents = 'none';
-    ocrBtn.style.opacity = '0.5';
-    ocrLoading.style.display = 'block';
-    
-    try {
-      showToast('Downloading OCR model & Extracting text...', 'info');
-      const result = await Tesseract.recognize(file, 'eng');
-      const text = result.data.text.trim();
+  async function handleFileUpload(file: File) {
+    if (file.type.startsWith('image/')) {
+      // Handle Image (OCR)
+      uploadBtn.style.pointerEvents = 'none';
+      uploadBtn.style.opacity = '0.5';
+      ocrLoading.style.display = 'block';
+      ocrLoading.textContent = '⏳ Initializing Local OCR engine & Extracting... Please wait.';
       
-      if (text) {
-        state.sourceText = state.sourceText ? state.sourceText + '\\n\\n' + text : text;
-        srcInput.value = state.sourceText;
-        showToast('Text extracted successfully!', 'success');
-      } else {
-        showToast('No readable text found in the image.', 'error');
+      try {
+        showToast('Downloading OCR model & Extracting text...', 'info');
+        const result = await Tesseract.recognize(file, 'eng');
+        const text = result.data.text.trim();
+        
+        if (text) {
+          state.sourceText = state.sourceText ? state.sourceText + '\n\n' + text : text;
+          srcInput.value = state.sourceText;
+          showToast('Text extracted from image successfully!', 'success');
+        } else {
+          showToast('No readable text found in the image.', 'error');
+        }
+      } catch (e) {
+        console.error(e);
+        showToast('OCR failed. Could not read image.', 'error');
+      } finally {
+        uploadBtn.style.pointerEvents = 'auto';
+        uploadBtn.style.opacity = '1';
+        ocrLoading.style.display = 'none';
+        uploadInput.value = ''; 
       }
-    } catch (e) {
-      console.error(e);
-      showToast('OCR failed. Could not read image.', 'error');
-    } finally {
-      ocrBtn.style.pointerEvents = 'auto';
-      ocrBtn.style.opacity = '1';
-      ocrLoading.style.display = 'none';
-      ocrInput.value = ''; // reset file input
+    } else if (file.type === 'text/plain' || file.name.endsWith('.md') || file.name.endsWith('.markdown') || file.name.endsWith('.json')) {
+      // Handle Text/Markdown
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target?.result as string;
+        if (text) {
+          state.sourceText = state.sourceText ? state.sourceText + '\n\n' + text.trim() : text.trim();
+          srcInput.value = state.sourceText;
+          showToast(`File "${file.name}" uploaded successfully!`, 'success');
+        }
+        uploadInput.value = '';
+      };
+      reader.onerror = () => {
+        showToast('Failed to read the file.', 'error');
+        uploadInput.value = '';
+      };
+      reader.readAsText(file);
+    } else {
+      showToast('Unsupported file format. Please upload an image, text, or markdown file.', 'warning');
+      uploadInput.value = '';
     }
   }
 
-  ocrInput.addEventListener('change', (e) => {
-    const file = (e.target as HTMLInputElement).files?.[0];
-    if (!file) return;
-    performOCR(file);
-  });
+  if (uploadInput) {
+    uploadInput.addEventListener('change', (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      handleFileUpload(file);
+    });
+  }
 
   srcInput.addEventListener('paste', (e) => {
     const items = e.clipboardData?.items;
@@ -338,7 +364,7 @@ Backup database first maybe?"></textarea>
         const file = item.getAsFile();
         if (file) {
           e.preventDefault();
-          performOCR(file);
+          handleFileUpload(file);
           break;
         }
       }

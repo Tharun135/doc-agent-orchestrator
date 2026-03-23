@@ -1033,6 +1033,9 @@ function bootstrap() {
                   <circle cx="620" cy="50" r="8" fill="var(--danger)" class="svg-pulse" style="opacity:0" />
                   <text x="620" y="80" text-anchor="middle" class="svg-text">4. DIFF & VALIDATE</text>
                 </g>
+
+                <!-- Tracer Glow -->
+                <circle cx="70" cy="60" r="10" fill="var(--accent)" class="svg-tracer" />
               </svg>
             </div>
             

@@ -894,6 +894,13 @@ function resetState() {
 function bootstrap() {
   const app = document.getElementById('app')!;
   app.innerHTML = `
+    <!-- Background Blobs -->
+    <div class="bg-blobs">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+
     <!-- Header -->
     <header class="app-header">
       <div class="logo">

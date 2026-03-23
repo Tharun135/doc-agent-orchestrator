@@ -1012,8 +1012,6 @@ function bootstrap() {
                   <rect x="20" y="30" width="100" height="60" rx="10" class="svg-active-border" />
                   <!-- Inner Glow -->
                   <rect x="20" y="30" width="100" height="60" rx="10" class="svg-active-glow" />
-                  <!-- The Ball -->
-                  <circle cx="120" cy="60" r="6" class="svg-ball" />
                 </g>
 
                 <!-- Node 1: Analyse -->

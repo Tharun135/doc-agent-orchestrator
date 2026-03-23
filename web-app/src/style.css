@@ -504,15 +504,15 @@ body {
 /* ── Moving Highlight Animation ──────────────────────── */
 .svg-moving-highlight {
   pointer-events: none;
-  animation: svgMovingX 8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  animation: svgMovingX 8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 @keyframes svgMovingX {
-  0%   { transform: translateX(0); }
-  25%  { transform: translateX(180px); }
-  50%  { transform: translateX(360px); }
-  75%  { transform: translateX(540px); }
-  100% { transform: translateX(0); }
+  0%, 18%   { transform: translateX(0); }
+  25%, 43%  { transform: translateX(180px); }
+  50%, 68%  { transform: translateX(360px); }
+  75%, 93%  { transform: translateX(540px); }
+  100%      { transform: translateX(540px); }
 }
 
 .svg-active-border {
@@ -526,11 +526,6 @@ body {
   fill: var(--accent);
   opacity: 0.3;
   filter: blur(12px);
-}
-
-.svg-ball {
-  fill: var(--accent);
-  filter: drop-shadow(0 0 5px var(--accent));
 }
 
 /* ── Main layout ─────────────────────────────────────── */

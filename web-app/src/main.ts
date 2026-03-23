@@ -941,7 +941,7 @@ function bootstrap() {
         <div class="footer-left">
           <div class="copyright">© 2026 Documentation Agent Orchestrator. All rights reserved.</div>
           <div class="author-tag">
-            Handcrafted with ❤️ by <a href="https://github.com/Tharun135" target="_blank" class="author-name">Tharun Sebastian</a>
+            Handcrafted with ❤️ by <a href="https://linkedin.com/in/tharun-sebastian" target="_blank" class="author-name">Tharun Sebastian</a>
           </div>
         </div>
         <div class="footer-right">

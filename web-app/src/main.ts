@@ -191,7 +191,12 @@ function goToStep(step: 1 | 2 | 3 | 4) {
   if (target) target.classList.add('active');
   state.step = step;
   updateStepper();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  const stepper = document.querySelector('.stepper');
+  if (stepper) {
+    stepper.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

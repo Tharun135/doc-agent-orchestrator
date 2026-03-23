@@ -975,7 +975,7 @@ function bootstrap() {
           </div>
         </div>
         <div class="footer-right">
-          <span class="license-pill">MIT License</span>
+          <a href="https://github.com/Tharun135/doc-agent-orchestrator/blob/main/LICENSE" target="_blank" class="license-pill">MIT License</a>
           <a href="https://github.com/Tharun135/doc-agent-orchestrator" target="_blank" class="footer-link">
             GitHub Repository
           </a>

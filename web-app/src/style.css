@@ -1231,6 +1231,16 @@ textarea { min-height: 220px; font-family: var(--font-mono); font-size: 13px; }
   border: 1px solid var(--border-accent);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.license-pill:hover {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 0 10px var(--accent-soft);
 }
 
 /* ── Responsive ──────────────────────────────────────── */

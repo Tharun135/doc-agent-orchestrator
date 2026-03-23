@@ -944,6 +944,89 @@ textarea { min-height: 220px; font-family: var(--font-mono); font-size: 13px; }
 .empty-state .empty-title { font-size: 16px; font-weight: 600; color: var(--text-secondary); }
 .empty-state .empty-desc  { font-size: 13px; margin-top: 8px; line-height: 1.6; }
 
+/* ── Footer ─────────────────────────────────────────── */
+.app-footer {
+  margin-top: auto;
+  padding: 40px 32px;
+  background: rgba(10,12,18,0.5);
+  border-top: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+}
+
+.footer-content {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.footer-left {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.footer-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.copyright {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.author-tag {
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.author-name {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.author-name:hover {
+  color: #a280ff;
+  text-shadow: 0 0 10px rgba(162,128,255,0.4);
+}
+
+.footer-link {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.footer-link:hover {
+  color: var(--text-primary);
+}
+
+.license-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid var(--border-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
 /* ── Responsive ──────────────────────────────────────── */
 @media (max-width: 768px) {
   .app-header { padding: 14px 20px; }
@@ -953,6 +1036,8 @@ textarea { min-height: 220px; font-family: var(--font-mono); font-size: 13px; }
   .main-content { padding: 0 20px 48px; }
   .diff-grid { grid-template-columns: 1fr; }
   .task-grid { grid-template-columns: 1fr 1fr; }
+  .footer-content { justify-content: center; text-align: center; }
+  .footer-left, .footer-right { align-items: center; }
 }
 
 @media (max-width: 480px) {

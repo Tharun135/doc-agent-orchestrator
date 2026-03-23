@@ -935,6 +935,24 @@ function bootstrap() {
       <div class="view" id="step4"></div>
     </main>
 
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div class="footer-content">
+        <div class="footer-left">
+          <div class="copyright">© 2026 Documentation Agent Orchestrator. All rights reserved.</div>
+          <div class="author-tag">
+            Handcrafted with ❤️ by <a href="https://github.com/Tharun135" target="_blank" class="author-name">Tharun Sebastian</a>
+          </div>
+        </div>
+        <div class="footer-right">
+          <span class="license-pill">MIT License</span>
+          <a href="https://github.com/Tharun135/doc-agent-orchestrator" target="_blank" class="footer-link">
+            GitHub Repository
+          </a>
+        </div>
+      </div>
+    </footer>
+
     <!-- Toast container -->
     <div class="toast-container" id="toast-container"></div>
   `;

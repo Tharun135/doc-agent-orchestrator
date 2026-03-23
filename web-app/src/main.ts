@@ -1034,6 +1034,22 @@ function bootstrap() {
           </div>
 
           <div class="manual-section">
+            <h2><span class="info-icon">🎮</span> How to Operate</h2>
+            <div class="manual-step">
+              <p><strong>Step 1: Input & Intent</strong> — Paste your source text or upload an image. Select the type of documentation you need and describe what you want the AI to do (the "Intent").</p>
+            </div>
+            <div class="manual-step">
+              <p><strong>Step 2: Resolve Gaps</strong> — Review the list of detected information gaps. Click and type your answers to help the AI understand the missing context. If you don't know an answer, you can skip it.</p>
+            </div>
+            <div class="manual-step">
+              <p><strong>Step 3: Generate & Run</strong> — Once the prompt is generated, click the <strong>Copy Prompt</strong> button. Take this prompt to your preferred AI assistant (like Claude or ChatGPT) and run it.</p>
+            </div>
+            <div class="manual-step">
+              <p><strong>Step 4: Verify</strong> — Copy the AI's response and bring it back here. Paste it into the Step 4 "Validate" view to see a side-by-side comparison. Check for any "Preserved Ambiguities" to ensure accuracy.</p>
+            </div>
+          </div>
+
+          <div class="manual-section">
             <h2><span class="info-icon">⚠️</span> Documentation Gap Classes</h2>
             <p>Our scanner identifies 8 major classes of documentation risks:</p>
             <table class="gap-table">

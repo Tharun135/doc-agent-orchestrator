@@ -501,18 +501,36 @@ body {
 .svg-dash.active { stroke: var(--accent); stroke-width: 3; stroke-dasharray: 8; animation: svgDash 5s linear infinite; }
 .svg-dash.done { stroke: var(--success); opacity: 0.5; }
 
-/* ── Tracer Animation ───────────────────────────────── */
-.svg-tracer {
+/* ── Moving Highlight Animation ──────────────────────── */
+.svg-moving-highlight {
   pointer-events: none;
-  filter: blur(4px);
-  animation: svgTracer 8s linear infinite;
+  animation: svgMovingX 8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
 }
 
-@keyframes svgTracer {
-  0% { transform: translateX(0); opacity: 0; }
-  5% { opacity: 1; }
-  95% { opacity: 1; }
-  100% { transform: translateX(550px); opacity: 0; }
+@keyframes svgMovingX {
+  0%   { transform: translateX(0); }
+  25%  { transform: translateX(180px); }
+  50%  { transform: translateX(360px); }
+  75%  { transform: translateX(540px); }
+  100% { transform: translateX(0); }
+}
+
+.svg-active-border {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 3.5;
+  filter: drop-shadow(0 0 10px var(--accent-soft));
+}
+
+.svg-active-glow {
+  fill: var(--accent);
+  opacity: 0.3;
+  filter: blur(12px);
+}
+
+.svg-ball {
+  fill: var(--accent);
+  filter: drop-shadow(0 0 5px var(--accent));
 }
 
 /* ── Main layout ─────────────────────────────────────── */

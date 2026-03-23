@@ -1,8 +1,8 @@
-# Getting Started with Documentation Agent Orchestrator
+# Getting started with Documentation Agent Orchestrator
 
-## 🚀 5-Minute Quick Start
+## 🚀 5-minute quick start
 
-### Step 1: Have Some Content Ready
+### Step 1: Have some content ready
 
 Any rough notes or existing documentation:
 
@@ -12,18 +12,18 @@ Any rough notes or existing documentation:
 - Slack messages
 - Incomplete specs
 
-### Step 2: Select Your Content
+### Step 2: Select your content
 
 - Highlight the text in VS Code
 - Or open a file containing your content
 
-### Step 3: Generate the Prompt
+### Step 3: Generate the prompt
 
 1. Press `Ctrl+Shift+P` (Windows/Linux) or `Cmd+Shift+P` (Mac)
 2. Type: `Generate Documentation Prompt`
 3. Select it from the list
 
-### Step 4: Choose Documentation Type
+### Step 4: Choose documentation type
 
 Pick what you're creating:
 
@@ -31,7 +31,7 @@ Pick what you're creating:
 - **Concept** - Explanations of how something works
 - **Troubleshooting** - Problem-solving guides
 
-### Step 5: Describe Your Intent
+### Step 5: Describe your intent
 
 Type a brief description:
 
@@ -39,7 +39,7 @@ Type a brief description:
 - "Explain the caching system"
 - "Troubleshoot deployment failures"
 
-### Step 6: Use the Generated Prompt
+### Step 6: Use the generated prompt
 
 The prompt opens in a new tab and is automatically copied to your clipboard.
 
@@ -50,14 +50,14 @@ The prompt opens in a new tab and is automatically copied to your clipboard.
 - GitHub Copilot Chat
 - Any AI assistant
 
-### Step 7: Get Your Documentation
+### Step 7: Get your documentation
 
 The AI will respond with either:
 
 - ✅ Structured documentation (if info is sufficient)
 - ❓ Clarifying questions (if critical info is missing)
 
-### Step 8 (Optional): Preview Changes
+### Step 8 (optional): Preview changes
 
 If you're revising existing docs:
 
@@ -68,13 +68,13 @@ If you're revising existing docs:
 
 ---
 
-## 🎯 What Makes This Different?
+## 🎯 What makes this different?
 
-### Without This Extension
+### Without this extension
 
 AI often invents features, changes terminology, and adds "helpful" details you never mentioned.
 
-### With This Extension
+### With this extension
 
 - **Preserves ambiguity** - Vague inputs produce accurate (if vague) outputs
 - **Prevents hallucinations** - AI can't invent features
@@ -85,7 +85,7 @@ AI often invents features, changes terminology, and adds "helpful" details you n
 
 ## 📚 Examples
 
-### Example 1: Incomplete Notes
+### Example 1: Incomplete notes
 
 **Your input:**
 
@@ -102,7 +102,7 @@ Admin users get extra features.
 - Uses your terminology
 - Creates structured procedure
 
-### Example 2: Complete Content
+### Example 2: Complete content
 
 **Your input:**
 
@@ -121,7 +121,7 @@ see red error: "Invalid credentials."
 - Doesn't add "Forgot Password" or other features
 - Creates precise documentation
 
-### Example 3: Missing Critical Info
+### Example 3: Missing critical info
 
 **Your input:**
 
@@ -138,7 +138,7 @@ takes appropriate action.
 
 ---
 
-## 💡 Tips for Best Results
+## 💡 Tips for best results
 
 ### ✅ Do
 
@@ -158,7 +158,7 @@ takes appropriate action.
 
 ---
 
-## 🆘 Common Questions
+## 🆘 Common questions
 
 **Q: Do I need perfect input?**  
 A: No. The extension handles vague inputs by preserving ambiguity.
@@ -177,7 +177,7 @@ A: No. Just this extension and access to an AI assistant.
 
 ---
 
-## 🎬 Next Steps
+## 🎬 Next steps
 
 1. Open any file with rough notes
 2. Try "Generate Documentation Prompt"

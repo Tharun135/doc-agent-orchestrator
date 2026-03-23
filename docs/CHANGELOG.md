@@ -1,4 +1,4 @@
-# Change Log
+# Change log
 
 All notable changes to the "doc-agent-orchestrator" extension will be documented in this file.
 

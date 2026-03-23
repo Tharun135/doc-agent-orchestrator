@@ -59,8 +59,8 @@ const TASK_TYPES: { value: TaskType; icon: string; label: string; desc: string }
   { value: 'troubleshooting',   icon: '🔧', label: 'Troubleshooting',   desc: 'Diagnose and resolve a specific problem' },
   { value: 'reference',         icon: '📖', label: 'Reference',         desc: 'Parameters, options, or config values' },
   { value: 'tutorial',          icon: '🎓', label: 'Tutorial',          desc: 'Guided learning with a clear objective' },
-  { value: 'release-notes',     icon: '🚀', label: 'Release Notes',     desc: 'Changes introduced in a version or release' },
-  { value: 'api-documentation', icon: '⚙️', label: 'API Docs',          desc: 'Endpoints, parameters, and responses' },
+  { value: 'release-notes',     icon: '🚀', label: 'Release notes',     desc: 'Changes introduced in a version or release' },
+  { value: 'api-documentation', icon: '⚙️', label: 'API docs',          desc: 'Endpoints, parameters, and responses' },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -69,49 +69,49 @@ const TASK_TYPES: { value: TaskType; icon: string; label: string; desc: string }
 function gapTypeFromId(id: string): { label: string; icon: string } {
   const prefix = id.split(':')[0];
   const MAP: Record<string, { label: string; icon: string }> = {
-    'ui-location':              { label: 'UI Location Missing',               icon: '🗺️' },
-    'vague-object':             { label: 'Vague Action Object',               icon: '❓' },
-    'condition-pass':           { label: 'Success Indicator Missing',         icon: '✅' },
-    'error-recovery':           { label: 'Error Recovery Undefined',          icon: '🚨' },
-    'check-logs':               { label: 'Log Reference Missing',             icon: '📋' },
-    'verify-method':            { label: 'Verification Method Missing',       icon: '🔍' },
-    'set-no-value':             { label: 'Parameter Value Missing',           icon: '⚙️' },
-    'unknown-default':          { label: 'Default Value Unspecified',         icon: '📌' },
-    'placeholder':              { label: 'Placeholder Token Undefined',       icon: '🔧' },
-    'auth-detail':              { label: 'Authentication Method Missing',     icon: '🔑' },
-    'undefined-process':        { label: 'Process Steps Undefined',           icon: '📋' },
-    'restart-wait':             { label: 'Restart Wait Condition Missing',    icon: '⏳' },
-    'vague-enum':               { label: 'Incomplete Enumeration',            icon: '📝' },
-    'vague-adjective':          { label: 'Vague Selection Criteria',          icon: '❓' },
-    'no-unit':                  { label: 'Numeric Units Missing',             icon: '📏' },
-    'absent-doc':               { label: 'External Reference Incomplete',     icon: '🔗' },
-    'wait-no-indicator':        { label: 'Wait Completion Indicator Missing', icon: '⏳' },
-    'conditional-action-what':  { label: 'Conditional Action Undefined',      icon: '🔀' },
-    'conditional-action-where': { label: 'Conditional Location Missing',      icon: '🗺️' },
-    'role-vague-access':        { label: 'Role / Access Undefined',           icon: '👤' },
-    'vague-subset':             { label: 'Scope Selection Undefined',         icon: '🔍' },
-    'actor-ambiguity':          { label: 'Actor Ambiguity',                   icon: '👥' },
-    'data-format':              { label: 'Data Format Missing',               icon: '📁' },
-    'no-schedule':              { label: 'Schedule Undefined',                icon: '🗓️' },
-    'partial-nav-path':         { label: 'Navigation Path Incomplete',        icon: '🗺️' },
-    'state-transition':         { label: 'State Transition Indicator Missing',icon: '🔄' },
-    'multi-step-collapsed':     { label: 'Multi-step Action Collapsed',       icon: '📝' },
-    'scope-selection-method':   { label: 'Scope Selection Method Missing',    icon: '🔍' },
-    'no-rollback':              { label: 'Rollback Procedure Missing',        icon: '↩️' },
-    'conditional-prereq':       { label: 'Conditional Prerequisite Unclear',  icon: '⚠️' },
-    'success-outcome':          { label: 'Success Outcome Missing',           icon: '✅' },
-    'passive-no-actor':         { label: 'Passive Voice — Actor Unknown',     icon: '👤' },
-    'user-subject-no-location': { label: 'UI Location Missing',               icon: '🗺️' },
-    'incomplete-annotation':    { label: 'Incomplete Step Annotation',        icon: '🚧' },
-    'unspec-nav-dest':          { label: 'Navigation Destination Unclear',    icon: '🗺️' },
-    'success-count':            { label: 'Success Count Ambiguous',           icon: '🔢' },
-    'vague-fault-condition':    { label: 'Fault Condition Vague',             icon: '🚨' },
-    'vague-status':             { label: 'Completion Status Vague',           icon: '📊' },
-    'declarative-vague-enum':   { label: 'Declarative Vague Enumeration',     icon: '📝' },
-    'fix-no-description':       { label: 'Fix Lacks Description',             icon: '🔧' },
-    'branch-no-convergence':    { label: 'Branch Convergence Undefined',      icon: '🔀' },
-    'version-unspecified':      { label: 'Version Unspecified',               icon: '🏷️' },
-    'intent-source-mismatch':   { label: 'Source / Intent Mismatch',          icon: '⚠️' },
+    'ui-location':              { label: 'UI location missing',               icon: '🗺️' },
+    'vague-object':             { label: 'Vague action object',               icon: '❓' },
+    'condition-pass':           { label: 'Success indicator missing',         icon: '✅' },
+    'error-recovery':           { label: 'Error recovery undefined',          icon: '🚨' },
+    'check-logs':               { label: 'Log reference missing',             icon: '📋' },
+    'verify-method':            { label: 'Verification method missing',       icon: '🔍' },
+    'set-no-value':             { label: 'Parameter value missing',           icon: '⚙️' },
+    'unknown-default':          { label: 'Default value unspecified',         icon: '📌' },
+    'placeholder':              { label: 'Placeholder token undefined',       icon: '🔧' },
+    'auth-detail':              { label: 'Authentication method missing',     icon: '🔑' },
+    'undefined-process':        { label: 'Process steps undefined',           icon: '📋' },
+    'restart-wait':             { label: 'Restart wait condition missing',    icon: '⏳' },
+    'vague-enum':               { label: 'Incomplete enumeration',            icon: '📝' },
+    'vague-adjective':          { label: 'Vague selection criteria',          icon: '❓' },
+    'no-unit':                  { label: 'Numeric units missing',             icon: '📏' },
+    'absent-doc':               { label: 'External reference incomplete',     icon: '🔗' },
+    'wait-no-indicator':        { label: 'Wait completion indicator missing', icon: '⏳' },
+    'conditional-action-what':  { label: 'Conditional action undefined',      icon: '🔀' },
+    'conditional-action-where': { label: 'Conditional location missing',      icon: '🗺️' },
+    'role-vague-access':        { label: 'Role / access undefined',           icon: '👤' },
+    'vague-subset':             { label: 'Scope selection undefined',         icon: '🔍' },
+    'actor-ambiguity':          { label: 'Actor ambiguity',                   icon: '👥' },
+    'data-format':              { label: 'Data format missing',               icon: '📁' },
+    'no-schedule':              { label: 'Schedule undefined',                icon: '🗓️' },
+    'partial-nav-path':         { label: 'Navigation path incomplete',        icon: '🗺️' },
+    'state-transition':         { label: 'State transition indicator missing',icon: '🔄' },
+    'multi-step-collapsed':     { label: 'Multi-step action collapsed',       icon: '📝' },
+    'scope-selection-method':   { label: 'Scope selection method missing',    icon: '🔍' },
+    'no-rollback':              { label: 'Rollback procedure missing',        icon: '↩️' },
+    'conditional-prereq':       { label: 'Conditional prerequisite unclear',  icon: '⚠️' },
+    'success-outcome':          { label: 'Success outcome missing',           icon: '✅' },
+    'passive-no-actor':         { label: 'Passive voice — actor unknown',     icon: '👤' },
+    'user-subject-no-location': { label: 'UI location missing',               icon: '🗺️' },
+    'incomplete-annotation':    { label: 'Incomplete step annotation',        icon: '🚧' },
+    'unspec-nav-dest':          { label: 'Navigation destination unclear',    icon: '🗺️' },
+    'success-count':            { label: 'Success count ambiguous',           icon: '🔢' },
+    'vague-fault-condition':    { label: 'Fault condition vague',             icon: '🚨' },
+    'vague-status':             { label: 'Completion status vague',           icon: '📊' },
+    'declarative-vague-enum':   { label: 'Declarative vague enumeration',     icon: '📝' },
+    'fix-no-description':       { label: 'Fix lacks description',             icon: '🔧' },
+    'branch-no-convergence':    { label: 'Branch convergence undefined',      icon: '🔀' },
+    'version-unspecified':      { label: 'Version unspecified',               icon: '🏷️' },
+    'intent-source-mismatch':   { label: 'Source / intent mismatch',          icon: '⚠️' },
   };
   return MAP[prefix] ?? { label: 'Information Needed', icon: '❓' };
 }
@@ -119,11 +119,13 @@ function gapTypeFromId(id: string): { label: string; icon: string } {
 // ─────────────────────────────────────────────────────────────────────────────
 // Toast
 // ─────────────────────────────────────────────────────────────────────────────
-function showToast(message: string, type: 'success' | 'error' | 'info' = 'info') {
+type ToastType = 'success' | 'error' | 'info' | 'warning';
+
+function showToast(message: string, type: ToastType = 'info') {
   const container = document.getElementById('toast-container')!;
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
-  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+  const icons: Record<ToastType, string> = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
   toast.innerHTML = `<span class="toast-icon">${icons[type]}</span><span>${message}</span>`;
   container.appendChild(toast);
   setTimeout(() => {
@@ -194,7 +196,7 @@ function renderStep1() {
   const view = document.getElementById('step1')!;
   view.innerHTML = `
     <div class="section-header">
-      <div class="section-title">Source Content</div>
+      <div class="section-title">Source content</div>
       <div class="section-desc">Paste your rough notes, existing documentation, code comments, or anything you want to turn into proper documentation.</div>
     </div>
 
@@ -202,7 +204,7 @@ function renderStep1() {
       <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px;">
         <label class="field-label" for="source-input" style="margin-bottom: 0;">Your source text</label>
         <label class="upload-btn" id="source-upload-btn" title="Upload an image, text, or markdown file">
-          📄 Upload Document
+          📄 Upload document
           <input type="file" id="source-file-input" accept="image/*, .txt, .md, .markdown, .json" style="display:none;">
         </label>
       </div>
@@ -222,7 +224,7 @@ Backup database first maybe?"></textarea>
 
     <div class="card mt-16" id="template-card" style="display: none;">
       <div class="qa-header" style="margin-bottom: 10px; cursor: pointer; user-select: none;" id="toggle-template-btn">
-        <label class="field-label" style="margin:0; cursor: pointer;">📝 Template Editor (Optional)</label>
+        <label class="field-label" style="margin:0; cursor: pointer;">📝 Template editor (optional)</label>
         <span id="template-toggle-icon" style="color:var(--text-muted); font-size: 12px;">▼ Show</span>
       </div>
       <div id="template-editor-content" style="display: none;">
@@ -233,7 +235,7 @@ Backup database first maybe?"></textarea>
 
     <div class="card mt-16" id="style-card">
       <div class="qa-header" style="margin-bottom: 10px; cursor: pointer; user-select: none;" id="toggle-style-btn">
-        <label class="field-label" style="margin:0; cursor: pointer;">💅 Custom Style Guide (Optional)</label>
+        <label class="field-label" style="margin:0; cursor: pointer;">💅 Custom style guide (optional)</label>
         <span id="style-toggle-icon" style="color:var(--text-muted); font-size: 12px;">▼ Show</span>
       </div>
       <div id="style-editor-content" style="display: none;">
@@ -451,7 +453,7 @@ function renderStep2() {
     <div class="section-header">
       <div class="qa-header">
         <div>
-          <div class="section-title">Gap Questions</div>
+          <div class="section-title">Gap questions</div>
           <div class="section-desc">Answer these questions to give the AI complete information. Skip any you can't answer now.</div>
         </div>
         <div class="qa-count-badge">⚠️ ${q.length} gap${q.length !== 1 ? 's' : ''} detected</div>
@@ -577,7 +579,7 @@ function renderStep3() {
 
   view.innerHTML = `
     <div class="section-header">
-      <div class="section-title">Governed Prompt — Pass ${state.pass}</div>
+      <div class="section-title">Governed prompt — pass ${state.pass}</div>
       <div class="section-desc">This prompt enforces strict rules that prevent the AI from inventing features, implying steps, or guessing gaps.</div>
     </div>
 
@@ -652,12 +654,12 @@ function renderStep4(showDiff = false) {
 
   view.innerHTML = `
     <div class="section-header">
-      <div class="section-title">AI Response Validation</div>
+      <div class="section-title">AI response validation</div>
       <div class="section-desc">Paste the AI's response below. The diff view shows every change the AI made to your source.</div>
     </div>
 
     <div class="card">
-      <label class="field-label" for="ai-response-input">AI Response</label>
+      <label class="field-label" for="ai-response-input">AI response</label>
       <div class="ai-response-area">
         <button class="copy-btn" id="paste-ai-btn" style="top:12px;right:12px;">📥 Paste</button>
         <textarea id="ai-response-input" placeholder="Paste the AI's response here…" style="min-height:200px;">${escHtml(state.aiResponse)}</textarea>
@@ -671,7 +673,7 @@ function renderStep4(showDiff = false) {
 
     <div id="diff-section" class="${showDiff ? '' : 'hidden'}">
       <div class="section-header mt-24">
-        <div class="section-title">Side-by-side Diff</div>
+        <div class="section-title">Side-by-side diff</div>
         <div class="section-desc">Green = added by AI · Red = removed from source · Grey = unchanged</div>
       </div>
       <div id="diff-stats-row" class="diff-stats-row"></div>
@@ -679,8 +681,8 @@ function renderStep4(showDiff = false) {
 
       <div id="ambiguity-section" class="hidden">
         <div class="section-header mt-24">
-          <div class="section-title">Resolve Known Gaps</div>
-          <div class="section-desc">The AI identified these ambiguities. Provide answers to generate a refined Pass ${state.pass + 1} prompt.</div>
+          <div class="section-title">Resolve known gaps</div>
+          <div class="section-desc">The AI identified these ambiguities. Provide answers to generate a refined pass ${state.pass + 1} prompt.</div>
         </div>
         <div id="resolve-cards"></div>
         <div class="btn-row">

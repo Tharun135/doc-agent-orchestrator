@@ -1,6 +1,6 @@
 # Technical Documentation: Documentation Agent Orchestrator
 
-## Table of Contents
+## Table of contents
 
 1. [Overview](#overview)
 2. [Architecture](#architecture)
@@ -25,7 +25,7 @@ The extension now includes:
 * A structured **gap detection engine** that proactively identifies documentation risks before generation.
 * A new end-to-end command that pastes AI output and immediately runs governance diff preview.
 
-### Key Principles
+### Key principles
 
 - **Correctness over fluency** - Accurate documentation is prioritized over well-written documentation
 - **Preserve ambiguity** - Vague source content should produce vague but accurate documentation
@@ -38,7 +38,7 @@ The extension now includes:
 
 ## Architecture
 
-### High-Level Design
+### High-level design
 
 ```txt
 ┌─────────────────────┐
@@ -94,7 +94,7 @@ The extension now includes:
 └─────────────────────────┘
 ```
 
-### Project Structure
+### Project structure
 ```
 doc-agent-orchestrator/
 ├── src/                          # Extension source (TypeScript)
@@ -116,19 +116,19 @@ doc-agent-orchestrator/
 
 ---
 
-## Gap Detection System
+## Gap detection system
 
 The extension includes a dedicated gap detection engine in `questionDetector.ts`. Before a prompt is ever built, the source is scanned line-by-line and globally for structural documentation weaknesses that typically cause AI hallucination.
 
-### How Gap Detection Works
+### How gap detection works
 
 For each line of source content, 40 pattern-based checkers run in sequence. When a gap is detected, the user is prompted to answer the specific question inside VS Code before the AI call is made. Answers are injected into the prompt as **pre-clarifications** — authoritative facts the AI uses directly.
 
 This means gaps are resolved by the human, not filled by the AI.
 
-### Gap Checker Categories
+### Gap checker categories
 
-#### Per-Line Checkers
+#### Per-line checkers
 
 | # | Gap Type | Example Trigger | Question Asked |
 |---|---|---|---|
@@ -173,14 +173,14 @@ This means gaps are resolved by the human, not filled by the AI.
 | 39 | Conditional prerequisite undefined | `May need VPN connection.` | Under what specific conditions? |
 | 40 | Success outcome missing | `Upload files.` | What does user see when this completes? |
 
-#### Global (Whole-Source) Checkers
+#### Global (whole-source) checkers
 
 | Checker | Trigger | Question |
 |---|---|---|
 | Implied prerequisites | Source contains `upload`, `deploy`, `credentials` | What must already exist before starting? |
 | Intent–source mismatch | Intent keywords not found in source | Is this the correct source file? |
 
-### False Positive Avoidance
+### False positive avoidance
 
 Checkers are deliberately constrained to avoid noise:
 
@@ -227,7 +227,7 @@ Resolving these before the AI runs reduces governance violations and eliminates 
 
 ---
 
-## The Three-Phase Pre-Generation Pipeline
+## The three-phase pre-generation pipeline
 
 The extension operates on a strict **analyse → question → generate** pipeline. No AI call is made until every blocking gap in the source has been answered by a human. This is the core mechanism that enforces the zero-invention policy.
 
@@ -261,7 +261,7 @@ The extension operates on a strict **analyse → question → generate** pipelin
 
 ---
 
-### Phase 1 — Gap Analysis
+### Phase 1 — gap analysis
 
 **What happens:** The source content is passed to `detectQuestions()` in `questionDetector.ts`. Every line is stripped of list markers (e.g., `"1. "`, `"- "`) and run through all 40 per-line checkers. Two global checkers then run across the full source.
 
@@ -299,7 +299,7 @@ This ensures that a step written as `"8. Check the status indicator."` is evalua
 
 ---
 
-### Phase 2 — Interactive Questioning
+### Phase 2 — interactive questioning
 
 **What happens:** Each `DetectedQuestion` is presented to the user as a VS Code `showInputBox` call. The user types an answer in plain language. The system waits for each answer before proceeding — questions are asked sequentially.
 
@@ -333,7 +333,7 @@ PRE-CLARIFICATIONS (collected before generation — authoritative facts, use dir
 
 ---
 
-### Phase 3 — Zero-Invention Prompt Generation
+### Phase 3 — zero-invention prompt generation
 
 **What happens:** `generatePrompt()` in `promptGenerator.ts` assembles the final prompt from four authoritative inputs:
 
@@ -381,7 +381,7 @@ Examples of preserve cases:
 
 ---
 
-### Why This Order Is Non-Negotiable
+### Why this order is non-negotiable
 
 The pipeline must run in the sequence analyse → question → generate. Reversing or skipping phases produces predictable failures:
 
@@ -395,11 +395,11 @@ The extension enforces this by gating prompt construction: `generatePrompt()` is
 
 ---
 
-## How It Works
+## How it works
 
-### End-to-End Flow
+### End-to-end flow
 
-#### Phase 1: Prompt Generation
+#### Phase 1: prompt generation
 1. **User selects content** in VS Code (or uses entire file)
 2. **User triggers command**: "Generate Documentation Prompt"
 3. **Extension captures**:
@@ -418,14 +418,14 @@ The extension enforces this by gating prompt construction: `generatePrompt()` is
    - Automatically copies to clipboard
    - Shows success notification
 
-#### Phase 2: AI Interaction (External)
+#### Phase 2: AI interaction (external)
 8. **User pastes prompt** into AI assistant (Claude, ChatGPT, etc.)
 9. **AI generates response** following governance rules
 10. **User receives**:
     - Structured documentation, OR
     - Clarifying questions if generation is blocked
 
-#### Phase 3: Paste AI Response + Immediate Governance Check (NEW)
+#### Phase 3: paste AI response + immediate governance check (NEW)
 
 Instead of manually copying the response and triggering the diff:
 
@@ -440,7 +440,7 @@ Instead of manually copying the response and triggering the diff:
 
 This creates a true end-to-end workflow with no manual editor setup.
 
-#### Phase 4: Clarification Loop (Optional)
+#### Phase 4: clarification loop (optional)
 
 11. **If AI asks questions**:
 
@@ -451,7 +451,7 @@ This creates a true end-to-end workflow with no manual editor setup.
     - User pastes updated prompt into AI
     - AI generates documentation using clarifications
 
-#### Phase 4: Diff Preview
+#### Phase 4: diff preview
 12. **User triggers**: "Preview Documentation Rewrite Diff"
 13. **Extension retrieves AI response** from:
     - Current editor content (if available), OR
@@ -468,9 +468,9 @@ This creates a true end-to-end workflow with no manual editor setup.
 
 ---
 
-## Core Components
+## Core components
 
-### 1. Extension Entry Point (`src/extension.ts`)
+### 1. Extension entry point (`src/extension.ts`)
 
 **Responsibilities:**
 - Register **four** commands with VS Code
@@ -506,7 +506,7 @@ let lastPromptContext: {
 - Extension activates when VS Code loads (no specific activation events)
 - Commands are immediately available in command palette
 
-### 2. Governance Rules (`src/engine/governance.ts`)
+### 2. Governance rules (`src/engine/governance.ts`)
 
 **Purpose:** Define the immutable rules that govern all AI behavior
 
@@ -529,7 +529,7 @@ GOVERNANCE RULES:
 - **Preserve ambiguity**: Documents uncertainty instead of guessing
 - **No style rewriting**: Focuses on correctness, not elegance
 
-### 3. Prompt Generator (`src/engine/promptGenerator.ts`)
+### 3. Prompt generator (`src/engine/promptGenerator.ts`)
 
 **Purpose:** Core engine that constructs governance-driven prompts
 
@@ -593,7 +593,7 @@ The extension uses sophisticated logic to determine when AI should ask questions
 
 This creates a "smart ambiguity tolerance" - AI can proceed with vague inputs as long as it documents the vagueness explicitly.
 
-### 4. Type System (`src/engine/types.ts`)
+### 4. Type system (`src/engine/types.ts`)
 
 **Supported Documentation Types:**
 ```typescript
@@ -609,7 +609,7 @@ export type TaskType =
 
 ---
 
-## Command Details
+## Command details
 
 ### Command 1: `docAgent.generateDocumentation`
 
@@ -768,7 +768,7 @@ Governance is now strengthened by:
 
 The system now addresses both **semantic hallucination** and **structural incompleteness**.
 
-### Enforcement Mechanism
+### Enforcement mechanism
 
 Governance is enforced through **prompt engineering**, not through technical controls. The extension:
 
@@ -778,9 +778,9 @@ Governance is enforced through **prompt engineering**, not through technical con
 
 This creates **observable governance** - violations are visible, not prevented.
 
-### Rule Breakdown
+### Rule breakdown
 
-#### Rule 1: No Feature Invention
+#### Rule 1: no feature invention
 **What it prevents:**
 - Adding features that don't exist
 - Implying capabilities not mentioned
@@ -790,7 +790,7 @@ This creates **observable governance** - violations are visible, not prevented.
 - ❌ Bad: "User clicks login, enters credentials, or uses SSO"
 - ✅ Good: "User clicks login and enters credentials" (if SSO not mentioned)
 
-#### Rule 2: No Terminology Changes
+#### Rule 2: no terminology changes
 **What it prevents:**
 - Replacing domain-specific terms with "clearer" alternatives
 - Normalizing inconsistent terminology

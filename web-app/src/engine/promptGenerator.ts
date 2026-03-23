@@ -84,29 +84,29 @@ as a factual statement and remove the corresponding item from
 
   // ── Clarification blocks ─────────────────────────────────────────────────
   const preClarificationsSection = hasPreClarifications
-    ? `PRE-CLARIFICATIONS (collected before generation — authoritative, use directly):
+    ? `Pre-clarifications (collected before generation — authoritative, use directly):
 ${input.preClarifications}
 `
     : "";
 
   const clarificationsSection = hasClarifications
-    ? `CLARIFICATIONS (collected after previous pass — authoritative):
+    ? `Clarifications (collected after previous pass — authoritative):
 ${input.clarifications}
 `
     : "";
 
   const clarificationsBlock = hasAnyAnswers
-    ? `CLARIFICATIONS PROVIDED — treat these as authoritative facts. You MUST use
+    ? `Clarifications provided — treat these as authoritative facts. You MUST use
 these answers when writing each affected step. A step whose gap has been answered
-must NOT remain vague or appear in Preserved Ambiguities:
+must NOT remain vague or appear in Preserved ambiguities:
 ${preClarificationsSection}${clarificationsSection}
-CLARIFICATION RESOLUTION RULES — MANDATORY, apply to every answer above:
+Clarification resolution rules — MANDATORY, apply to every answer above:
 1. Locate the source step each answer resolves and rewrite it as complete, fluent prose.
 2. NEVER leave a step in its original vague form once its answer is known.
 3. NEVER treat a short or single-word answer as insufficient — a bare value like
    "green indicator", "port 4840", or "Settings > Advanced" is authoritative and
    MUST be woven into the affected step as a specific detail.
-4. Remove the corresponding item from Preserved Ambiguities — do not list it.
+4. Remove the corresponding item from Preserved ambiguities — do not list it.
 5. Do not repeat the clarification as a standalone note unless it is a warning
    or condition from the source that belongs under Notes.
 6. If an answer resolves a location gap, rewrite the navigation path into every
@@ -122,18 +122,18 @@ CLARIFICATION RESOLUTION RULES — MANDATORY, apply to every answer above:
   const requiredSections = template.requiredSections;
 
   const templateBlock = `
-OUTPUT STRUCTURE — Use exactly these headings in this order.
+Output structure — Use exactly these headings in this order.
 Do not add or remove sections. Omit any section that has no source-grounded content.
 
 ${requiredSections.map(s => `- ${s}`).join("\n")}
 
-TEMPLATE EXAMPLE:
+Template example:
 ${templateContent}
 `;
 
-  // ── Style Guide ──────────────────────────────────────────────────────────
+  // ── Style guide ──────────────────────────────────────────────────────────
   const styleGuideBlock = input.styleGuideRules?.trim()
-    ? `CUSTOM STYLE GUIDE RULES — MANDATORY:
+    ? `Custom style guide rules — MANDATORY:
 You must strictly follow these organizational formatting and terminology rules:
 ${input.styleGuideRules}
 `
@@ -143,7 +143,7 @@ ${input.styleGuideRules}
   const prompt = `SYSTEM:
 You are a Technical Documentation Agent.
 ${passHeader}
-DOCUMENTATION RESPONSIBILITY:
+Documentation responsibility:
 - You are responsible for generating all documentation structure sections:
   Overview, Prerequisites, Procedure, Result, Notes.
 - These sections must NEVER be requested from the user.
@@ -154,7 +154,7 @@ DOCUMENTATION RESPONSIBILITY:
   are structural hints only. Replace every placeholder entirely with generated content.
   Never copy placeholder text into the output.
 
-GENERATION APPROACH — work through these stages internally before writing output:
+Generation approach — work through these stages internally before writing output:
 Stage 1 — Analyze: identify the core task, the action sequence, system behaviors,
   and any optional or conditional steps present in the source.
 Stage 2 — Structure: generate every section from the template automatically.
@@ -163,7 +163,7 @@ Stage 2 — Structure: generate every section from the template automatically.
 Stage 3 — Refine: convert informal notes into numbered, actionable steps.
   Incorporate all clarification answers. Apply the soft-ambiguity policy below.
 
-SOFT AMBIGUITY POLICY:
+Soft ambiguity policy:
 - When the source contains hedging language ("maybe", "if needed", "or whatever",
   "etc.", "and so on"), do NOT leave a gap — rewrite with appropriate conditional prose.
 - Example: "configure timeout or whatever" → "Configure connection settings such as
@@ -171,7 +171,7 @@ SOFT AMBIGUITY POLICY:
 - Preserve the optional or conditional nature of the step in the output phrasing.
 - Do NOT generate user questions for soft-ambiguity language — rewrite it directly.
 
-REWRITE POLICY:
+Rewrite policy:
 - Ground every step in a source sentence — do not invent content with no source basis.
 - When pre-clarification or clarification answers are provided, you MUST use them to
   expand the affected steps into fluent, complete, user-facing prose. Do NOT leave a
@@ -194,15 +194,15 @@ ${clarificationsBlock}
 ${styleGuideBlock}
 ${GOVERNANCE_RULES}
 
-GOVERNANCE ENFORCEMENT:
-- If you would need to invent something to complete a step, omit it and flag it under Known Gaps.
+Governance enforcement:
+- If you would need to invent something to complete a step, omit it and flag it under Known gaps.
 - If you catch yourself adding a clause not in the source, delete it.
 
-KNOWN GAPS:
+Known gaps:
 - When source content is vague but does NOT block the user from acting, document it
-  as-is and list it under Known Gaps.
+  as-is and list it under Known gaps.
 - If a gap blocks action, it should already have been asked before this call.
-  If you still encounter a blocking gap, list it under Known Gaps
+  If you still encounter a blocking gap, list it under Known gaps
   and do NOT invent a value.
 
 USER INTENT:
@@ -231,9 +231,9 @@ ${OUTPUT_SPEC_MAP[input.taskType]()}`;
  */
 function gapCheckBlock(): string {
   return `
-SAFETY CHECK (last resort — Pass 0 should have caught these):
+Safety check (last resort — Pass 0 should have caught these):
 If you encounter a step where any of the following are still unknown, do NOT
-invent a value. List it under Known Gaps and continue.
+invent a value. List it under Known gaps and continue.
 
   □ WHERE  — exact UI location or navigation path
   □ HOW    — specific value, input, or action required

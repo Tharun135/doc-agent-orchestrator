@@ -1,4 +1,4 @@
-# Welcome to your VS Code Extension
+# Welcome to your VS Code extension
 
 ## What's in the folder
 

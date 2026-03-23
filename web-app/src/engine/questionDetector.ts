@@ -102,7 +102,7 @@ const checkers: Checker[] = [
     if (/\b(in\s+the\s+terminal|from\s+the\s+terminal|command\s+line|cli|shell|npm\s+run|pip\s+install|git\s+|bash\s|powershell\s)\b/i.test(line)) { return null; }
     return {
       id: `ui-location:${line.slice(0, 50)}`,
-      question: `For the step "${line}": (a) Where in the UI does the user perform this? Provide the full navigation path or exact UI label. (b) What is the purpose of this step — what does it start, trigger, or enable?`,
+      question: `For the step "${line}": (a) where in the UI does the user perform this? Provide the full navigation path or exact UI label. (b) what is the purpose of this step — what does it start, trigger, or enable?`,
       sourceContext: line,
       placeholder: "e.g., (a) Connector page > click Run Setup  (b) starts the deployment process",
     };
@@ -132,7 +132,7 @@ const checkers: Checker[] = [
     }
     return {
       id: `condition-pass:${line.slice(0, 50)}`,
-      question: `For the step "${line}": (a) Does the user need to actively check a status indicator before proceeding, or does the next step happen automatically? (b) If they check, where is the indicator in the UI? (c) What exactly does it look like when the condition is met — color, label, icon, or message?`,
+      question: `For the step "${line}": (a) does the user need to actively check a status indicator before proceeding, or does the next step happen automatically? (b) if they check, where is the indicator in the UI? (c) what exactly does it look like when the condition is met — color, label, icon, or message?`,
       sourceContext: line,
       placeholder: "e.g., (a) user checks manually  (b) status bar at top of Connector page  (c) indicator turns green and shows 'Running'",
     };
@@ -353,7 +353,7 @@ const checkers: Checker[] = [
       // Location known but subject is still vague
       return {
         id: `conditional-action-what:${line.slice(0, 50)}`,
-        question: `For the step "${line}": (a) Where in the UI is this done? Provide the full navigation path. (b) What specific settings or parameters does the user configure here? List each one by name. (c) Under what condition is this required — always, or only in specific scenarios?`,
+        question: `For the step "${line}": (a) where in the UI is this done? Provide the full navigation path. (b) what specific settings or parameters does the user configure here? List each one by name. (c) under what condition is this required — always, or only in specific scenarios?`,
         sourceContext: line,
         placeholder: "e.g., (a) Settings > Advanced  (b) timeout (ms), retry count, log level  (c) only when deploying to production",
       };

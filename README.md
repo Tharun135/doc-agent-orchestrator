@@ -4,11 +4,11 @@ Generate governance-driven AI prompts for technical documentation and preview re
 
 ---
 
-## Documentation Agent Orchestrator
+## Documentation agent orchestrator
 
-Documentation Agent Orchestrator is an AI-powered assistant designed to help technical writers and documentation engineers create accurate, trustworthy documentation. Unlike traditional AI writing tools that prioritize fluency over correctness, this extension enforces strict governance rules to ensure AI never invents features, implies non-existent steps, or fills gaps with guesses.
+Documentation agent orchestrator is an AI-powered assistant designed to help technical writers and documentation engineers create accurate, trustworthy documentation. Unlike traditional AI writing tools that prioritize fluency over correctness, this extension enforces strict governance rules to ensure AI never invents features, implies non-existent steps, or fills gaps with guesses.
 
-### How Documentation Agent Orchestrator Works
+### How documentation agent orchestrator works
 
 Documentation Agent Orchestrator is a workflow orchestrator, not a writing assistant. It operates in four stages:
 
@@ -21,7 +21,7 @@ The result is a structurally complete document based strictly on the information
 
 The extension bridges VS Code with your preferred AI assistant (ChatGPT, Claude, Copilot, etc.) by generating governed prompts and providing diff previews so you can validate every change before accepting it.
 
-### Key Features
+### Key features
 
 **Structural Gap Classification**: Before building the AI prompt, the extension classifies your source against 19 structural gap patterns—UI locations, undefined conditions, vague enumerations, missing units, absent documents, embedded conditional actions, role-based access gaps, and more. For every gap found, it asks you a targeted question inside VS Code. Your answers are injected into the prompt as authoritative facts, so the AI never has to guess.
 
@@ -39,9 +39,9 @@ The extension bridges VS Code with your preferred AI assistant (ChatGPT, Claude,
 
 ---
 
-## Getting Started
+## Getting started
 
-### Install Extension
+### Install extension
 
 Simply install the extension from the VS Code marketplace. Search for "Documentation Agent Orchestrator" and click install.
 
@@ -56,11 +56,11 @@ You're now ready to use Documentation Agent Orchestrator.
 
 ---
 
-## Basic Example
+## Basic example
 
 Let's walk through a simple documentation generation workflow:
 
-### Step 1: Prepare Your Source Content
+### Step 1: Prepare your source content
 
 Create a new file called `deployment-notes.md` and add some rough notes:
 
@@ -72,7 +72,7 @@ Use the migration script
 Backup database first maybe?
 ```
 
-### Step 2: Generate the Prompt
+### Step 2: Generate the prompt
 
 1. Select all the content in your file
 2. Open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`)
@@ -93,7 +93,7 @@ The final prompt includes:
 - Strict rules preventing AI from inventing details
 - Instructions to preserve remaining ambiguities
 
-### Step 3: Use Your AI Assistant
+### Step 3: Use your AI assistant
 
 1. Copy the generated prompt (it's automatically copied to your clipboard)
 2. Paste it into your AI assistant (ChatGPT, Claude, etc.)
@@ -120,7 +120,7 @@ The AI might generate something like:
 
 Notice how the AI preserved ambiguities instead of inventing details? That's governance in action.
 
-### Step 4: Preview the Diff
+### Step 4: Preview the diff
 
 1. Copy the AI's response
 2. Return to VS Code
@@ -134,14 +134,14 @@ You'll see a side-by-side diff showing:
 
 Review the changes carefully. Check the "Preserved Ambiguities" section to see what the AI identified as unclear.
 
-### Step 5: Accept or Iterate
+### Step 5: Accept or iterate
 
 - If the documentation looks correct and ambiguities are accurately identified, create a new file with the generated content
 - If you need to clarify ambiguous points, run "Provide Clarifications and Regenerate Prompt" to answer the AI's questions and generate an updated prompt
 
 ---
 
-## Structural Gap Classes
+## Structural gap classes
 
 Before building the AI prompt, the extension classifies your source against 19 structural gap patterns. Each class represents a category of missing information that would force the AI to invent an answer if left unresolved.
 
@@ -173,7 +173,7 @@ Each detected gap produces a targeted question with a placeholder example. Answe
 
 ---
 
-## Two-Tier Ambiguity Handling
+## Two-tier ambiguity handling
 
 Not all vagueness in source content requires action. The extension distinguishes two categories:
 
@@ -185,7 +185,7 @@ Vagueness that does not block the user from acting. These go into the document u
 - Conditional notes: `"might need a firewall exception"` — keep the conditional word, place in Notes
 - Wording that can be reproduced faithfully from the source
 
-### ASK — stop and ask before generating
+### Ask — stop and ask before generating
 
 Gaps that would force the AI to invent an answer. These trigger a pre-generation question.
 
@@ -203,7 +203,7 @@ Gaps that would force the AI to invent an answer. These trigger a pre-generation
 
 ---
 
-## Understanding the Governance Model
+## Understanding the governance model
 
 Documentation Agent Orchestrator enforces these non-negotiable rules in every prompt:
 
@@ -216,7 +216,7 @@ Documentation Agent Orchestrator enforces these non-negotiable rules in every pr
 - **No Navigation Path Invention**: If a UI location is missing, the AI asks — it does not invent a path
 - **No Prerequisite Derivation**: Prerequisites must come from the source — not from reading the steps
 
-### What AI Must Do
+### What AI must do
 
 - **Preserve Ambiguity**: When source content is vague but not blocking, AI explicitly documents this in a "Preserved Ambiguities" section
 - **Use Pre-Clarifications**: Answers collected before generation are treated as authoritative facts and used directly
@@ -227,7 +227,7 @@ This makes AI behavior constrained, inspectable, and defensible.
 
 ---
 
-## Supported Documentation Types
+## Supported documentation types
 
 The extension supports three documentation types, each with specific governance rules and structures:
 
@@ -266,9 +266,9 @@ Diagnostic and resolution guidance for specific problems. Troubleshooting guides
 
 ---
 
-## Detailed Workflow
+## Detailed workflow
 
-### 1. Preparing Source Content
+### 1. Preparing source content
 
 The quality of AI output depends on the source content you provide. You can use:
 
@@ -279,7 +279,7 @@ The quality of AI output depends on the source content you provide. You can use:
 
 **Tip**: Include as much context as possible, but don't worry about formatting or completeness—the AI will identify gaps rather than filling them.
 
-### 2. Choosing Documentation Type
+### 2. Choosing documentation type
 
 When you run "Generate Documentation (Governed Mode)", you'll be asked to select a documentation type:
 
@@ -293,7 +293,7 @@ The selected type determines:
 - The specific governance rules applied
 - The instructions given to the AI
 
-### 3. Structural Gap Classification and Q&A
+### 3. Structural gap classification and Q&A
 
 After you select the documentation type, the extension classifies your source against 18 structural gap patterns. For every gap that would force the AI to invent an answer, a VS Code input box appears with a specific question and a placeholder example.
 
@@ -305,7 +305,7 @@ You have three choices for each question:
 
 Answering questions produces a complete document in one pass. Skipping produces a document with an accurate Preserved Ambiguities section that you can address later.
 
-### 4. Working with AI Responses
+### 4. Working with AI responses
 
 After pasting the prompt into your AI assistant:
 
@@ -327,7 +327,7 @@ After pasting the prompt into your AI assistant:
 - Check if features, steps, or behaviors were added that weren't in your source
 - Regenerate with stricter emphasis on the governance rules
 
-### 5. Reviewing Diffs
+### 5. Reviewing diffs
 
 The diff preview shows you:
 
@@ -345,7 +345,7 @@ Always check:
 
 ---
 
-## Why This Extension Exists
+## Why this extension exists
 
 AI is fluent but unreliable. When rewriting documentation, AI often:
 
@@ -360,7 +360,7 @@ Documentation Agent Orchestrator prevents this by making AI behavior constrained
 
 ---
 
-## What This Extension Does NOT Do
+## What this extension does NOT do
 
 This is important.
 
@@ -377,7 +377,7 @@ The extension does **not**:
 
 ---
 
-## Two-Mode Architecture
+## Two-mode architecture
 
 This extension implements one mode only: **Governance Mode**. Generative completion belongs outside the extension, in a direct AI assistant session.
 
@@ -411,7 +411,7 @@ This mode prioritizes **defensibility**. Output is compliance-grade.
 
 ---
 
-### Mode B — Generative Mode (direct AI assistant)
+### Mode B — Generative mode (direct AI assistant)
 
 **Goal:** Produce a useful, complete document even when gaps exist.
 
@@ -436,7 +436,7 @@ This mode prioritizes **speed and usability**. Output is productivity-grade.
 
 ---
 
-### Behavioral Comparison
+### Behavioral comparison
 
 | Gap in source | Governance Mode (extension) | Generative Mode (direct AI) |
 |---|---|---|
@@ -446,7 +446,7 @@ This mode prioritizes **speed and usability**. Output is productivity-grade.
 | "Restart service" | Ask for wait condition | Add standard readiness check |
 | Undefined default | Ask | Suggest typical default |
 
-### The Boundary Rule
+### The boundary rule
 
 These modes must never be blended.
 
@@ -459,9 +459,9 @@ These modes must never be blended.
 
 ---
 
-## Commands and Shortcuts
+## Commands and shortcuts
 
-### VS Code Commands
+### VS Code commands
 
 You can access these commands through the Command Palette (`Ctrl+Shift+P` on Windows/Linux, `Cmd+Shift+P` on macOS):
 
@@ -471,7 +471,7 @@ You can access these commands through the Command Palette (`Ctrl+Shift+P` on Win
 
 **Provide Clarifications and Regenerate (Governed Mode)**: When the AI has identified Preserved Ambiguities, use this command to provide answers and regenerate the governed prompt with those answers injected as authoritative facts.
 
-### Typical Usage Pattern
+### Typical usage pattern
 
 1. Write rough notes or select existing content
 2. Run **Generate Documentation (Governed Mode)** → Choose document type
@@ -484,7 +484,7 @@ You can access these commands through the Command Palette (`Ctrl+Shift+P` on Win
 
 ---
 
-## Known Limitations
+## Known limitations
 
 These limitations are intentional design decisions:
 
@@ -497,7 +497,7 @@ This tradeoff ensures correctness over convenience.
 
 ---
 
-## Who This Is For
+## Who this is for
 
 Documentation Agent Orchestrator is designed for:
 
@@ -525,7 +525,7 @@ If you encounter bugs or have feature requests:
 
 ---
 
-## Version History
+## Version history
 
 ### 1.0.1
 
@@ -559,7 +559,7 @@ Universal
 
 ---
 
-## Project Details
+## Project details
 
 **Repository**: [github.com/Tharun135/doc-agent-orchestrator](https://github.com/Tharun135/doc-agent-orchestrator)  
 **License**: MIT  

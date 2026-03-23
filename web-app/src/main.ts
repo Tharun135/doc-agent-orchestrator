@@ -144,14 +144,38 @@ function updateStepper() {
     const stepNum = i + 1;
     el.classList.remove('active', 'done');
     if (stepNum === state.step) el.classList.add('active');
-    if (stepNum < state.step)  el.classList.add('done');
+    if (stepNum < state.step) el.classList.add('done');
   });
   lines.forEach((el, i) => {
     el.classList.toggle('done', i + 1 < state.step);
   });
-  // Progress bar
   const fill = document.getElementById('progress-fill') as HTMLElement;
   if (fill) fill.style.width = `${((state.step - 1) / 3) * 100}%`;
+
+  updateManualWorkflow();
+}
+
+function updateManualWorkflow() {
+  const svg = document.getElementById('manual-workflow-svg');
+  if (!svg) return;
+
+  for (let i = 1; i <= 4; i++) {
+    const node = document.getElementById(`svg-node-${i}`);
+    if (node) {
+      node.classList.remove('active', 'done');
+      if (i === state.step) node.classList.add('active');
+      if (i < state.step) node.classList.add('done');
+    }
+    
+    if (i < 4) {
+      const line = document.getElementById(`svg-line-${i}`);
+      if (line) {
+        line.classList.remove('active', 'done');
+        if (i === state.step - 1) line.classList.add('active');
+        if (i < state.step - 1) line.classList.add('done');
+      }
+    }
+  }
 }
 
 function goToStep(step: 1 | 2 | 3 | 4) {
@@ -976,37 +1000,37 @@ function bootstrap() {
             <h2><span class="info-icon">🔄</span> The 4-Phase Workflow</h2>
             
             <div class="workflow-diagram">
-              <svg class="workflow-svg" viewBox="0 0 700 120">
+              <svg class="workflow-svg" viewBox="0 0 700 120" id="manual-workflow-svg">
                 <!-- Lines / Arrows -->
-                <path d="M120 60 H200" stroke="var(--border)" stroke-width="2" class="svg-dash" fill="none" />
-                <path d="M300 60 H380" stroke="var(--border)" stroke-width="2" class="svg-dash" fill="none" />
-                <path d="M480 60 H560" stroke="var(--border)" stroke-width="2" class="svg-dash" fill="none" />
+                <path id="svg-line-1" d="M120 60 H200" stroke="var(--border)" stroke-width="2" class="svg-dash" fill="none" />
+                <path id="svg-line-2" d="M300 60 H380" stroke="var(--border)" stroke-width="2" class="svg-dash" fill="none" />
+                <path id="svg-line-3" d="M480 60 H560" stroke="var(--border)" stroke-width="2" class="svg-dash" fill="none" />
                 
                 <!-- Node 1: Analyse -->
-                <g class="svg-node">
-                  <rect x="20" y="30" width="100" height="60" rx="10" fill="var(--bg-surface)" stroke="var(--accent)" stroke-width="2" class="svg-node-bg" />
-                  <circle cx="70" cy="50" r="12" fill="var(--accent-soft)" class="svg-pulse" />
+                <g id="svg-node-1" class="svg-node">
+                  <rect x="20" y="30" width="100" height="60" rx="10" fill="var(--bg-surface)" stroke="var(--border)" stroke-width="2" class="svg-node-bg" />
+                  <circle cx="70" cy="50" r="8" fill="var(--accent)" class="svg-pulse" style="opacity:0" />
                   <text x="70" y="80" text-anchor="middle" class="svg-text">1. ANALYSE</text>
                 </g>
                 
                 <!-- Node 2: Q&A -->
-                <g class="svg-node">
+                <g id="svg-node-2" class="svg-node">
                   <rect x="200" y="30" width="100" height="60" rx="10" fill="var(--bg-surface)" stroke="var(--border)" stroke-width="2" class="svg-node-bg" />
-                  <circle cx="250" cy="50" r="12" fill="var(--warning-soft)" />
+                  <circle cx="250" cy="50" r="8" fill="var(--warning)" class="svg-pulse" style="opacity:0" />
                   <text x="250" y="80" text-anchor="middle" class="svg-text">2. Q&A</text>
                 </g>
 
                 <!-- Node 3: Prompt -->
-                <g class="svg-node">
+                <g id="svg-node-3" class="svg-node">
                   <rect x="380" y="30" width="100" height="60" rx="10" fill="var(--bg-surface)" stroke="var(--border)" stroke-width="2" class="svg-node-bg" />
-                  <circle cx="430" cy="50" r="12" fill="var(--success-soft)" />
+                  <circle cx="430" cy="50" r="8" fill="var(--success)" class="svg-pulse" style="opacity:0" />
                   <text x="430" y="80" text-anchor="middle" class="svg-text">3. PROMPT</text>
                 </g>
 
                 <!-- Node 4: Diff -->
-                <g class="svg-node">
+                <g id="svg-node-4" class="svg-node">
                   <rect x="560" y="30" width="120" height="60" rx="10" fill="var(--bg-surface)" stroke="var(--border)" stroke-width="2" class="svg-node-bg" />
-                  <circle cx="620" cy="50" r="12" fill="var(--danger-soft)" />
+                  <circle cx="620" cy="50" r="8" fill="var(--danger)" class="svg-pulse" style="opacity:0" />
                   <text x="620" y="80" text-anchor="middle" class="svg-text">4. DIFF & VALIDATE</text>
                 </g>
               </svg>
@@ -1088,7 +1112,10 @@ function bootstrap() {
   const openBtn = document.getElementById('open-manual-btn')!;
   const closeBtn = document.getElementById('close-manual-btn')!;
 
-  openBtn.addEventListener('click', () => modal.classList.add('active'));
+  openBtn.addEventListener('click', () => {
+    modal.classList.add('active');
+    updateManualWorkflow();
+  });
   closeBtn.addEventListener('click', () => modal.classList.remove('active'));
   modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
 

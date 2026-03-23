@@ -489,6 +489,18 @@ body {
 
 .svg-icon-circle { fill: var(--bg-card); stroke: var(--border); stroke-width: 1.5; }
 
+/* Dynamic SVG States */
+.svg-node.active .svg-node-bg { stroke: var(--accent); stroke-width: 3; filter: drop-shadow(0 0 8px var(--accent-soft)); }
+.svg-node.active .svg-text { fill: var(--text-primary); }
+.svg-node.active .svg-pulse { animation: svgPulse 2s ease-in-out infinite; opacity: 1; }
+
+.svg-node.done .svg-node-bg { stroke: var(--success); }
+.svg-node.done .svg-text { fill: var(--success); }
+.svg-node.done .svg-pulse { fill: var(--success); animation: none; opacity: 0.5; }
+
+.svg-dash.active { stroke: var(--accent); stroke-width: 3; stroke-dasharray: 8; animation: svgDash 5s linear infinite; }
+.svg-dash.done { stroke: var(--success); opacity: 0.5; }
+
 /* ── Main layout ─────────────────────────────────────── */
 .main-content {
   flex: 1;

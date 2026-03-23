@@ -186,8 +186,14 @@ body {
   margin-top: 1px;
 }
 
-.header-badge {
+.header-actions {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-badge {
   background: var(--accent-soft);
   border: 1px solid var(--border-accent);
   color: var(--accent);
@@ -198,6 +204,116 @@ body {
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
+
+.btn-manual {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-manual:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent);
+  box-shadow: 0 0 15px var(--accent-soft);
+}
+
+/* ── Modal ───────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: none;
+  align-items: center; justify-content: center;
+  padding: 24px;
+  animation: fadeIn 300ms ease;
+}
+
+.modal-overlay.active { display: flex; }
+
+.modal-content {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  max-width: 900px;
+  width: 100%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.8);
+  overflow: hidden;
+  animation: modalScale 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes modalScale { from { opacity: 0; transform: scale(0.95) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+.modal-header {
+  padding: 20px 28px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-base);
+}
+
+.modal-title { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+
+.modal-close {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  transition: var(--transition);
+}
+
+.modal-close:hover { color: var(--text-primary); transform: rotate(90deg); }
+
+.modal-body {
+  padding: 32px;
+  overflow-y: auto;
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+
+.manual-section { margin-bottom: 32px; }
+.manual-section h2 { font-size: 20px; color: var(--text-primary); margin-bottom: 14px; display: flex; align-items: center; gap: 10px; }
+.manual-section h3 { font-size: 16px; color: var(--text-primary); margin: 24px 0 12px; }
+.manual-section p { margin-bottom: 12px; font-size: 14px; }
+.manual-step { border-left: 2px solid var(--accent); padding-left: 20px; margin-bottom: 24px; }
+.manual-badge { font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 700; text-transform: uppercase; }
+.badge-analyze { background: var(--accent-soft); color: var(--accent); }
+.badge-qa      { background: var(--warning-soft); color: var(--warning); }
+.badge-prompt  { background: var(--success-soft); color: var(--success); }
+.badge-diff    { background: var(--danger-soft); color: var(--danger); }
+
+.gap-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 13px;
+}
+
+.gap-table th, .gap-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.gap-table th { color: var(--text-primary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; font-size: 11px; }
 
 /* ── Hero banner ─────────────────────────────────────── */
 .hero {

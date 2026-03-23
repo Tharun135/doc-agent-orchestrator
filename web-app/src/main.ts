@@ -884,7 +884,13 @@ function bootstrap() {
         <div class="app-title">Documentation Agent Orchestrator</div>
         <div class="app-subtitle">Governance-driven AI prompts for technical writers</div>
       </div>
-      <div class="header-badge">Web App</div>
+      <div class="header-actions">
+        <button class="btn-manual" id="open-manual-btn">
+          <span>📖</span>
+          <span>User Manual</span>
+        </button>
+        <div class="header-badge">Web App</div>
+      </div>
     </header>
 
     <!-- Hero -->
@@ -892,7 +898,7 @@ function bootstrap() {
       <h1>Stop AI from<br>inventing documentation</h1>
       <p>Detect information gaps before the AI sees your source. Provide authoritative answers. Get documentation you can defend.</p>
       <div class="hero-pills">
-        <div class="hero-pill"><span class="dot"></span>42 gap pattern detectors</div>
+        <div class="hero-pill"><span class="dot"></span>40+ Gap pattern detectors</div>
         <div class="hero-pill"><span class="dot"></span>7 documentation types</div>
         <div class="hero-pill"><span class="dot"></span>Zero invention policy</div>
         <div class="hero-pill"><span class="dot"></span>No account required</div>
@@ -952,10 +958,86 @@ function bootstrap() {
         </div>
       </div>
     </footer>
+    
+    <!-- Modal: User Manual -->
+    <div class="modal-overlay" id="manual-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-title">User Manual & Governance Guide</div>
+          <button class="modal-close" id="close-manual-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="manual-section">
+            <h2><span class="info-icon">🎯</span> Overview</h2>
+            <p>Documentation Agent Orchestrator is a governance layer designed to stop AI from hallucinating when writing technical documentation. It forces a strict <strong>analyse-before-generate</strong> workflow that makes AI output trustworthy and defensible.</p>
+          </div>
+
+          <div class="manual-section">
+            <h2><span class="info-icon">🔄</span> The 4-Phase Workflow</h2>
+            
+            <div class="manual-step">
+              <h3><span class="manual-badge badge-analyze">Phase 1</span> Structural Gap Analysis</h3>
+              <p>The app scans your source text for 40+ structural gap patterns (missing UI locations, vague verbs, undefined conditions). Each gap is a potential hallucination trigger.</p>
+            </div>
+
+            <div class="manual-step">
+              <h3><span class="manual-badge badge-qa">Phase 2</span> Interactive Clarification</h3>
+              <p>For every blocking gap found, you are asked a targeted question. Your answers are injected as <strong>authoritative facts</strong>. If you skip a question, the AI documents the ambiguity instead of guessing.</p>
+            </div>
+
+            <div class="manual-step">
+              <h3><span class="manual-badge badge-prompt">Phase 3</span> Governed Prompt Generation</h3>
+              <p>A prompt is built containing your source, your clarifications, and strict governance rules. These rules explicitly forbid the AI from inventing features or deriving prerequisites.</p>
+            </div>
+
+            <div class="manual-step">
+              <h3><span class="manual-badge badge-diff">Phase 4</span> Post-AI Diff Validation</h3>
+              <p>After generating documentation, paste the response back to see a side-by-side diff. This ensures every change the AI made is verified against your original source.</p>
+            </div>
+          </div>
+
+          <div class="manual-section">
+            <h2><span class="info-icon">⚠️</span> Documentation Gap Classes</h2>
+            <p>Our scanner identifies 8 major classes of documentation risks:</p>
+            <table class="gap-table">
+              <thead>
+                <tr><th>Category</th><th>Targeted Failure</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Location Ambiguity</td><td>AI invents navigation paths or UI names.</td></tr>
+                <tr><td>Actor Ambiguity</td><td>AI assumes a person or system is performing a step.</td></tr>
+                <tr><td>Value Ambiguity</td><td>AI guesses numeric units or default values.</td></tr>
+                <tr><td>Branch Logic</td><td>AI invents success/failure outcomes for steps.</td></tr>
+                <tr><td>Temporal Ambiguity</td><td>AI adds implied wait times or schedules.</td></tr>
+                <tr><td>Data Contract</td><td>AI guesses export formats or data types.</td></tr>
+                <tr><td>Structural Gaps</td><td>AI fills "TBD" or placeholder tokens with guesses.</td></tr>
+                <tr><td>Outcome Gaps</td><td>AI invents what the user sees after an action.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="manual-section">
+            <h2><span class="info-icon">💡</span> Best Practices</h2>
+            <p>• <strong>Rough notes are fine:</strong> Don't waste time on grammar. The Orchestrator cares about structural completeness, not phrasing.</p>
+            <p>• <strong>Answer blocking gaps:</strong> If a step can't be followed without more info (like a UI location), answer the question in Phase 2.</p>
+            <p>• <strong>Use Diff Preview:</strong> Never trust AI output blindly. The diff view is your ultimate governance checkpoint.</p>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Toast container -->
     <div class="toast-container" id="toast-container"></div>
   `;
+
+  // Manual modal logic
+  const modal = document.getElementById('manual-modal')!;
+  const openBtn = document.getElementById('open-manual-btn')!;
+  const closeBtn = document.getElementById('close-manual-btn')!;
+
+  openBtn.addEventListener('click', () => modal.classList.add('active'));
+  closeBtn.addEventListener('click', () => modal.classList.remove('active'));
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
 
   // Stepper click navigation (only allow going back)
   document.getElementById('stepper-1')!.addEventListener('click', () => {

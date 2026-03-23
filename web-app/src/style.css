@@ -438,6 +438,57 @@ body {
 
 .step-line.done { background: var(--success); opacity: 0.5; }
 
+/* ── Workflow Diagram ───────────────────────────────── */
+.workflow-diagram {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 24px;
+  margin-bottom: 32px;
+  display: flex;
+  justify-content: center;
+}
+
+.workflow-svg {
+  width: 100%;
+  max-width: 700px;
+  height: auto;
+}
+
+/* Animations */
+.svg-pulse {
+  animation: svgPulse 2s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes svgPulse {
+  0% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(99,132,255,0)); }
+  50% { transform: scale(1.05); filter: drop-shadow(0 0 10px rgba(99,132,255,0.4)); }
+  100% { transform: scale(1); filter: drop-shadow(0 0 0 rgba(99,132,255,0)); }
+}
+
+.svg-dash {
+  stroke-dasharray: 8;
+  animation: svgDash 20s linear infinite;
+}
+
+@keyframes svgDash {
+  to { stroke-dashoffset: -200; }
+}
+
+.svg-node-bg { transition: var(--transition); cursor: pointer; }
+.svg-node-bg:hover { fill: var(--bg-card-hover); stroke: var(--accent); }
+
+.svg-text {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  fill: var(--text-secondary);
+  pointer-events: none;
+}
+
+.svg-icon-circle { fill: var(--bg-card); stroke: var(--border); stroke-width: 1.5; }
+
 /* ── Main layout ─────────────────────────────────────── */
 .main-content {
   flex: 1;

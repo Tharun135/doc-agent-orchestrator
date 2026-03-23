@@ -975,6 +975,43 @@ function bootstrap() {
           <div class="manual-section">
             <h2><span class="info-icon">🔄</span> The 4-Phase Workflow</h2>
             
+            <div class="workflow-diagram">
+              <svg class="workflow-svg" viewBox="0 0 700 120">
+                <!-- Lines / Arrows -->
+                <path d="M120 60 H200" stroke="var(--border)" stroke-width="2" class="svg-dash" fill="none" />
+                <path d="M300 60 H380" stroke="var(--border)" stroke-width="2" class="svg-dash" fill="none" />
+                <path d="M480 60 H560" stroke="var(--border)" stroke-width="2" class="svg-dash" fill="none" />
+                
+                <!-- Node 1: Analyse -->
+                <g class="svg-node">
+                  <rect x="20" y="30" width="100" height="60" rx="10" fill="var(--bg-surface)" stroke="var(--accent)" stroke-width="2" class="svg-node-bg" />
+                  <circle cx="70" cy="50" r="12" fill="var(--accent-soft)" class="svg-pulse" />
+                  <text x="70" y="80" text-anchor="middle" class="svg-text">1. ANALYSE</text>
+                </g>
+                
+                <!-- Node 2: Q&A -->
+                <g class="svg-node">
+                  <rect x="200" y="30" width="100" height="60" rx="10" fill="var(--bg-surface)" stroke="var(--border)" stroke-width="2" class="svg-node-bg" />
+                  <circle cx="250" cy="50" r="12" fill="var(--warning-soft)" />
+                  <text x="250" y="80" text-anchor="middle" class="svg-text">2. Q&A</text>
+                </g>
+
+                <!-- Node 3: Prompt -->
+                <g class="svg-node">
+                  <rect x="380" y="30" width="100" height="60" rx="10" fill="var(--bg-surface)" stroke="var(--border)" stroke-width="2" class="svg-node-bg" />
+                  <circle cx="430" cy="50" r="12" fill="var(--success-soft)" />
+                  <text x="430" y="80" text-anchor="middle" class="svg-text">3. PROMPT</text>
+                </g>
+
+                <!-- Node 4: Diff -->
+                <g class="svg-node">
+                  <rect x="560" y="30" width="120" height="60" rx="10" fill="var(--bg-surface)" stroke="var(--border)" stroke-width="2" class="svg-node-bg" />
+                  <circle cx="620" cy="50" r="12" fill="var(--danger-soft)" />
+                  <text x="620" y="80" text-anchor="middle" class="svg-text">4. DIFF & VALIDATE</text>
+                </g>
+              </svg>
+            </div>
+            
             <div class="manual-step">
               <h3><span class="manual-badge badge-analyze">Phase 1</span> Structural Gap Analysis</h3>
               <p>The app scans your source text for 40+ structural gap patterns (missing UI locations, vague verbs, undefined conditions). Each gap is a potential hallucination trigger.</p>

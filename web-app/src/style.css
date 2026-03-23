@@ -77,34 +77,34 @@ body {
 
 .blob {
   position: absolute;
-  width: 600px; height: 600px;
-  background: radial-gradient(circle, var(--accent-glow) 0%, rgba(99,132,255,0) 70%);
+  width: 800px; height: 800px;
+  background: radial-gradient(circle, var(--accent) 0%, rgba(99,132,255,0) 75%);
   border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.4;
+  filter: blur(100px);
+  opacity: 0.6;
   animation: blobFloat 25s ease-in-out infinite alternate;
 }
 
 .blob-1 {
-  top: -100px;
-  left: -100px;
-  background: radial-gradient(circle, rgba(99,132,255,0.4) 0%, rgba(99,132,255,0) 70%);
+  top: -200px;
+  left: -200px;
+  background: radial-gradient(circle, rgba(99,132,255,0.7) 0%, rgba(99,132,255,0) 75%);
   animation-duration: 22s;
 }
 
 .blob-2 {
-  bottom: -150px;
-  right: -100px;
-  background: radial-gradient(circle, rgba(162,128,255,0.3) 0%, rgba(162,128,255,0) 70%);
+  bottom: -200px;
+  right: -200px;
+  background: radial-gradient(circle, rgba(162,128,255,0.6) 0%, rgba(162,128,255,0) 75%);
   animation-duration: 28s;
   animation-delay: -5s;
 }
 
 .blob-3 {
-  top: 40%;
-  left: 50%;
-  width: 400px; height: 400px;
-  background: radial-gradient(circle, rgba(99,132,255,0.2) 0%, rgba(99,132,255,0) 70%);
+  top: 30%;
+  left: 60%;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(54,211,153,0.4) 0%, rgba(54,211,153,0) 75%);
   animation-duration: 35s;
   animation-delay: -12s;
 }

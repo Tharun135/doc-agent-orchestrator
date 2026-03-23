@@ -9,9 +9,10 @@ import type { PreservedAmbiguity } from './engine/ambiguityParser';
 import { DEFAULT_STYLE_GUIDE } from './engine/defaultStyleGuide';
 import Tesseract from 'tesseract.js';
 import * as pdfjsLib from 'pdfjs-dist';
+import pdfWorker from 'pdfjs-dist/build/pdf.worker.mjs?url';
 
-// Worker configuration for PDF.js - matches installed version automatically via CDN
-pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+// Worker configuration for PDF.js using local node_modules via Vite ?url
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // State

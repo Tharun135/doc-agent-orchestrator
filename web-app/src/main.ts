@@ -1022,7 +1022,7 @@ function bootstrap() {
     <div class="modal-overlay" id="manual-modal">
       <div class="modal-content">
         <div class="modal-header">
-          <div class="modal-title">User Manual & Governance Guide</div>
+          <div class="modal-title">User manual & governance guide</div>
           <button class="modal-close" id="close-manual-btn">&times;</button>
         </div>
         <div class="modal-body">
@@ -1032,7 +1032,7 @@ function bootstrap() {
           </div>
 
           <div class="manual-section">
-            <h2><span class="info-icon">🔄</span> The 4-Phase Workflow</h2>
+            <h2><span class="info-icon">🔄</span> The 4-phase workflow</h2>
             
             <div class="workflow-diagram">
               <svg class="workflow-svg" viewBox="0 0 700 120" id="manual-workflow-svg">
@@ -1052,7 +1052,7 @@ function bootstrap() {
                 <!-- Node 1: Analyse -->
                 <g id="svg-node-1" class="svg-node">
                   <rect x="20" y="30" width="100" height="60" rx="10" fill="transparent" stroke="var(--border)" stroke-width="1.5" />
-                  <text x="70" y="80" text-anchor="middle" class="svg-text">1. ANALYSE</text>
+                  <text x="70" y="80" text-anchor="middle" class="svg-text">1. Analyse</text>
                 </g>
                 
                 <!-- Node 2: Q&A -->
@@ -1064,79 +1064,79 @@ function bootstrap() {
                 <!-- Node 3: Prompt -->
                 <g id="svg-node-3" class="svg-node">
                   <rect x="380" y="30" width="100" height="60" rx="10" fill="transparent" stroke="var(--border)" stroke-width="1.5" />
-                  <text x="430" y="80" text-anchor="middle" class="svg-text">3. PROMPT</text>
+                  <text x="430" y="80" text-anchor="middle" class="svg-text">3. Prompt</text>
                 </g>
 
                 <!-- Node 4: Diff -->
                 <g id="svg-node-4" class="svg-node">
                   <rect x="560" y="30" width="100" height="60" rx="10" fill="transparent" stroke="var(--border)" stroke-width="1.5" />
-                  <text x="610" y="80" text-anchor="middle" class="svg-text">4. DIFF & VALIDATE</text>
+                  <text x="610" y="80" text-anchor="middle" class="svg-text">4. Diff & validate</text>
                 </g>
               </svg>
             </div>
             
             <div class="manual-step">
-              <h3><span class="manual-badge badge-analyze">Phase 1</span> Structural Gap Analysis</h3>
+              <h3><span class="manual-badge badge-analyze">Phase 1</span> Structural gap analysis</h3>
               <p>The app scans your source text for 40+ structural gap patterns (missing UI locations, vague verbs, undefined conditions). Each gap is a potential hallucination trigger.</p>
             </div>
 
             <div class="manual-step">
-              <h3><span class="manual-badge badge-qa">Phase 2</span> Interactive Clarification</h3>
+              <h3><span class="manual-badge badge-qa">Phase 2</span> Interactive clarification</h3>
               <p>For every blocking gap found, you are asked a targeted question. Your answers are injected as <strong>authoritative facts</strong>. If you skip a question, the AI documents the ambiguity instead of guessing.</p>
             </div>
 
             <div class="manual-step">
-              <h3><span class="manual-badge badge-prompt">Phase 3</span> Governed Prompt Generation</h3>
+              <h3><span class="manual-badge badge-prompt">Phase 3</span> Governed prompt generation</h3>
               <p>A prompt is built containing your source, your clarifications, and strict governance rules. These rules explicitly forbid the AI from inventing features or deriving prerequisites.</p>
             </div>
 
             <div class="manual-step">
-              <h3><span class="manual-badge badge-diff">Phase 4</span> Post-AI Diff Validation</h3>
+              <h3><span class="manual-badge badge-diff">Phase 4</span> Post-AI diff validation</h3>
               <p>After generating documentation, paste the response back to see a side-by-side diff. This ensures every change the AI made is verified against your original source.</p>
             </div>
           </div>
 
           <div class="manual-section">
-            <h2><span class="info-icon">🎮</span> How to Operate</h2>
+            <h2><span class="info-icon">🎮</span> How to operate</h2>
             <div class="manual-step">
-              <p><strong>Step 1: Input & Intent</strong> — Paste your source text or upload an image. Select the type of documentation you need and describe what you want the AI to do (the "Intent").</p>
+              <p><strong>Step 1: Input & intent</strong> — Paste your source text or upload an image. Select the type of documentation you need and describe what you want the AI to do (the "intent").</p>
             </div>
             <div class="manual-step">
-              <p><strong>Step 2: Resolve Gaps</strong> — Review the list of detected information gaps. Click and type your answers to help the AI understand the missing context. If you don't know an answer, you can skip it.</p>
+              <p><strong>Step 2: Resolve gaps</strong> — Review the list of detected information gaps. Click and type your answers to help the AI understand the missing context. If you don't know an answer, you can skip it.</p>
             </div>
             <div class="manual-step">
-              <p><strong>Step 3: Generate & Run</strong> — Once the prompt is generated, click the <strong>Copy Prompt</strong> button. Take this prompt to your preferred AI assistant (like Claude or ChatGPT) and run it.</p>
+              <p><strong>Step 3: Generate & run</strong> — Once the prompt is generated, click the <strong>Copy prompt</strong> button. Take this prompt to your preferred AI assistant (like Claude or ChatGPT) and run it.</p>
             </div>
             <div class="manual-step">
-              <p><strong>Step 4: Verify</strong> — Copy the AI's response and bring it back here. Paste it into the Step 4 "Validate" view to see a side-by-side comparison. Check for any "Preserved Ambiguities" to ensure accuracy.</p>
+              <p><strong>Step 4: Verify</strong> — Copy the AI's response and bring it back here. Paste it into the Step 4 "Validate" view to see a side-by-side comparison. Check for any "Preserved ambiguities" to ensure accuracy.</p>
             </div>
           </div>
 
           <div class="manual-section">
-            <h2><span class="info-icon">⚠️</span> Documentation Gap Classes</h2>
+            <h2><span class="info-icon">⚠️</span> Documentation gap classes</h2>
             <p>Our scanner identifies 8 major classes of documentation risks:</p>
             <table class="gap-table">
               <thead>
                 <tr><th>Category</th><th>Targeted Failure</th></tr>
               </thead>
               <tbody>
-                <tr><td>Location Ambiguity</td><td>AI invents navigation paths or UI names.</td></tr>
-                <tr><td>Actor Ambiguity</td><td>AI assumes a person or system is performing a step.</td></tr>
-                <tr><td>Value Ambiguity</td><td>AI guesses numeric units or default values.</td></tr>
-                <tr><td>Branch Logic</td><td>AI invents success/failure outcomes for steps.</td></tr>
-                <tr><td>Temporal Ambiguity</td><td>AI adds implied wait times or schedules.</td></tr>
-                <tr><td>Data Contract</td><td>AI guesses export formats or data types.</td></tr>
-                <tr><td>Structural Gaps</td><td>AI fills "TBD" or placeholder tokens with guesses.</td></tr>
-                <tr><td>Outcome Gaps</td><td>AI invents what the user sees after an action.</td></tr>
+                <tr><td>Location ambiguity</td><td>AI invents navigation paths or UI names.</td></tr>
+                <tr><td>Actor ambiguity</td><td>AI assumes a person or system is performing a step.</td></tr>
+                <tr><td>Value ambiguity</td><td>AI guesses numeric units or default values.</td></tr>
+                <tr><td>Branch logic</td><td>AI invents success/failure outcomes for steps.</td></tr>
+                <tr><td>Temporal ambiguity</td><td>AI adds implied wait times or schedules.</td></tr>
+                <tr><td>Data contract</td><td>AI guesses export formats or data types.</td></tr>
+                <tr><td>Structural gaps</td><td>AI fills "TBD" or placeholder tokens with guesses.</td></tr>
+                <tr><td>Outcome gaps</td><td>AI invents what the user sees after an action.</td></tr>
               </tbody>
             </table>
           </div>
 
           <div class="manual-section">
-            <h2><span class="info-icon">💡</span> Best Practices</h2>
-            <p>• <strong>Rough notes are fine:</strong> Don't waste time on grammar. The Orchestrator cares about structural completeness, not phrasing.</p>
-            <p>• <strong>Answer blocking gaps:</strong> If a step can't be followed without more info (like a UI location), answer the question in Phase 2.</p>
-            <p>• <strong>Use Diff Preview:</strong> Never trust AI output blindly. The diff view is your ultimate governance checkpoint.</p>
+            <h2><span class="info-icon">💡</span> Best practices</h2>
+            <p>• <strong>Rough notes are fine:</strong> Don't waste time on grammar. The orchestrator cares about structural completeness, not phrasing.</p>
+            <p>• <strong>Answer blocking gaps:</strong> If a step can't be followed without more info (like a UI location), answer the question in phase 2.</p>
+            <p>• <strong>Use diff preview:</strong> Never trust AI output blindly. The diff view is your ultimate governance checkpoint.</p>
           </div>
         </div>
       </div>

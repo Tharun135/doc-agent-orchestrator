@@ -365,7 +365,7 @@ body {
   border-bottom: 1px solid var(--border);
 }
 
-.gap-table th { color: var(--text-primary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; font-size: 11px; }
+.gap-table th { color: var(--text-primary); font-weight: 600; letter-spacing: 0.05em; font-size: 11px; }
 
 /* ── Hero banner ─────────────────────────────────────── */
 .hero {
@@ -666,7 +666,6 @@ label.field-label {
   font-size: 12px;
   font-weight: 600;
   color: var(--text-secondary);
-  text-transform: uppercase;
   letter-spacing: 0.06em;
   margin-bottom: 10px;
 }
@@ -988,7 +987,6 @@ textarea { min-height: 220px; font-family: var(--font-mono); font-size: 13px; }
 .stat-label {
   font-size: 11px;
   color: var(--text-muted);
-  text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 

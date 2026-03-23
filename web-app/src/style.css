@@ -431,6 +431,7 @@ body {
   padding: 0 32px;
   margin: 32px auto;
   max-width: 900px;
+  scroll-margin-top: 100px;
 }
 
 .step-item {

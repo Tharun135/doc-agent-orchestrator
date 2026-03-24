@@ -1009,7 +1009,7 @@ function bootstrap() {
       <p>Detect information gaps before the AI sees your source. Provide authoritative answers. Get documentation you can defend.</p>
       <div class="hero-pills">
         <div class="hero-pill"><span class="dot"></span>40+ Gap pattern detectors</div>
-        <div class="hero-pill"><span class="dot"></span>7 documentation types</div>
+        <div class="hero-pill"><span class="dot"></span>7 task types</div>
         <div class="hero-pill"><span class="dot"></span>Zero invention policy</div>
         <div class="hero-pill"><span class="dot"></span>No account required</div>
       </div>

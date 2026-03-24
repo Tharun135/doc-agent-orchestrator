@@ -17,7 +17,7 @@ A complete workflow from start to finish (10-15 seconds)
    - START RECORDING
    - **Second 0-2:** Select all text (Ctrl+A) - show selection highlight
    - **Second 2-4:** Press Ctrl+Shift+P, type "Generate Documentation"
-   - **Second 4-6:** Select "Procedure" from dropdown
+   - **Second 4-6:** Select "Procedure" from the task type list
    - **Second 6-8:** Type user intent: "Document editing data source"
    - **Second 8-10:** Show generated prompt opening in new tab
    - **Second 10-12:** Show notification "copied to clipboard"
@@ -71,10 +71,10 @@ Command palette open with "Generate Documentation Prompt" visible
 
 ---
 
-## Asset 3: doc-types.png (Documentation Type Picker)
+## Asset 3: task-types.png (Task Type Picker)
 
 ### What to Show:
-Quick pick menu showing all 7 documentation types
+Quick pick menu showing all 7 task types
 
 ### Capture Steps:
 

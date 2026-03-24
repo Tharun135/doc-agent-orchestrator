@@ -143,7 +143,7 @@ Use this classification system:
 - After governance rule changes
 - After prompt generator updates
 - Before major releases
-- When adding new documentation types
+- When adding new task types
 
 **Quick regression check:**
 1. Run tests 01, 05, 13 (cover key scenarios)

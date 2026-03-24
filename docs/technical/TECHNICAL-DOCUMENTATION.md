@@ -341,7 +341,7 @@ PRE-CLARIFICATIONS (collected before generation — authoritative facts, use dir
 1. **Governance rules** — injected verbatim from `governance.ts`
 2. **Pre-clarifications block** — the formatted Q+A from Phase 2
 3. **Source content** — the original text, marked as authoritative
-4. **Task-specific output structure** — defined by documentation type
+4. **Task-specific output structure** — defined by task type
 
 **The zero-invention contract:** The prompt instructs the AI that its information set is now complete and closed:
 
@@ -625,7 +625,7 @@ export type TaskType =
 2. Get selected text (or full document if no selection)
 3. Validate content exists
 4. Store original content for later diff
-5. Show quick pick menu with 7 documentation types
+5. Show quick pick menu with 7 task types
 6. Show input box for user intent
 7. Generate prompt using engine
 8. Store prompt context for clarifications
@@ -1019,7 +1019,7 @@ This prevents empty sections in output.
 
 1. Select incomplete content
 2. Run "Generate Documentation Prompt"
-3. Choose documentation type
+3. Choose task type
 4. Describe intent
 5. Paste prompt into AI
 6. **AI responds with questions** (e.g., "What happens after validation fails?")
@@ -1427,7 +1427,7 @@ await vscode.commands.executeCommand(
 - **Formatting:** None enforced (use default TypeScript style)
 - **Linting:** ESLint configured (see `eslint.config.mjs`)
 
-### Adding New Documentation Types
+### Adding New Task Types
 
 1. **Add type to `src/engine/types.ts`:**
    ```typescript

@@ -9,7 +9,7 @@ This directory should contain visual assets to make the README more engaging.
 1. **demo-overview.gif** - 10-15 second demo showing:
    - Selecting text in VS Code
    - Running the command
-   - Choosing doc type
+   - Choosing task type
    - Generated prompt appearing
    - Pasting into AI
    - Getting response back
@@ -20,7 +20,7 @@ This directory should contain visual assets to make the README more engaging.
    - Command highlighted
 
 3. **doc-types.png** - Screenshot showing:
-   - Quick pick menu with 7 documentation types
+   - Quick pick menu with 7 task types
    - Each type visible with its label
 
 4. **diff-preview.png** - Screenshot showing:

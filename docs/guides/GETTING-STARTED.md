@@ -23,7 +23,7 @@ Any rough notes or existing documentation:
 2. Type: `Generate Documentation Prompt`
 3. Select it from the list
 
-### Step 4: Choose documentation type
+### Step 4: Choose task type
 
 Pick what you're creating:
 

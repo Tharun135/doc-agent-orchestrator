@@ -467,7 +467,7 @@ These modes must never be blended.
 
 You can access these commands through the Command Palette (`Ctrl+Shift+P` on Windows/Linux, `Cmd+Shift+P` on macOS):
 
-**Generate Documentation (Governed Mode)**: Scans your source for structural gaps, asks targeted questions to fill them, then builds a governance-driven AI prompt. You choose the documentation type (Procedure, Concept, or Troubleshooting). The prompt is automatically copied to your clipboard.
+**Generate Documentation (Governed Mode)**: Scans your source for structural gaps, asks targeted questions to fill them, then builds a governance-driven AI prompt. You choose the task type (Procedure, Concept, or Troubleshooting). The prompt is automatically copied to your clipboard.
 
 **Preview Documentation Rewrite Diff**: Compares your original content with AI-generated documentation in a side-by-side diff view. You'll be prompted to paste the AI response. The diff highlights additions, deletions, and structural changes.
 

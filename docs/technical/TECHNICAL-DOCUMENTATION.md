@@ -878,7 +878,7 @@ Only included when AI violates governance rules.
 
 ### Task-Specific Output Structures
 
-Each documentation type has a predefined structure:
+Each task type has a predefined structure:
 
 #### 1. Procedure
 ```markdown
@@ -1003,7 +1003,7 @@ This prevents empty sections in output.
 
 1. Select content in VS Code
 2. Run "Generate Documentation Prompt"
-3. Choose documentation type (e.g., "Procedure")
+3. Choose task type (e.g., "Procedure")
 4. Describe intent: "Document the deployment process"
 5. Paste prompt into Claude/ChatGPT
 6. Receive structured documentation

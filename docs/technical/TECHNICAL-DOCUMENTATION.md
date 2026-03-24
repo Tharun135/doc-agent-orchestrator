@@ -13,6 +13,7 @@
 9. [Prompt Generation Logic](#prompt-generation-logic)
 10. [Workflow Details](#workflow-details)
 11. [Extension API](#extension-api)
+12. [Visual Workflow Guide](WORKFLOW-GUIDE.md)
 
 ---
 
@@ -406,7 +407,7 @@ The extension enforces this by gating prompt construction: `generatePrompt()` is
    - Selected text or full document content
    - Document language ID
    - Original text for later diff comparison
-4. **User selects documentation type** from quick pick menu (7 options)
+4. **User selects task type** from quick pick menu (7 options)
 5. **User provides intent** via input box (e.g., "Document login process")
 6. **Engine generates governed prompt**:
    - Applies governance rules
@@ -541,7 +542,7 @@ export function generatePrompt(input: PromptInput): string
 **Input Interface:**
 ```typescript
 export interface PromptInput {
-  taskType: TaskType;        // Documentation type
+  taskType: TaskType;        // Task type
   userIntent: string;         // User's description
   context: string;            // Source content
   clarifications?: string;    // Optional answers to AI questions
@@ -573,7 +574,7 @@ Every generated prompt contains:
    - Marked as "authoritative - treat as facts"
 
 6. **Task-Specific Output Structure**
-   - Defined by documentation type
+   - Defined by task type
    - Includes mandatory headings
    - Always includes "Preserved Ambiguities" and "Governance Notes" sections
 
@@ -595,7 +596,7 @@ This creates a "smart ambiguity tolerance" - AI can proceed with vague inputs as
 
 ### 4. Type system (`src/engine/types.ts`)
 
-**Supported Documentation Types:**
+**Supported Task Types:**
 ```typescript
 export type TaskType =
   | "procedure"           // Step-by-step instructions

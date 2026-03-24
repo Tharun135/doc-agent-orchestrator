@@ -228,7 +228,7 @@ Backup database first maybe?"></textarea>
     </div>
 
     <div class="card mt-16">
-      <label class="field-label">Documentation type</label>
+      <label class="field-label">Task type</label>
       <div class="task-grid" id="task-grid"></div>
     </div>
 
@@ -475,7 +475,7 @@ Backup database first maybe?"></textarea>
 
   document.getElementById('step1-next')!.addEventListener('click', () => {
     if (!state.sourceText.trim()) { showToast('Please enter your source text.', 'error'); return; }
-    if (!state.taskType)          { showToast('Please select a documentation type.', 'error'); return; }
+    if (!state.taskType)          { showToast('Please select a task type.', 'error'); return; }
     if (!state.userIntent.trim()) { showToast('Please describe what you want to achieve.', 'error'); return; }
 
     // Detect gaps

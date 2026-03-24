@@ -33,7 +33,7 @@ The extension bridges VS Code with your preferred AI assistant (ChatGPT, Claude,
 
 **Post-Generation Clarification Workflow**: If gaps are skipped at the question stage, the AI identifies what is still unclear in a Preserved Ambiguities section. You can then provide answers and regenerate.
 
-**Multiple Documentation Types**: Supports Procedures, Concepts, and Troubleshooting guides—document types where correctness matters more than phrasing.
+**Multiple Task Types**: Supports Procedures, Concepts, and Troubleshooting guides—task types where correctness matters more than phrasing.
 
 **Remember**: Documentation Agent Orchestrator is a tool to enforce correctness, not to improve writing style. It exists to make AI output trustworthy and defensible.
 
@@ -77,7 +77,7 @@ Backup database first maybe?
 1. Select all the content in your file
 2. Open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`)
 3. Type "Generate Documentation (Governed Mode)" and select the command
-4. Choose **Procedure** as the documentation type
+4. Choose **Procedure** as the task type
 
 **The extension classifies your source for structural gaps before building the prompt.**
 
@@ -227,9 +227,9 @@ This makes AI behavior constrained, inspectable, and defensible.
 
 ---
 
-## Supported documentation types
+## Supported task types
 
-The extension supports three documentation types, each with specific governance rules and structures:
+The extension supports three task types, each with specific governance rules and structures:
 
 ### Procedures
 
@@ -268,6 +268,8 @@ Diagnostic and resolution guidance for specific problems. Troubleshooting guides
 
 ## Detailed workflow
 
+For a step-by-step visual representation and deep dive into the system's logic, see the [Detailed Workflow Guide](docs/technical/WORKFLOW-GUIDE.md).
+
 ### 1. Preparing source content
 
 The quality of AI output depends on the source content you provide. You can use:
@@ -279,9 +281,9 @@ The quality of AI output depends on the source content you provide. You can use:
 
 **Tip**: Include as much context as possible, but don't worry about formatting or completeness—the AI will identify gaps rather than filling them.
 
-### 2. Choosing documentation type
+### 2. Choosing task type
 
-When you run "Generate Documentation (Governed Mode)", you'll be asked to select a documentation type:
+When you run "Generate Documentation (Governed Mode)", you'll be asked to select a task type:
 
 - **Procedure**: For task-oriented instructions
 - **Concept**: For explanatory content
@@ -295,7 +297,7 @@ The selected type determines:
 
 ### 3. Structural gap classification and Q&A
 
-After you select the documentation type, the extension classifies your source against 18 structural gap patterns. For every gap that would force the AI to invent an answer, a VS Code input box appears with a specific question and a placeholder example.
+After you select the task type, the extension classifies your source against 18 structural gap patterns. For every gap that would force the AI to invent an answer, a VS Code input box appears with a specific question and a placeholder example.
 
 You have three choices for each question:
 
@@ -532,7 +534,7 @@ If you encounter bugs or have feature requests:
 - Initial marketplace release
 - Core governance-driven prompt generation
 - Side-by-side diff preview
-- Support for Procedures, Concepts, and Troubleshooting documentation types
+- Support for Procedures, Concepts, and Troubleshooting task types
 - **Structural gap classification** — 19 structural gap classes scan source before the AI prompt is built
 - **Interactive Q&A** — VS Code input boxes collect answers for each detected gap; answers are injected as PRE-CLARIFICATIONS
 - **Two-tier ambiguity handling** — PRESERVE for non-blocking vagueness, ASK for gaps that would require invention

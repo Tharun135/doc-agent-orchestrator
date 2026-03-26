@@ -221,10 +221,11 @@ function renderStep1() {
       <div id="ocr-loading" style="display:none; color:var(--accent); font-size:12px; margin-bottom:8px; animation: pulse 1.5s infinite;">⏳ Initializing Local OCR engine & Extracting... Please wait.</div>
       <textarea id="source-input" placeholder="Paste or type your rough notes here...
 e.g.
-# Database Migration
-Need to run migrations before deploying
-Use the migration script
-Backup database first maybe?"></textarea>
+# User Authentication
+The login endpoint is /api/auth/login
+Passwords must be BCrypt hashed
+Session expires after 24 hours
+Need to implement MFA later"></textarea>
     </div>
 
     <div class="card mt-16">
@@ -256,7 +257,7 @@ Backup database first maybe?"></textarea>
 
     <div class="card mt-16">
       <label class="field-label" for="intent-input">What do you want to achieve?</label>
-      <input type="text" id="intent-input" placeholder="e.g. Document the database migration process for the ops team" />
+      <input type="text" id="intent-input" placeholder="e.g. Create a technical guide for the new user authentication module" />
     </div>
 
     <div class="btn-row">
@@ -1083,7 +1084,7 @@ function bootstrap() {
           </div>
 
           <div class="manual-section">
-            <h2><span class="info-icon">🔄</span> The 4-phase workflow</h2>
+            <h2><span class="info-icon">🔄</span> Workflow</h2>
             
             <div class="workflow-diagram">
               <svg class="workflow-svg" viewBox="0 0 700 120" id="manual-workflow-svg">

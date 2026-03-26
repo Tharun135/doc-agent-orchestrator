@@ -1,0 +1,3 @@
+Version 8 is finally here. We've massively optimized the search engine response times—users should see a huge difference. The login screen had some bugs fixed that were reported in the last sprint. We also updated several security libraries to the latest patched versions.
+
+Breaking Change: The legacy reporting tab is now gone. Users need to migrate their reports using those new scripts we talked about. There's an extra step for Enterprise customers to enable the new auditing feature (admins only). Also, some old parameters in the config.yml have been deprecated (check the wiki for the mapping). Performance should be better across the board.

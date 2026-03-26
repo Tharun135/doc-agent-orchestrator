@@ -1,0 +1,3 @@
+If you see the Cluster Error Code 5001 in the dashboard, first check the interconnects. If the signal is weak, you'll need to refresh the link. If that doesn't clear the error, try resetting the primary node (only use the '-force' flag if it's truly stuck).
+
+If the error persists, you'll need to increase the heartbeat interval. Set it to a higher value in the settings. Then, check the system logs for partition events. If partitions are found, run the repair tool (use the standard mode first). If all else fails, contact the duty officer on the emergency Slack channel. Note that the repair process takes a while depending on the database size.

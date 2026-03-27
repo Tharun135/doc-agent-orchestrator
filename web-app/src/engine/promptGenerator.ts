@@ -177,6 +177,8 @@ function conceptOutputSpec(sections: string[]): string {
 GENERATE: Rewrite the source into a formal concept explanation.
 Intro: "This article provides an overview of [topic]."
 ${formatSectionsList(sections)}
+Known Gaps ← Required if any gaps exist
+Governance Notes ← Required if any violations occur
 `;
 }
 
@@ -194,6 +196,8 @@ function referenceOutputSpec(sections: string[]): string {
 GENERATE: Rewrite the source into a reference document.
 Intro: "This reference describes [subject]."
 ${formatSectionsList(sections)}
+Known Gaps ← Required if any gaps exist
+Governance Notes ← Required if any violations occur
 `;
 }
 
@@ -211,6 +215,8 @@ function releaseNotesOutputSpec(sections: string[]): string {
 GENERATE: Rewrite the source into release notes.
 Intro: "This document summarises the changes introduced in [version]."
 ${formatSectionsList(sections)}
+Known Gaps ← Required if any gaps exist
+Governance Notes ← Required if any violations occur
 `;
 }
 
@@ -219,6 +225,8 @@ function apiDocumentationOutputSpec(sections: string[]): string {
 GENERATE: Rewrite the source into API documentation.
 Intro: "This reference describes the [endpoint/function]."
 ${formatSectionsList(sections)}
+Known Gaps ← Required if any gaps exist
+Governance Notes ← Required if any violations occur
 `;
 }
 

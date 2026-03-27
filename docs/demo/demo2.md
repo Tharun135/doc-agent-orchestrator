@@ -1,13 +1,31 @@
+# Listing users
 
-The new /users endpoint is available to fetch user details.
-Use a GET call to retrieve the list of users from the system.
+**Endpoint:** `GET https://{IED IP}/externaldatabus-api-server/api/v1/users`
 
-You need to pass authentication (check the portal for how to get it).
+This reference describes the `GET /users` endpoint.
+The administrator connects to the correct data node and fetches
+the list of users from the server.
 
-If the request is successful, it returns a response with status and a list of users.
+## Service details
 
-The response contains user information like username.
+| Application | Method | Service |
+| --- | --- | --- |
+| - | GET | `https://{IED IP}/externaldatabus-api-server/api/v1` |
 
-Use the Industrial Edge device service URL to make the request.
+## Request parameters
 
-The endpoint follows the standard API structure used in the system.
+| Parameter name | Data type | Mandatory/Optional | Description |
+| --- | --- | --- | --- |
+| `Access token` | `String` | Mandatory | Authentication cookie. |
+
+## Response parameters
+
+| Parameter name | Data type | Description |
+| --- | --- | --- |
+| `username list` | - | The list of usernames. |
+| `permissions` | - | Some permissions. |
+
+!!!note
+    The permissions included in the response are not specified.
+    Error codes such as 404 will be handled in a future version.
+

@@ -1,31 +1,16 @@
-# Listing users
+# User List Service
 
-**Endpoint:** `GET https://{IED IP}/externaldatabus-api-server/api/v1/users`
+Endpoint: GET /users.
 
-This reference describes the `GET /users` endpoint.
-The administrator connects to the correct data node and fetches
-the list of users from the server.
+Purpose:
+First, the administrator must connect to the correct data node.
+Then, they can fetch the list of users from the server.
 
-## Service details
+Request Requirements:
 
-| Application | Method | Service |
-| --- | --- | --- |
-| - | GET | `https://{IED IP}/externaldatabus-api-server/api/v1` |
+- The authentication cookie must be provided.
+- Access token is required.
 
-## Request parameters
-
-| Parameter name | Data type | Mandatory/Optional | Description |
-| --- | --- | --- | --- |
-| `Access token` | `String` | Mandatory | Authentication cookie. |
-
-## Response parameters
-
-| Parameter name | Data type | Description |
-| --- | --- | --- |
-| `username list` | - | The list of usernames. |
-| `permissions` | - | Some permissions. |
-
-!!!note
-    The permissions included in the response are not specified.
-    Error codes such as 404 will be handled in a future version.
-
+Output:
+The response includes the username list and some permissions.
+We will handle error codes like 404 in the next version.

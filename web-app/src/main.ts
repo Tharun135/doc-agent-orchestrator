@@ -1194,9 +1194,23 @@ function bootstrap() {
       </div>
     </div>
 
+    <!-- Footer -->
+    <footer class="app-footer">
+      <div class="footer-container">
+        <div class="footer-left">
+          © ${new Date().getFullYear()} Documentation Agent Orchestrator. Lab Project.
+        </div>
+        <div class="footer-right security-note">
+          <span class="security-icon">🔒</span>
+          Netlify is used as a static CDN only; all document processing is performed locally on the client-side via WebAssembly.
+        </div>
+      </div>
+    </footer>
+
     <!-- Toast container -->
     <div class="toast-container" id="toast-container"></div>
   `;
+
 
   // Manual modal logic
   const modal = document.getElementById('manual-modal')!;

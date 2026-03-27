@@ -1,3 +1,9 @@
-The new /payments/v3 set is now ready. For the initial POST call, you need to provide the Auth Headers (see the dev portal for those). The body includes the Transaction Object with all the standard fields and the metadata (like version, etc.). If the transaction is approved, you get a 201 response. If it's pending, you'll see a different code that starts with 2.
+The persistence config endpoint is ready. It's a GET call on the externaldatabus API 
+(v1). You'll need to pass the cookie for auth — check the portal for how to get that.
 
-Then, you'll need the PUT /verify/{id} call. This one needs the verification code from the email. If the code is wrong, it returns an error. If the user tries too many times, the status changes to 'Locked'. In that case, use the DELETE /lock-reset/{uid} endpoint. Note that the reset takes a few minutes to propagate through the nodes. Also, the limit parameter on GET /history defaults to a standard value (Admins can override).
+The response gives you two fields: one tells you if persistence is on or off, and the
+other tells you how long data is kept. The retention value uses some kind of shorthand
+for time (minutes, hours, days — something like that).
+
+There's also a sample response somewhere but I don't have it handy right now. Oh, and
+the base URL uses the IED's IP address — the exact path I'll confirm later.

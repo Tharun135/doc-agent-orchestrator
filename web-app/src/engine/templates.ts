@@ -673,168 +673,46 @@ We would like to thank the following contributors to this release:
   },
   "api-documentation": {
     title: "API documentation",
-    requiredSections: ["API name", "Authentication", "Endpoints", "Error handling", "SDKs and libraries", "Changelog"],
-    content: `## [API name] API reference
+    requiredSections: ["Endpoint / Function", "Description", "Service details", "Request Parameters", "Sample Request", "Response Parameters", "Sample Response"],
+    content: `## [Operation Name, e.g. List All Topics]
 
-**Base URL**: \`https://api.example.com/v1\`
+**Endpoint:** [METHOD][URL]
 
-**Authentication**: Bearer token (OAuth 2.0)
+[This endpoint allows you to [brief description of purpose].]
 
-**Rate limits**: 1000 requests per hour per API key
-
-### Authentication
-
-To authenticate requests, include your API key in the Authorization header:
-
-\`\`\`http
-Authorization: Bearer YOUR_API_KEY
-\`\`\`
-
-**Obtaining an API key**:
-
-1. Navigate to **Account > API keys**.
-2. Click "Generate new key".
-3. Copy the key and store it securely.
-
-### Endpoints
-
-#### Create resource
-
-\`\`\`http
-POST /resources
-\`\`\`
-
-Creates a new resource.
-
-**Headers**:
-
-| Header | Value | Required |
+### Service details
+| Application | Method | Service |
 | --- | --- | --- |
-| \`Content-Type\` | \`application/json\` | Yes |
-| \`Authorization\` | \`Bearer <token>\` | Yes |
+| [e.g. Industrial Edge device] | [Method] | [Service base URL] |
 
-**Request body**:
+### Request Parameters
+| Parameter Name | Data Type | Mandatory/Optional | Description |
+| --- | --- | --- | --- |
+| [Name] | [Type] | [Mandatory/Optional] | [Description] |
 
+### Sample Request
 \`\`\`json
 {
-  "name": "Resource name",
-  "type": "standard",
-  "configuration": {
-    "enabled": true,
-    "timeout": 30
-  }
+  "example": "request_data"
 }
 \`\`\`
 
-**Parameters**:
-
-| Field | Type | Required | Description | Constraints |
-| --- | --- | --- | --- | --- |
-| \`name\` | String | Yes | Resource display name | 1-100 characters |
-| \`type\` | String | Yes | Resource type | \`standard\`, \`premium\`, \`enterprise\` |
-| \`configuration.enabled\` | Boolean | No | Enable resource | Default: \`true\` |
-| \`configuration.timeout\` | Integer | No | Timeout in seconds | 1-300, Default: 30 |
-
-**Response** (201 Created):
-
-\`\`\`json
-{
-  "id": "res_abc123",
-  "name": "Resource name",
-  "type": "standard",
-  "status": "active",
-  "created_at": "2024-03-20T10:30:00Z"
-}
-\`\`\`
-
-**Error responses**:
-
-| Status | Description | Example |
+### Response Parameters
+| Parameter Name | Data Type | Description |
 | --- | --- | --- |
-| 400 | Invalid request body | \`{"error": "Invalid type value"}\` |
-| 401 | Unauthorized | \`{"error": "Invalid API key"}\` |
-| 409 | Resource already exists | \`{"error": "Resource name already in use"}\` |
-| 429 | Rate limit exceeded | \`{"error": "Rate limit exceeded. Retry after 3600s"}\` |
+| [Name] | [Type] | [Description] |
 
----
-
-#### List resources
-
-\`\`\`http
-GET /resources
-\`\`\`
-
-Retrieves a paginated list of resources.
-
-**Query parameters**:
-
-| Parameter | Type | Required | Description | Default |
-| --- | --- | --- | --- | --- |
-| \`page\` | Integer | No | Page number | 1 |
-| \`per_page\` | Integer | No | Results per page | 20 |
-| \`type\` | String | No | Filter by type | All types |
-| \`status\` | String | No | Filter by status | All statuses |
-
-**Response** (200 OK):
-
+### Sample Response
 \`\`\`json
 {
-  "data": [
-    {
-      "id": "res_abc123",
-      "name": "Resource 1",
-      "type": "standard",
-      "status": "active"
-    }
-  ],
-  "pagination": {
-    "page": 1,
-    "per_page": 20,
-    "total": 42,
-    "total_pages": 3
-  }
+  "example": "response_data"
 }
 \`\`\`
 
-### Error handling
-
-All errors follow this format:
-
-\`\`\`json
-{
-  "error": {
-    "code": "ERROR_CODE",
-    "message": "Human-readable error message",
-    "details": {
-      "field": "Additional context"
-    }
+!!!info "Notice"
+If any special characters are included in the URL, URL encoding must be applied.`
   }
-}
-\`\`\`
 
-**Common error codes**:
-
-| Code | HTTP status | Description |
-| --- | --- | --- |
-| \`INVALID_REQUEST\` | 400 | Request body validation failed |
-| \`UNAUTHORIZED\` | 401 | Invalid or missing API key |
-| \`FORBIDDEN\` | 403 | Insufficient permissions |
-| \`NOT_FOUND\` | 404 | Resource does not exist |
-| \`RATE_LIMITED\` | 429 | Too many requests |
-| \`INTERNAL_ERROR\` | 500 | Server error |
-
-### SDKs and libraries
-
-- [Python SDK](https://github.com/example/python-sdk)
-- [JavaScript SDK](https://github.com/example/js-sdk)
-- [Ruby SDK](https://github.com/example/ruby-sdk)
-
-### Changelog
-
-- **v1.2.0** (2024-03-20): Added \`configuration.timeout\` parameter
-- **v1.1.0** (2024-02-15): Added \`type\` filter to list endpoint
-- **v1.0.0** (2024-01-01): Initial release`
-  }
 };
 
 export function getTemplateFor(taskType: TaskType): Template {

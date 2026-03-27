@@ -1,9 +1,40 @@
-The persistence config endpoint is ready. It's a GET call on the externaldatabus API 
-(v1). You'll need to pass the cookie for auth — check the portal for how to get that.
 
-The response gives you two fields: one tells you if persistence is on or off, and the
-other tells you how long data is kept. The retention value uses some kind of shorthand
-for time (minutes, hours, days — something like that).
+# /users API reference
 
-There's also a sample response somewhere but I don't have it handy right now. Oh, and
-the base URL uses the IED's IP address — the exact path I'll confirm later.
+This reference describes the `/users` endpoint.
+
+**Base URL**: Industrial Edge device service URL
+
+## Authentication
+
+Pass an access token as a cookie with each request.
+
+To obtain the access token, check the portal.
+
+## Endpoints
+
+### Listing users
+
+```http
+GET /users
+```
+
+Retrieves the list of users from the system.
+
+**Headers**:
+
+| Header | Value | Required |
+| --- | --- | --- |
+| `Cookie` | `<access_token>` | Yes |
+
+**Response** (200 OK):
+
+| Field | Description |
+| --- | --- |
+| `status` | Request status |
+| `users` | List of users |
+| `users[].username` | Username |
+
+**Note**: The response may contain additional user fields.
+`username` is the only field specified in the source.
+

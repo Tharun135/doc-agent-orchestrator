@@ -1,40 +1,13 @@
 
-# /users API reference
+The new /users endpoint is available to fetch user details.
+Use a GET call to retrieve the list of users from the system.
 
-This reference describes the `/users` endpoint.
+You need to pass authentication (check the portal for how to get it).
 
-**Base URL**: Industrial Edge device service URL
+If the request is successful, it returns a response with status and a list of users.
 
-## Authentication
+The response contains user information like username.
 
-Pass an access token as a cookie with each request.
+Use the Industrial Edge device service URL to make the request.
 
-To obtain the access token, check the portal.
-
-## Endpoints
-
-### Listing users
-
-```http
-GET /users
-```
-
-Retrieves the list of users from the system.
-
-**Headers**:
-
-| Header | Value | Required |
-| --- | --- | --- |
-| `Cookie` | `<access_token>` | Yes |
-
-**Response** (200 OK):
-
-| Field | Description |
-| --- | --- |
-| `status` | Request status |
-| `users` | List of users |
-| `users[].username` | Username |
-
-**Note**: The response may contain additional user fields.
-`username` is the only field specified in the source.
-
+The endpoint follows the standard API structure used in the system.

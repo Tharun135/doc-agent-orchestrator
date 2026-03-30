@@ -10,6 +10,7 @@ import { DEFAULT_STYLE_GUIDE } from './engine/defaultStyleGuide';
 import Tesseract from 'tesseract.js';
 import * as pdfjsLib from 'pdfjs-dist';
 import pdfWorker from 'pdfjs-dist/build/pdf.worker.mjs?url';
+import JSZip from 'jszip';
 
 // Worker configuration for PDF.js using local node_modules via Vite ?url
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
@@ -117,6 +118,7 @@ function gapTypeFromId(id: string): { label: string; icon: string } {
     'branch-no-convergence':    { label: 'Branch convergence undefined',      icon: '🔀' },
     'version-unspecified':      { label: 'Version unspecified',               icon: '🏷️' },
     'intent-source-mismatch':   { label: 'Source / intent mismatch',          icon: '⚠️' },
+    'macro-gap':                { label: 'Missing required topic',            icon: '🏗️' },
   };
   return MAP[prefix] ?? { label: 'Information Needed', icon: '❓' };
 }
@@ -213,9 +215,9 @@ function renderStep1() {
     <div class="card">
       <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px;">
         <label class="field-label" for="source-input" style="margin-bottom: 0;">Your source text</label>
-        <label class="upload-btn" id="source-upload-btn" title="Upload an image, PDF, text, or markdown file">
+        <label class="upload-btn" id="source-upload-btn" title="Upload an image, PDF, zip, text, or markdown file">
           📄 Upload document
-          <input type="file" id="source-file-input" accept="image/*, .pdf, .txt, .md, .markdown, .json" style="display:none;">
+          <input type="file" id="source-file-input" accept="image/*, .pdf, .zip, .txt, .md, .markdown, .json" style="display:none;">
         </label>
       </div>
       <div id="ocr-loading" style="display:none; color:var(--accent); font-size:12px; margin-bottom:8px; animation: pulse 1.5s infinite;">⏳ Initializing Local OCR engine & Extracting... Please wait.</div>
@@ -396,8 +398,50 @@ Need to implement MFA later"></textarea>
         uploadInput.value = '';
       };
       reader.readAsText(file);
+    } else if (file.name.endsWith('.zip')) {
+      // Handle ZIP (Extract MD/TXT files)
+      uploadBtn.style.pointerEvents = 'none';
+      uploadBtn.style.opacity = '0.5';
+      ocrLoading.style.display = 'block';
+      ocrLoading.textContent = '⏳ Extracting files from ZIP repository... Please wait.';
+
+      try {
+        showToast('Extracting repository structure...', 'info');
+        const arrayBuffer = await file.arrayBuffer();
+        const zip = await JSZip.loadAsync(arrayBuffer);
+        
+        let repoText = '';
+        const files: string[] = [];
+        zip.forEach((relativePath, fileObj) => {
+          if (!fileObj.dir && (relativePath.endsWith('.md') || relativePath.endsWith('.markdown') || relativePath.endsWith('.txt'))) {
+            files.push(relativePath);
+          }
+        });
+
+        if (files.length === 0) {
+          showToast('No markdown or text files found in the ZIP.', 'warning');
+        } else {
+          for (const path of files) {
+            const content = await zip.file(path)?.async('string');
+            if (content) {
+              repoText += `\n\n--- FILE: ${path} ---\n\n` + content.trim();
+            }
+          }
+          state.sourceText = state.sourceText ? state.sourceText + '\n\n' + repoText.trim() : repoText.trim();
+          srcInput.value = state.sourceText;
+          showToast(`Extracted ${files.length} files from repository successfully!`, 'success');
+        }
+      } catch (e) {
+        console.error(e);
+        showToast('Failed to extract ZIP file.', 'error');
+      } finally {
+        uploadBtn.style.pointerEvents = 'auto';
+        uploadBtn.style.opacity = '1';
+        ocrLoading.style.display = 'none';
+        uploadInput.value = '';
+      }
     } else {
-      showToast('Unsupported file format. Please upload an image, PDF, text, or markdown file.', 'warning');
+      showToast('Unsupported file format. Please upload an image, PDF, zip, text, or markdown file.', 'warning');
       uploadInput.value = '';
     }
   }
@@ -549,6 +593,7 @@ function renderStep2() {
       </div>
       <div class="gap-card-body">
         <div class="gap-question">${escHtml(question.question)}</div>
+        ${question.rationale ? `<div class="gap-rationale"><span style="opacity: 0.6">💡 Context:</span> ${escHtml(question.rationale)}</div>` : ''}
         <input type="text"
           id="answer-${i}"
           placeholder="${escHtml(question.placeholder ?? 'Enter your answer…')}"

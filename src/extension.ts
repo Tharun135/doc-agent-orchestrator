@@ -780,6 +780,7 @@ function gapTypeFromId(id: string): { label: string; icon: string } {
     'actor-ambiguity':          { label: 'Actor Ambiguity',                   icon: '\uD83D\uDC65' },
     'data-format':              { label: 'Data Format Missing',               icon: '\uD83D\uDCC1' },
     'intent-source-mismatch':   { label: 'Source / Intent Mismatch',         icon: '\u26A0\uFE0F' },
+    'macro-gap':                { label: 'Missing Required Topic',            icon: '\uD83D\uDCDD' },
   };
   return MAP[prefix] ?? { label: 'Information Needed', icon: '\u2753' };
 }

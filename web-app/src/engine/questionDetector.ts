@@ -40,6 +40,7 @@ export type QuestionIntent =
   | "timing"       // schedule, frequency, or wait condition
   | "format"       // data format or file type
   | "scope"        // how items are selected or scoped
+  | "major-gap"    // missing required section or topic
   | "other";       // catch-all
 
 export interface DetectedQuestion {
@@ -53,6 +54,8 @@ export interface DetectedQuestion {
   placeholder?: string;
   /** Semantic category used for intent-based deduplication. */
   intent?: QuestionIntent;
+  /** Explanation of why this gap was flagged (for context). */
+  rationale?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -102,9 +105,10 @@ const checkers: Checker[] = [
     if (/\b(in\s+the\s+terminal|from\s+the\s+terminal|command\s+line|cli|shell|npm\s+run|pip\s+install|git\s+|bash\s|powershell\s)\b/i.test(line)) { return null; }
     return {
       id: `ui-location:${line.slice(0, 50)}`,
-      question: `For the step "${line}": (a) where in the UI does the user perform this? Provide the full navigation path or exact UI label. (b) what is the purpose of this step — what does it start, trigger, or enable?`,
+      question: `For the step "${line}": (a) Where in the UI does the user perform this? Provide the full navigation path or exact UI label. (b) What is the purpose of this step — what does it start, trigger, or enable?`,
       sourceContext: line,
       placeholder: "e.g., (a) Connector page > click Run Setup  (b) starts the deployment process",
+      rationale: "Action steps must specify a UI location so users know where to perform the task. Without it, the AI might invent a location.",
     };
   },
 
@@ -118,6 +122,7 @@ const checkers: Checker[] = [
       question: `What exactly does the system validate/process here? What is being checked? (Source: "${line}")`,
       sourceContext: line,
       placeholder: "e.g., validates the file format and size, checks device connectivity",
+      rationale: "Vague terms like 'it' or 'something' lead to ambiguous documentation. Specifying the object ensures technical accuracy.",
     };
   },
 
@@ -132,9 +137,10 @@ const checkers: Checker[] = [
     }
     return {
       id: `condition-pass:${line.slice(0, 50)}`,
-      question: `For the step "${line}": (a) does the user need to actively check a status indicator before proceeding, or does the next step happen automatically? (b) if they check, where is the indicator in the UI? (c) what exactly does it look like when the condition is met — color, label, icon, or message?`,
+      question: `For the step "${line}": (a) Does the user need to actively check a status indicator before proceeding, or does the next step happen automatically? (b) If they check, where is the indicator in the UI? (c) What exactly does it look like when the condition is met — color, label, icon, or message?`,
       sourceContext: line,
       placeholder: "e.g., (a) user checks manually  (b) status bar at top of Connector page  (c) indicator turns green and shows 'Running'",
+      rationale: "Conditional transitions ('if successful') require a clear indicator. Users need to know exactly how to recognize success before moving on.",
     };
   },
 
@@ -151,6 +157,7 @@ const checkers: Checker[] = [
       question: `What should the user do when this occurs? What does the error look like and what is the next action? (Source: "${line}")`,
       sourceContext: line,
       placeholder: "e.g., an error message appears, user re-enters credentials; or open deployment log and look for error code",
+      rationale: "Negative flows must have a recovery path. Without this, the manual leaves the user stuck when an error occurs.",
     };
   },
 
@@ -163,6 +170,7 @@ const checkers: Checker[] = [
       question: `Which log should the user check and what should they look for? (Source: "${line}")`,
       sourceContext: line,
       placeholder: "e.g., deployment.log in C:\\Logs, look for ERROR entries",
+      rationale: "Reviewers and users need to know exactly which log files to inspect. General 'check logs' instructions are often ignored or cause confusion.",
     };
   },
 
@@ -176,6 +184,7 @@ const checkers: Checker[] = [
       question: `How does the user perform this verification and what does a successful result look like? (Source: "${line}")`,
       sourceContext: line,
       placeholder: "e.g., click Test Connection — a green tick and 'Connected' message should appear",
+      rationale: "Verification steps are only useful if they provide a clear 'pass/fail' criteria. Stating the method and expected result prevents user error.",
     };
   },
 
@@ -193,6 +202,7 @@ const checkers: Checker[] = [
       question: `What value or range should be used for "${m[2].replace(/\.$/, "").trim()}"? Include units if applicable. (Source: "${line}")`,
       sourceContext: line,
       placeholder: "e.g., 1000 ms, 500, High, enabled",
+      rationale: "Missing values (ports, URLs, timeouts) make the documentation impossible to follow. The AI needs these specific facts to generate a complete guide.",
     };
   },
 
@@ -204,6 +214,7 @@ const checkers: Checker[] = [
       question: `What is the actual default value? (Source: "${line}")`,
       sourceContext: line,
       placeholder: "e.g., 4840",
+      rationale: "Default values are critical for 'zero-config' documentation. Without them, users don't know the starting state or if they even need to change the setting.",
     };
   },
 
@@ -216,6 +227,7 @@ const checkers: Checker[] = [
       question: `What is the actual value for "${m[1].trim()}"? (Source: "${line}")`,
       sourceContext: line,
       placeholder: "Enter the real value",
+      rationale: "Placeholder tokens like <VALUE> or [PORT] are meant for templates, not final manuals. The AI needs the real examples to generate clear instructions.",
     };
   },
 
@@ -228,6 +240,7 @@ const checkers: Checker[] = [
       question: `What form do the credentials take? (Source: "${line}")`,
       sourceContext: line,
       placeholder: "e.g., username and password, certificate file, API token",
+      rationale: "Authentication requirements are the #1 source of user friction. Specifying the exact method (e.g., API Key vs OAuth) prevents setup failure.",
     };
   },
 
@@ -239,6 +252,7 @@ const checkers: Checker[] = [
       question: `What specifically is this process? List the steps. (Source: "${line}")`,
       sourceContext: line,
       placeholder: "Describe the specific steps",
+      rationale: "Vague terms like 'usual process' assume the user is already an expert. Documentation must be explicit to support new users and automation.",
     };
   },
 
@@ -251,6 +265,7 @@ const checkers: Checker[] = [
       question: `After this restart, does the user need to wait or watch for something before continuing? (Source: "${line}")`,
       sourceContext: line,
       placeholder: "e.g., wait ~30 seconds, watch for 'Runtime started' in the status bar",
+      rationale: "Restarts introduce a gap in the workflow. Users need to know how long to wait or which indicator signals the system is back online.",
     };
   },
 
@@ -265,6 +280,7 @@ const checkers: Checker[] = [
       question: `The source says "${line}" — what are the actual fields or options the user may need to change? List them specifically.`,
       sourceContext: line,
       placeholder: "e.g., polling interval, retry count, timeout value",
+      rationale: "Casual phrases like 'etc.' or 'or whatever' leave the user guessing. A technical manual must be exhaustive to be reliable.",
     };
   },
 
@@ -280,6 +296,7 @@ const checkers: Checker[] = [
       question: `The source says "${line}" — what specifically is the correct/appropriate choice? What should the user actually select or enter?`,
       sourceContext: line,
       placeholder: "e.g., select 'OPC UA', enter the server certificate, choose 'Read-only'",
+      rationale: "Adjectives like 'appropriate' are subjective. Documentation must provide the specific criteria or value to remove ambiguity.",
     };
   },
 
@@ -299,6 +316,7 @@ const checkers: Checker[] = [
       question: `The source says "${line}" — what is the unit for this value? (e.g., milliseconds, seconds, bytes)`,
       sourceContext: line,
       placeholder: "e.g., milliseconds, seconds, KB",
+      rationale: "Numerical values without units (e.g., '30') are dangerous. Users need to know if it's 30 seconds, 30 minutes, or 30 bytes.",
     };
   },
 
@@ -319,6 +337,7 @@ const checkers: Checker[] = [
       question: `The source says "${line}" — what are the specific steps from that document that the user must follow here? (The document itself is not part of the source.)`,
       sourceContext: line,
       placeholder: "List the steps the user should take at this point",
+      rationale: "Cross-references to external docs ('see the guide') break the flow. The AI needs the actual steps to keep the manual self-contained.",
     };
   },
 
@@ -336,6 +355,7 @@ const checkers: Checker[] = [
       question: `The source says "${line}" — what does the user see or watch for to know it has finished? What is the completion indicator?`,
       sourceContext: line,
       placeholder: "e.g., the progress bar disappears, status changes to 'Ready', a confirmation dialog appears",
+      rationale: "Users often get stuck at 'Wait' steps. Providing a clear indicator (e.g., 'Status changes to Ready') tells them when they can safely move on.",
     };
   },
   // ── 18. Embedded conditional action — "[role/user] may/might need to [verb] [vague noun]" ──
@@ -356,6 +376,7 @@ const checkers: Checker[] = [
         question: `For the step "${line}": (a) where in the UI is this done? Provide the full navigation path. (b) what specific settings or parameters does the user configure here? List each one by name. (c) under what condition is this required — always, or only in specific scenarios?`,
         sourceContext: line,
         placeholder: "e.g., (a) Settings > Advanced  (b) timeout (ms), retry count, log level  (c) only when deploying to production",
+        rationale: "Phrases like 'may need to configure' signal a buried step. We need the UI location and exact parameters to document this step properly.",
       };
     }
     return {
@@ -363,6 +384,7 @@ const checkers: Checker[] = [
       question: `For the step "${line}": (a) Where in the UI is this done? Provide the full navigation path. (b) What specific settings or parameters does the user configure here? List each one by name. (c) Under what condition is this required — always, or only in specific scenarios?`,
       sourceContext: line,
       placeholder: "e.g., (a) Settings > Advanced  (b) timeout (ms), retry count, log level  (c) only when deploying to production",
+      rationale: "Phrases like 'may need to configure' signal a buried step. We need the UI location and exact parameters to document this step properly.",
     };
   },
 
@@ -382,6 +404,7 @@ const checkers: Checker[] = [
       question: `The source says "${line}" — what specifically are "${what}"? Where do they appear and what can the user do with them?`,
       sourceContext: line,
       placeholder: "e.g., a 'Manage Users' menu item and a 'System Logs' tab appear in the top navigation bar",
+      rationale: "Knowing which roles see which specific features is essential for access control documentation. It prevents users from looking for menus they can't see.",
     };
   },
 
@@ -400,6 +423,7 @@ const checkers: Checker[] = [
       question: `The source says "${line}" — which specific ${noun} require ${requirement}? What does the ${requirement} process involve?`,
       sourceContext: line,
       placeholder: `e.g., list the specific ${noun} and describe the ${requirement} workflow`,
+      rationale: "Broad claims about 'some actions' or 'certain items' are vague. The manual must list exactly which items have special requirements.",
     };
   },
 
@@ -426,6 +450,7 @@ const checkers: Checker[] = [
       question: `Who or what performs this action? Is this done by the user, the system, or an automated job? (Source: "${line}")`,
       sourceContext: line,
       placeholder: "e.g., the user manually uploads the file; or the system processes records automatically after save",
+      rationale: "Passive voice ('is uploaded') hides the actor. This is critical for distinguishing between a manual user task and an automatic system process.",
     };
   },
 
@@ -443,6 +468,7 @@ const checkers: Checker[] = [
       question: `When and how often is this run? Is it triggered manually or on a schedule? (Source: "${line}")`,
       sourceContext: line,
       placeholder: "e.g., manually by the operator after each deployment; or nightly at 02:00 via cron",
+      rationale: "Recurring tasks must specify a trigger or schedule. This helps users understand if they need to act now or if the task is scheduled.",
     };
   },
 
@@ -459,6 +485,7 @@ const checkers: Checker[] = [
       question: `After the "${m[1]}" branch, what is the next common step? Do both paths rejoin, or does this branch end the procedure? (Source: "${line}")`,
       sourceContext: line,
       placeholder: "e.g., both paths continue to Step 5 — Enable Connector; or this branch ends the procedure here",
+      rationale: "Conditional branches ('otherwise...') must eventually converge or terminate. Without this, the workflow becomes a dead end in the documentation.",
     };
   },
 
@@ -480,6 +507,7 @@ const checkers: Checker[] = [
       question: `What specific file formats are supported or required? (Source: "${line}")`,
       sourceContext: line,
       placeholder: "e.g., CSV, JSON, and XLSX; or CSV with UTF-8 encoding only",
+      rationale: "Technical users need to know specific file formats (e.g., JSON vs XML) to prepare their data correctly for import/export.",
     };
   },
 
@@ -494,6 +522,7 @@ const checkers: Checker[] = [
       question: `Which specific version, build number, or environment does this apply to? (Source: "${line}")`,
       sourceContext: line,
       placeholder: "e.g., v3.2.0 and later; production environment only; applies from build 2024.1",
+      rationale: "Ambiguous terms like 'latest' or 'new' become outdated quickly. Explicit versioning ensures the manual remains accurate over time.",
     };
   },
 
@@ -508,6 +537,7 @@ const checkers: Checker[] = [
       question: `How many ${/records?/i.test(line) ? 'records' : 'items'} are expected in total? What should the user do if fewer appear? (Source: "${line}")`,
       sourceContext: line,
       placeholder: "e.g., expect 1,200 records; if fewer, open the import log and look for SKIPPED entries",
+      rationale: "Quantifying success (e.g., 'all 100 records') is the best way to verify an operation. It also provides a trigger for troubleshooting if counts don't match.",
     };
   },
 
@@ -522,6 +552,7 @@ const checkers: Checker[] = [
       question: `What are the specific conditions under which this occurred? (Source: "${line}")`,
       sourceContext: line,
       placeholder: "e.g., occurred when the config file was missing; on Windows only; when network was unavailable at startup",
+      rationale: "When a bug is mentioned as fixed, the manual should explain the trigger or environment to help users confirm if it applies to them.",
     };
   },
 
@@ -541,6 +572,7 @@ const checkers: Checker[] = [
       question: `The source says "${line}" — which specific ${noun} are ${status}? List them or describe the scope.`,
       sourceContext: line,
       placeholder: `e.g., German and Japanese ${noun} are ${status}; affects the Settings and Notifications screens`,
+      rationale: "When something is 'incomplete' or 'missing', specifying the exact scope (e.g., which languages) prevents users from wasting time searching for it.",
     };
   },
 
@@ -564,6 +596,7 @@ const checkers: Checker[] = [
       question: `The source says "${line}" — what are the specific ${noun}? List each one individually.`,
       sourceContext: line,
       placeholder: `e.g., list each specific ${noun} by name`,
+      rationale: "Adjectives like 'various' or 'multiple' leave the document thin. Naming every item ensuring the guide is authoritative and complete.",
     };
   },
 
@@ -581,6 +614,7 @@ const checkers: Checker[] = [
       question: `What was this issue? What symptom did the user experience, and in which part of the application? (Source: "${line}")`,
       sourceContext: line,
       placeholder: "e.g., the Save button became unresponsive after uploading a file larger than 10 MB",
+      rationale: "Phrases like 'Fixed an issue' are meaningless without a symptom description. Explaining the actual bug help users recognize it in their logs.",
     };
   },
 
@@ -613,6 +647,7 @@ const checkers: Checker[] = [
       question: `Where in the UI does the user perform this action? (Source: "${line}")`,
       sourceContext: line,
       placeholder: "e.g., on the Login page, click 'Forgot password?'; or Settings > Account > Reset Password",
+      rationale: "User stories ('User logs in') describe actions but often skip the 'how'. We need the exact UI labels and paths to turn this into a manual.",
     };
   },
 
@@ -629,6 +664,7 @@ const checkers: Checker[] = [
       question: `This step is marked as incomplete: "${line}" — what are the actual steps the user performs here?`,
       sourceContext: line,
       placeholder: "Describe the specific UI steps, fields, or actions involved",
+      rationale: "TODO/TBD markers indicate missing knowledge. Resolving these is a hard requirement before the AI can generate a factual document.",
     };
   },
 
@@ -655,6 +691,7 @@ const checkers: Checker[] = [
       question: `What is the "${dest}"? What page or section is it, where does it appear in the UI, and how is the user taken there? (Source: "${line}")`,
       sourceContext: line,
       placeholder: `e.g., the ${dest} is the main workspace at /app/home, accessed automatically after login; or at the top navigation menu`,
+      rationale: "Navigation destinations need a definition (e.g., is it a page, a tab, or a pop-up?) so the user can easily find them in the interface.",
     };
   },
 
@@ -681,6 +718,7 @@ const checkers: Checker[] = [
       question: `This sentence contains multiple actions: "${line}" — break this into individual numbered steps, each with its own UI location.`,
       sourceContext: line,
       placeholder: "e.g., Step 1: Open Settings > System. Step 2: Set timeout to 30 seconds. Step 3: Click Enable Service.",
+      rationale: "Sentences with multiple verbs are hard to follow. Breaking them into numbered steps makes the documentation more readable and scannable.",
     };
   },
 
@@ -700,6 +738,7 @@ const checkers: Checker[] = [
       question: `What visible indicator shows the user that the state is now "${state}"? (Source: "${line}")`,
       sourceContext: line,
       placeholder: `e.g., the status indicator turns green; a banner displays 'Service ${state}'; the connection icon changes to a checkmark`,
+      rationale: "Transitions ('becomes active') are invisible to the user unless we describe the visual feedback (e.g., 'Status turns green').",
     };
   },
 
@@ -717,6 +756,7 @@ const checkers: Checker[] = [
       question: `From where does the user start this navigation? What's the full path? (Source: "${line}")`,
       sourceContext: line,
       placeholder: "e.g., from the main dashboard, click hamburger menu > Settings > Connectors",
+      rationale: "Navigation steps (e.g., 'Go to Settings') are only useful if they start from a known location. Providing the full path prevents user confusion.",
     };
   },
 
@@ -738,6 +778,7 @@ const checkers: Checker[] = [
       question: `If this operation fails or needs to be reverted, what are the rollback steps? (Source: "${line}")`,
       sourceContext: line,
       placeholder: "e.g., run rollback script in /scripts/rollback.sh; or restore from backup at /backups/pre-deploy",
+      rationale: "High-risk operations like deployment or database migration must include a rollback plan. This ensures the user is prepared for worst-case scenarios.",
     };
   },
 
@@ -757,6 +798,7 @@ const checkers: Checker[] = [
       question: `How does the user select or specify these items? (Source: "${line}")`,
       sourceContext: line,
       placeholder: "e.g., checkboxes next to each item; or filter dialog with search criteria",
+      rationale: "Selection criteria ('choose the records') must be clear. Specifying the method (e.g., checkboxes) keeps the instructions concrete and actionable.",
     };
   },
 
@@ -772,6 +814,7 @@ const checkers: Checker[] = [
       question: `Under what specific conditions is "${requirement}" required? (Source: "${line}")`,
       sourceContext: line,
       placeholder: `e.g., ${requirement} is required only when accessing production systems; or when the file size exceeds 100MB`,
+      rationale: "Ambiguous prerequisites ('may need VPN') cause setup delays. Clarifying the exact condition helps users prepare their environment in advance.",
     };
   },
 
@@ -791,6 +834,7 @@ const checkers: Checker[] = [
         question: `What does the user see when this step completes successfully? (Source: "${line}")`,
         sourceContext: line,
         placeholder: "e.g., a progress bar shows 100%, then a confirmation message appears; or the file list updates",
+        rationale: "Every action should have a clear success outcome. This confirms to the user that the step was successful and they can safely move to the next one.",
       };
     }
     return null;
@@ -813,6 +857,7 @@ const checkers: Checker[] = [
       question: `For the step "${line}": (a) Should the user wait while this happens, or does it occur automatically in the background? (b) Is there a visible progress indicator or status message? (c) What specifically is being ${actionWord} — what is the object (e.g., "connector configuration", "device settings")?`,
       sourceContext: line,
       placeholder: "e.g., (a) user waits  (b) no indicator  (c) connector configuration",
+      rationale: "Background system actions can be confusing if the user doesn't know whether to wait. Specifying the object and wait time provides needed clarity.",
     };
   },
 
@@ -833,9 +878,57 @@ const checkers: Checker[] = [
       question: `How does the user identify the correct item? What should they look for? (Source: "${line}")`,
       sourceContext: line,
       placeholder: "e.g., find it by name in the list; or look for the one with status 'Active'",
+      rationale: "Search/find instructions are bridge steps. Users need to know exactly which property (ID, Name, Date) identifies the 'correct' item to proceed.",
     };
   },
 ];
+
+const SECTION_CUES: Record<string, RegExp[]> = {
+  "prerequisites": [/\b(prerequisite|requirement|before\s+you\s+start|access|credentials|software|tools|vpn|connection|environment|account)\b/i],
+  "procedure": [/\b(procedure|steps?|action|how-to|guide|process|instruction|click|select|enter|open|run|deploy|execute)\b/i],
+  "result": [/\b(result|outcome|success|after|confirmation|expected|verified|now\s+you\s+can|output)\b/i],
+  "key characteristics": [/\b(characteristic|feature|capability|property|attribute|benefit|key|main|core)\b/i],
+  "how it works": [/\b(architecture|how\s+it\s+works|mechanism|principle|workflow|under-the-hood|process|logic|flow|internal)\b/i],
+  "use cases": [/\b(use[ -]?case|scenario|example|application|when\s+to\s+use|context|usage)\b/i],
+  "comparison with related concepts": [/\b(comparison|vs\.?|versus|alternative|difference|similar|related|unlike|instead\s+of)\b/i],
+  "example": [/\b(example|sample|demo|walkthrough|illustration|case\s+study|scenario)\b/i],
+  "troubleshooting topic": [/\b(troubleshoot|fault|error|issue|problem|broken|fix|crash|failure|diagnostic)\b/i],
+  "diagnostic steps": [/\b(diagnostic|debug|identify|locate|isolate|verify|check|logs|symptoms|cause)\b/i],
+  "common problems and solutions": [/\b(common|solution|fix|resolution|workaround|remedy|corrective|problem)\b/i],
+  "advanced diagnostics": [/\b(advanced|deep\s+dive|internal|complex|logs|stack\s+trace|technical|debug|expert|support)\b/i],
+  "reference component": [/\b(component|feature|service|module|tool|system|area|scope|reference)\b/i],
+  "configuration parameters": [/\b(parameter|setting|config|option|flag|field|value|timeout|port|host|address)\b/i],
+  "command-line options": [/\b(command|cli|option|flag|argument|syntax|usage|switch|args)\b/i],
+  "api endpoints": [/\b(endpoint|uri|url|path|route|method|get|post|put|delete|request|response|header|body)\b/i],
+  "configuration file structure": [/\b(yaml|json|xml|config|yml|structure|schema|file|format|example|location)\b/i],
+  "environment variables": [/\b(environment|variable|env|export|path|key|secret|token|val)\b/i],
+  "exit codes": [/\b(exit|return|code|status|error|success|0|1|failure|meaning)\b/i],
+  "what you will learn": [/\b(learn|goal|objective|outcome|knowledge|skill|purpose|after\s+this|tutorial)\b/i],
+  "overview": [/\b(overview|summary|introduction|abstract|description|about|context|goal)\b/i],
+  "steps": [/\b(step|task|process|action|interactive|guide|tutorial|milestone)\b/i],
+  "testing your implementation": [/\b(test|verify|validate|confirm|run|check|output|expected|outcome)\b/i],
+  "summary": [/\b(summary|conclusion|recap|wrap-up|final|closing|learned|accomplished)\b/i],
+  "next steps": [/\b(next|follow-up|advanced|further|related|continue|additional|read\s+more)\b/i],
+  "troubleshooting": [/\b(troubleshoot|error|fix|help|common|issue|problem|broken)\b/i],
+  "new features": [/\b(new|added|introduced|feature|capability|functionality|addition|enhancement)\b/i],
+  "improvements": [/\b(improvement|enhanced|updated|optimized|better|faster|fix|stability|performance)\b/i],
+  "bug fixes": [/\b(fix|resolve|correct|address|patch|bug|issue|defect|fault|crash)\b/i],
+  "breaking changes": [/\b(breaking|incompatible|migration|change|removed|deprecated|impact|warning|caution)\b/i],
+  "deprecated features": [/\b(deprecated|removal|legacy|old|obsolete|replaced|alternative)\b/i],
+  "security updates": [/\b(security|cve|vulnerability|vulnerable|patch|risk|exploit|threat|fix|advisor)\b/i],
+  "known issues": [/\b(known|limitation|unresolved|pending|open|bug|issue|workaround|constraint)\b/i],
+  "upgrade instructions": [/\b(upgrade|migration|update|install|backup|restore|steps|version)\b/i],
+  "system requirements": [/\b(requirement|compatibility|os|memory|ram|disk|dependency|system|hardware|software|version)\b/i],
+  "download": [/\b(download|install|package|bundle|installer|link|url|repo|source)\b/i],
+  "contributors": [/\b(contributor|author|thanks|acknowledgement|team|developer|maintainer|github)\b/i],
+  "endpoint / function": [/\b(endpoint|function|method|api|call|operation|handler|route)\b/i],
+  "service details": [/\b(service|application|app|base\s+url|provider|backend|host|environment)\b/i],
+  "request parameters": [/\b(request|parameter|param|body|header|query|input|field|mandatory|optional)\b/i],
+  "sample request": [/\b(sample|example|request|json|http|curl|body)\b/i],
+  "response parameters": [/\b(response|parameter|param|body|header|output|field|status|type)\b/i],
+  "sample response": [/\b(sample|example|response|json|http|body|outcome)\b/i],
+  "related topics": [/\b(related|links|topics|read\s+more|see\s+also|further|additional|resources)\b/i]
+};
 
 // ---------------------------------------------------------------------------
 // Procedure model (lightweight structural extraction)
@@ -884,6 +977,7 @@ function buildProcedureModel(source: string): ProcedureModel {
 // ---------------------------------------------------------------------------
 
 function inferIntent(id: string): QuestionIntent {
+  if (id.startsWith("macro-gap:")) { return "major-gap"; }
   if (/^(ui-location:|user-subject-no-location:|partial-nav-path:|unspec-nav-dest:|conditional-action-where:|proc-global-location)/.test(id)) { return "location"; }
   if (/^(auth-detail:|prereq:|proc-no-prerequisites)/.test(id)) { return "input"; }
   if (/^(verify-method:|condition-pass:|wait-no-indicator:|state-transition:|success-outcome:|proc-no-success-indicator|success-count:)/.test(id)) { return "success"; }
@@ -916,6 +1010,7 @@ const procedureCompletenessCheckers: ProcedureChecker[] = [
       question: `In which application or interface does this procedure take place? Provide the application name and the starting page or section.`,
       sourceContext: "(whole source)",
       placeholder: "e.g., Industrial Edge Management UI > Connectors page; or MyApp > Settings > Integrations",
+      rationale: "Without application context, a procedure is just a list of abstract verbs. Naming the app and starting page grounds the entire guide.",
     };
   },
 
@@ -934,6 +1029,7 @@ const procedureCompletenessCheckers: ProcedureChecker[] = [
       question: `Some steps require the user to supply or configure an input (e.g., ${examples}). What must the user have available before starting this procedure?`,
       sourceContext: "(whole source)",
       placeholder: "e.g., server address and port; valid credentials; configuration file in hand",
+      rationale: "Missing prerequisites lead to mid-procedure failure. Identifying required inputs upfront ensures a smooth, non-stop experience for the user.",
     };
   },
 
@@ -956,6 +1052,7 @@ const procedureCompletenessCheckers: ProcedureChecker[] = [
       question: `What does the user see or experience when the procedure completes successfully? What is the final outcome?`,
       sourceContext: "(whole source)",
       placeholder: "e.g., a green status indicator appears; a confirmation message is shown; the connector shows 'Running'",
+      rationale: "A guide with no success indicator is like a map with no destination. Users need to know exactly what 'finished' looks like to be confident.",
     };
   },
 
@@ -974,6 +1071,7 @@ const procedureCompletenessCheckers: ProcedureChecker[] = [
       question: `All steps in this procedure are very brief. For each step, can you provide more detail about what the user does and where? (e.g., which UI element to interact with and what input to provide)`,
       sourceContext: "(whole source)",
       placeholder: "e.g., 'Add connector' → In the Connectors list, click + Add and choose OPC UA from the dropdown",
+      rationale: "Shallow, brief steps are often just 'notes to self'. Elaborating on each step ensures the final manual is professional and truly helpful.",
     };
   },
 ];
@@ -1015,6 +1113,7 @@ const globalCheckers: GlobalChecker[] = [
         question: `The source lists this as an open question: "${itemText}" — what is the answer?`,
         sourceContext: line,
         placeholder: "Provide the specific answer to be included in the documentation",
+        rationale: "Items listed in an 'Open Questions' or 'TBD' section are explicit gaps identified by the author. They must be resolved before the guide can be considered complete.",
       });
     }
     return results;
@@ -1035,6 +1134,7 @@ const globalCheckers: GlobalChecker[] = [
           question: hint.q,
           sourceContext: "(whole source)",
           placeholder: "e.g., build output must be in /dist, device must be powered on and reachable",
+          rationale: "Prerequisites are the foundation of a successful procedure. Stating them upfront prevents users from failing mid-way due to missing components.",
         });
       }
     }
@@ -1124,6 +1224,38 @@ export function detectQuestions(
     }
   }
 
+  // ── Macro-Gap Detection (Missing Sections) ───────────────────────────────
+  // Compare source content against the template's requiredSections.
+  // If a required topic is completely missing (no header, no keywords), ask.
+  const template = getTemplateFor(taskType);
+  if (template) {
+    for (const section of template.requiredSections) {
+      // "Task title", "Concept name", etc. are usually the overall subject.
+      // If userIntent exists, we assume the title is covered.
+      if (/title|name/i.test(section) && (userIntent || lines[0]?.startsWith("#"))) {
+        continue;
+      }
+
+      const cues = SECTION_CUES[section.toLowerCase()];
+      if (!cues) { continue; } // No cues defined for this section yet
+
+      // Check for section header or characteristic keywords
+      const hasHeading = new RegExp(`^\\s*#{1,6}\\s*${section.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")}`, "im").test(source);
+      const hasKeywords = cues.some((cue: RegExp) => cue.test(source));
+
+      if (!hasHeading && !hasKeywords) {
+        addIfNew({
+          id: `macro-gap:${section.toLowerCase().replace(/\s+/g, "-")}`,
+          intent: "major-gap",
+          question: `The template for "${template.title}" requires a section for "${section}". What information should be included here?`,
+          sourceContext: "(whole source)",
+          placeholder: `e.g., describe the ${section.toLowerCase()}...`,
+          rationale: `Section-level validation ensures your document covers all required topics. A complete "${template.title}" usually includes ${section}.`,
+        });
+      }
+    }
+  }
+
   // Procedure-specific completeness checks and intent-based deduplication
   if (taskType === "procedure") {
     for (const pc of procedureCompletenessCheckers) {
@@ -1160,6 +1292,7 @@ export function detectQuestions(
           question: `This procedure contains no UI location information for any step. Where in the application does the user perform these steps? Provide the application name and the full navigation path to the starting point.`,
           sourceContext: "(whole source)",
           placeholder: "e.g., Industrial Edge Management UI > Connectors > OPC UA Connectors > Add Connector",
+          rationale: "When multiple steps lack UI locations, it's more efficient to define the global context once. This ensures the AI doesn't hallucinate locations for each step.",
         });
       }
     }
@@ -1185,6 +1318,7 @@ export function detectQuestions(
         question: `This procedure contains several verification or confirmation steps (${sourceCues || "see source"}) but none describe what a successful result looks like. For each, what should the user see, observe, or receive to know it succeeded?`,
         sourceContext: "(whole source)",
         placeholder: "e.g., status indicator turns green; 'Running' label appears; data values appear in the tag list",
+        rationale: "When many verification steps are missing outcomes, we collapse them into one request. Describing the success state is vital for user confidence.",
       });
     }
   }
@@ -1215,6 +1349,7 @@ export function detectQuestions(
         question: `Your intent is "${userIntent}" but the source does not mention any related terms (${intentKeywords.slice(0, 3).join(", ")}…). Is this the correct source file? If yes, which part of the source covers this topic?`,
         sourceContext: "(whole source)",
         placeholder: "e.g., Yes, the Admin Settings section covers the login flow — proceed with this source",
+        rationale: "This safety check ensures you're working with the right file. If the keywords don't match your intent, the AI might generate irrelevant content.",
       });
     }
   }

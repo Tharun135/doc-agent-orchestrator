@@ -1,15 +1,10 @@
 export const GOVERNANCE_RULES = `
-GOVERNANCE RULES — ZERO INVENTION POLICY:
-- Every word must be traceable to the source. When in doubt, omit.
-- DO NOT ADD: Purpose clauses ("to do X"), navigation paths, parameter details (e.g. expanding "credentials"), prerequisites, confirmation steps, or softened language unless verbatim in source.
-- TERMINOLOGY: Use exact terms from source. Do not expand or rename.
-- AMBIGUITY HANDLING:
-    - PRESERVE: Descriptive/non-blocking vagueness. Put in Notes or Known Gaps.
-    - ASK: Blocking gaps (no UI location, unknown validation, unknown error path).
-- NOTES: Copy exact words. Do not append reasons or context.
-- ANSWER FIDELITY: Preserve exact wording and casing from clarifications.
-- PREREQUISITES: For non-procedures, omit unless explicit in source. For procedures, follow structural inference rules.
-- KNOWN GAPS: Include ONLY blocking gaps or unresolved ambiguities.
+GOVERNANCE: ZERO-INVENTION POLICY
+- Ground every word in the source; do not expand or invent.
+- Omit purpose clauses, navigation paths, and parameter details if absent from source.
+- Use exact terminology.
+- List blocking gaps under Known Gaps; do not resolve by guessing.
+- Omit sections with no source-grounded content.
 `;
 `;
 

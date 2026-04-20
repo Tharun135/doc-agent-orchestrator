@@ -54,58 +54,50 @@ export function generatePrompt(input: PromptInput): string {
   const hasAnyAnswers        = hasPreClarifications || hasClarifications;
 
   const passHeader = (input.pass && input.pass > 1)
-    ? `GENERATION PASS: ${input.pass}
-This is a resolution pass. Preserved ambiguities from the previous pass have
-now been answered in the CLARIFICATIONS block below. Incorporate each answer
-as a factual statement and remove the corresponding item from
-"Known Gaps". Do not add invented content.
-`
+    ? `GENERATION PASS: ${input.pass} (Resolution Pass)\n`
+    : "";
+
+  const preClarificationsSection = hasPreClarifications
+    ? `PRE-CLARIFICATIONS:\n${input.preClarifications}\n`
+    : "";
+
+  const clarificationsSection = hasClarifications
+    ? `CLARIFICATIONS:\n${input.clarifications}\n`
     : "";
 
   const clarificationsBlock = hasAnyAnswers
-    ? `Clarifications provided — treat these as authoritative facts. You MUST use
-these answers when writing each affected step. A step whose gap has been answered
-must NOT remain vague or appear in Preserved ambiguities:
-${input.preClarifications ? `Pre-clarifications:\n${input.preClarifications}\n` : ""}${input.clarifications ? `Clarifications:\n${input.clarifications}\n` : ""}
+    ? `CLARIFICATIONS PROVIDED (Authoritative):\n${preClarificationsSection}${clarificationsSection}
+RESOLUTION RULES:
+1. Integrate answers directly into content.
+2. Remove resolved gaps from Known Gaps.
 `
     : "";
 
-  // ── Template logic ───────────────────────────────────────────────────────
   const template = getTemplateFor(input.taskType);
   const isOverride = !!(input.templateContent?.trim());
-  const templateContent = isOverride
-    ? input.templateContent!
-    : template.content;
-
-  const requiredSections = isOverride
-    ? extractHeadingsFromMarkdown(templateContent)
-    : template.requiredSections;
+  const templateContent = isOverride ? input.templateContent! : template.content;
+  const requiredSections = isOverride ? extractHeadingsFromMarkdown(templateContent) : template.requiredSections;
 
   const templateBlock = `
-Output structure — MANDATORY:
-You MUST use exactly these headings in this order.
-Do not add or remove headings.
-If a heading appears here, you MUST include it in the output (unless OMIT rules below apply).
-
+OUTPUT STRUCTURE:
 ${requiredSections.map((s: string) => `- ${s}`).join("\n")}
 
-Template formatting example:
+EXAMPLE:
 ${templateContent}
 `;
 
   const styleGuideBlock = input.styleGuideRules?.trim()
-    ? `Custom style guide rules — MANDATORY:
-${input.styleGuideRules}
-`
+    ? `Custom style guide rules:\n${input.styleGuideRules}\n`
     : "";
 
-  // ── Final Prompt Assembly ───────────────────────────────────────────────
   const prompt = `SYSTEM:
 You are a Technical Documentation Agent.
 ${passHeader}
-Documentation responsibility:
-- Generate the complete structure automatically from the source and clarifications.
-- Replace placeholders like "[Task title]" or "Explain what the procedure does" with real content.
+APPROACH:
+1. Generate complete documentation based on SOURCE and CLARIFICATIONS.
+2. Ground everything in the provided facts. Do NOT invent.
+3. List any residual gaps as a bulleted list in "Known Gaps".
+4. Omit sections with no source-grounded content.
 
 ${clarificationsBlock}
 ${styleGuideBlock}
@@ -114,11 +106,10 @@ ${GOVERNANCE_RULES}
 USER INTENT:
 ${input.userIntent}
 
-SOURCE CONTENT (authoritative):
+SOURCE:
 ${input.context}
 
 ${templateBlock}
-
 ${OUTPUT_SPEC_MAP[input.taskType](requiredSections)}`;
 
   return prompt;

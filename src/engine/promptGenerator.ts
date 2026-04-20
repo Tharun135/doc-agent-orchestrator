@@ -71,118 +71,54 @@ export function generatePrompt(input: PromptInput): string {
   const hasClarifications    = !!(input.clarifications?.trim());
   const hasAnyAnswers        = hasPreClarifications || hasClarifications;
 
-  // Pre-clarifications are collected BEFORE the first AI call (upfront Q&A in the extension).
-  // ── Pass header (resolution pass only) ──────────────────────────────────
   const passHeader = (input.pass && input.pass > 1)
-    ? `GENERATION PASS: ${input.pass}
-This is a resolution pass. Preserved ambiguities from the previous pass have
-now been answered in the CLARIFICATIONS block below. Incorporate each answer
-as a factual statement and remove the corresponding item from
-"Known Gaps". Do not add invented content.
-`
+    ? `GENERATION PASS: ${input.pass} (Resolution Pass)\n`
     : "";
 
-  // ── Clarification blocks ─────────────────────────────────────────────────
   const preClarificationsSection = hasPreClarifications
-    ? `PRE-CLARIFICATIONS (collected before generation — authoritative, use directly):
-${input.preClarifications}
-`
+    ? `PRE-CLARIFICATIONS:\n${input.preClarifications}\n`
     : "";
 
   const clarificationsSection = hasClarifications
-    ? `CLARIFICATIONS (collected after previous pass — authoritative):
-${input.clarifications}
-`
+    ? `CLARIFICATIONS:\n${input.clarifications}\n`
     : "";
 
   const clarificationsBlock = hasAnyAnswers
-    ? `CLARIFICATIONS PROVIDED — treat these as authoritative facts. You MUST use
-these answers when writing each affected step. A step whose gap has been answered
-must NOT remain vague or appear in Preserved Ambiguities:
-${preClarificationsSection}${clarificationsSection}
-CLARIFICATION RESOLUTION RULES — MANDATORY, apply to every answer above:
-1. Locate the source step each answer resolves and rewrite it as complete, fluent prose.
-2. NEVER leave a step in its original vague form once its answer is known.
-3. NEVER treat a short or single-word answer as insufficient — a bare value like
-   "green indicator", "port 4840", or "Settings > Advanced" is authoritative and
-   MUST be woven into the affected step as a specific detail.
-4. Remove the corresponding item from Preserved Ambiguities — do not list it.
-5. Do not repeat the clarification as a standalone note unless it is a warning
-   or condition from the source that belongs under Notes.
-6. If an answer resolves a location gap, rewrite the navigation path into every
-   affected step — do not leave any step locationless when the answer provides it.
+    ? `CLARIFICATIONS PROVIDED (Authoritative):\n${preClarificationsSection}${clarificationsSection}
+RESOLUTION RULES:
+1. Integrate answers directly into content.
+2. Remove resolved gaps from Known Gaps.
 `
     : "";
 
-  // ── Template ─────────────────────────────────────────────────────────────
   const template = getTemplateFor(input.taskType);
-  const templateContent = input.templateContent?.trim()
-    ? input.templateContent
-    : template.content;
-  const requiredSections = template.requiredSections;
-
+  const templateContent = input.templateContent?.trim() ? input.templateContent : template.content;
   const templateBlock = `
-OUTPUT STRUCTURE — Use exactly these headings in this order.
-Do not add or remove sections. Omit any section that has no source-grounded content.
+OUTPUT STRUCTURE:
+${template.requiredSections.map(s => `- ${s}`).join("\n")}
 
-${requiredSections.map(s => `- ${s}`).join("\n")}
-
-TEMPLATE EXAMPLE:
+EXAMPLE:
 ${templateContent}
 `;
 
-  // ── Core prompt ──────────────────────────────────────────────────────────
   const prompt = `SYSTEM:
 You are a Technical Documentation Agent.
 ${passHeader}
-DOCUMENTATION RESPONSIBILITY:
-- You are responsible for generating all documentation structure sections:
-  Overview, Prerequisites, Procedure, Result, Notes.
-- These sections must NEVER be requested from the user.
-- The user provides only product-specific facts (UI paths, values, status indicators).
-- Generate the complete structure automatically from the source and clarifications.
-- The template may contain placeholder text such as "Explain what the procedure does.",
-  "List conditions required before starting.", or "Step-by-step instructions." — these
-  are structural hints only. Replace every placeholder entirely with generated content.
-  Never copy placeholder text into the output.
-
-GENERATION APPROACH:
-1. Analyze source action sequence, system behaviors, and conditions.
-2. Generate all template sections (Overview, Prerequisites, Procedure, Result, Notes) automatically. Replace placeholders with factual content.
-3. Incorporate all clarification answers and apply soft-ambiguity policy.
-
-SOFT AMBIGUITY POLICY:
-- If source contains hedging ("maybe", "if needed", "etc."), rewrite with appropriate conditional prose instead of flagging as a gap.
-- Preserve the optional/conditional nature in the output phrasing.
-
-REWRITE POLICY:
-- Ground every step in source — do not invent content.
-- Use provided clarifications to expand vague steps into fluent, complete prose.
-- Integrate answers naturally into sentences (avoid parenthetical notes).
-- Prefer active, specific language and improve readability with natural articles/conjunctions.
-- If a section has no source-grounded content, omit it entirely — write nothing under it.
+APPROACH:
+1. Generate complete documentation based on SOURCE and CLARIFICATIONS.
+2. Ground everything in the provided facts. Do NOT invent.
+3. List any residual gaps as a bulleted list in "Known Gaps".
+4. Omit sections with no source-grounded content.
 
 ${clarificationsBlock}
 ${input.governanceProfileId === "fast_draft" ? LIGHT_GOVERNANCE_RULES : GOVERNANCE_RULES}
 
-${input.governanceProfileId === "fast_draft"
-  ? ""
-  : `GOVERNANCE ENFORCEMENT:
-- If you would need to invent something to complete a step, omit it and flag it under Known Gaps.
-- If you catch yourself adding a clause not in the source, delete it.`}
-
-KNOWN GAPS:
-- When source content is vague but does NOT block the user from acting, document it
-  as-is and list it under Known Gaps.
-- If a gap blocks action, it should already have been asked before this call.
-  If you still encounter a blocking gap, list it under Known Gaps
-  and do NOT invent a value.
-
 USER INTENT:
 ${input.userIntent}
 
-SOURCE CONTENT (authoritative):
+SOURCE:
 ${input.context}
+
 ${templateBlock}
 ${OUTPUT_SPEC_MAP[input.taskType](input.governanceProfileId)}`;
 

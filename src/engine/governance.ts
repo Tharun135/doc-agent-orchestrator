@@ -6,7 +6,6 @@ GOVERNANCE: ZERO-INVENTION POLICY
 - List blocking gaps under Known Gaps; do not resolve by guessing.
 - Omit sections with no source-grounded content.
 `;
-`;
 
 export const LIGHT_GOVERNANCE_RULES = `
 GOVERNANCE RULES — ADVISORY MODE:

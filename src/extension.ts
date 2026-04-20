@@ -622,11 +622,13 @@ Might need firewall exception.`,
         // ── Upfront Q&A: detect gaps in source and ask user before first AI call ──
         let preClarifications: string | undefined;
 
+        let detectedQuestions: any[] = [];
+
         // SKIP upfront Q&A if the user is in Fast Draft mode to save time.
         if (activeProfile.id === "fast_draft") {
           vscode.window.showInformationMessage("🚀 Running in Fast Draft mode — skipping upfront clarification questions.");
         } else {
-          const detectedQuestions = detectQuestions(contextText, taskType, editedTemplateText, userIntent);
+          detectedQuestions = detectQuestions(contextText, taskType, editedTemplateText, userIntent);
           if (detectedQuestions.length > 0) {
             const answers = await showQAPanel(context.extensionUri, detectedQuestions);
             if (answers !== null && answers.length === detectedQuestions.length) {

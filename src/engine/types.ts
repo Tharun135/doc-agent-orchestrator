@@ -22,4 +22,6 @@ export interface PromptInput {
   pass?: number;
   /** Optional template content override (user-edited template). */
   templateContent?: string;
+  /** The active governance profile ID (e.g., 'fast_draft'). */
+  governanceProfileId?: string;
 }

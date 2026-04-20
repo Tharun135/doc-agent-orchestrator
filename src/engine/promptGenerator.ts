@@ -14,7 +14,7 @@
  */
 
 import { PromptInput, TaskType } from "./types";
-import { GOVERNANCE_RULES } from "./governance";
+import { GOVERNANCE_RULES, LIGHT_GOVERNANCE_RULES } from "./governance";
 import { getTemplateFor } from "./templates";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -40,7 +40,7 @@ export function validatePromptInput(input: PromptInput): void {
 // Output spec map  (replaces the switch statement)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const OUTPUT_SPEC_MAP: Record<TaskType, () => string> = {
+const OUTPUT_SPEC_MAP: Record<TaskType, (profileId?: string) => string> = {
   "procedure":         procedureOutputSpec,
   "concept":           conceptOutputSpec,
   "troubleshooting":   troubleshootingOutputSpec,
@@ -146,48 +146,30 @@ DOCUMENTATION RESPONSIBILITY:
   are structural hints only. Replace every placeholder entirely with generated content.
   Never copy placeholder text into the output.
 
-GENERATION APPROACH — work through these stages internally before writing output:
-Stage 1 — Analyze: identify the core task, the action sequence, system behaviors,
-  and any optional or conditional steps present in the source.
-Stage 2 — Structure: generate every section from the template automatically.
-  Never ask the user for section content. Never leave a required section empty
-  unless there is genuinely no source-grounded content for it.
-Stage 3 — Refine: convert informal notes into numbered, actionable steps.
-  Incorporate all clarification answers. Apply the soft-ambiguity policy below.
+GENERATION APPROACH:
+1. Analyze source action sequence, system behaviors, and conditions.
+2. Generate all template sections (Overview, Prerequisites, Procedure, Result, Notes) automatically. Replace placeholders with factual content.
+3. Incorporate all clarification answers and apply soft-ambiguity policy.
 
 SOFT AMBIGUITY POLICY:
-- When the source contains hedging language ("maybe", "if needed", "or whatever",
-  "etc.", "and so on"), do NOT leave a gap — rewrite with appropriate conditional prose.
-- Example: "configure timeout or whatever" → "Configure connection settings such as
-  Polling Interval, Retry Count, or Connection Timeout as required."
-- Preserve the optional or conditional nature of the step in the output phrasing.
-- Do NOT generate user questions for soft-ambiguity language — rewrite it directly.
+- If source contains hedging ("maybe", "if needed", "etc."), rewrite with appropriate conditional prose instead of flagging as a gap.
+- Preserve the optional/conditional nature in the output phrasing.
 
 REWRITE POLICY:
-- Ground every step in a source sentence — do not invent content with no source basis.
-- When pre-clarification or clarification answers are provided, you MUST use them to
-  expand the affected steps into fluent, complete, user-facing prose. Do NOT leave a
-  step in its vague source form when an answer already clarifies it.
-- When incorporating an answer, integrate it naturally into the sentence rather
-  than appending it in parentheses.
-- Prefer active, specific language: "the service starts automatically" over
-  "service starts"; "green status indicator" over a bare colour if the answer
-  implies a UI element.
-- Articles ("the", "a"), conjunctions, and light connective phrases are permitted
-  where they improve readability.
-- Step transformation pattern:
-    Source:  "If successful, service starts."
-    Answer:  "green indicator"
-    Output:  "If the validation is successful, indicated by a green status
-              indicator, the service starts automatically."
+- Ground every step in source — do not invent content.
+- Use provided clarifications to expand vague steps into fluent, complete prose.
+- Integrate answers naturally into sentences (avoid parenthetical notes).
+- Prefer active, specific language and improve readability with natural articles/conjunctions.
 - If a section has no source-grounded content, omit it entirely — write nothing under it.
 
 ${clarificationsBlock}
-${GOVERNANCE_RULES}
+${input.governanceProfileId === "fast_draft" ? LIGHT_GOVERNANCE_RULES : GOVERNANCE_RULES}
 
-GOVERNANCE ENFORCEMENT:
+${input.governanceProfileId === "fast_draft"
+  ? ""
+  : `GOVERNANCE ENFORCEMENT:
 - If you would need to invent something to complete a step, omit it and flag it under Known Gaps.
-- If you catch yourself adding a clause not in the source, delete it.
+- If you catch yourself adding a clause not in the source, delete it.`}
 
 KNOWN GAPS:
 - When source content is vague but does NOT block the user from acting, document it
@@ -202,7 +184,7 @@ ${input.userIntent}
 SOURCE CONTENT (authoritative):
 ${input.context}
 ${templateBlock}
-${OUTPUT_SPEC_MAP[input.taskType]()}`;
+${OUTPUT_SPEC_MAP[input.taskType](input.governanceProfileId)}`;
 
   return prompt;
 }
@@ -220,7 +202,8 @@ ${OUTPUT_SPEC_MAP[input.taskType]()}`;
  * This block is a last-resort safety net for gaps that slipped through
  * questionDetector.ts. It should rarely trigger in practice.
  */
-function gapCheckBlock(): string {
+function gapCheckBlock(profileId?: string): string {
+  if (profileId === "fast_draft") { return ""; }
   return `
 SAFETY CHECK (last resort — Pass 0 should have caught these):
 If you encounter a step where any of the following are still unknown, do NOT
@@ -239,102 +222,24 @@ Do not stop generation for these — list them and continue.
 // Per-task output specs
 // ─────────────────────────────────────────────────────────────────────────────
 
-function procedureOutputSpec(): string {
+function procedureOutputSpec(profileId?: string): string {
+  if (profileId === "fast_draft") {
+    return "GENERATE: Rewrite the source into a user-facing procedure. Focus on basic steps and clear language. Omit strict structural rules.";
+  }
   return `
-${gapCheckBlock()}
+${gapCheckBlock(profileId)}
 GENERATE: Rewrite the source into a user-facing procedure.
 
-STRUCTURAL INFERENCE RULES (procedure documents only):
-These rules expand what you may write beyond strict verbatim traceability.
-They apply only to structural sections (Overview, Prerequisites, Result, Notes).
-They do NOT permit inventing steps, parameters, or system behaviour.
+STRUCTURAL INFERENCE:
+- Overview: "This procedure describes how to [verb phrase]." Derive verb from title or Intent.
+- Prerequisites: "[Input noun from source] is available." Derive only from required step inputs.
+- Result: One sentence summarizing final state (e.g., "The [entity] is saved").
+- Notes: Place conditional/warning sentences here, preserving keywords like "may" or "if".
 
-  Overview:
-  - Write one sentence as the first line of the Overview section.
-  - If the source has a title that describes a task ("Set Up X", "Configure X",
-    "Create X"), write: "This procedure describes how to [verb phrase from title]."
-  - Derive the verb phrase from the source title only. Do NOT use the USER INTENT field.
-  - Example: source title "Set Up an OPC UA Connector" →
-    "This procedure describes how to set up an OPC UA connector."
-  - You MAY insert a natural article before the object noun when the title uses a bare
-    plural: "Edit tags" → "edit an existing tag"; "Configure connectors" → "configure a connector".
-  - If no source title is present, fall back to the USER INTENT field.
-  - One sentence only. Do not add purpose clauses.
-
-  Prerequisites:
-  - You MAY list prerequisites derived from required inputs implied by steps.
-  - Only derive a prerequisite when a step requires the user to supply a concrete
-    input (e.g. "Enter server address", "Configure authentication").
-  - Write the prerequisite as: "[Input noun from source] is available."
-    Example: "Enter server address." → "The OPC UA server address is available."
-    Example: "Configure authentication." + clarification "user name and password"
-             → "Valid user name and password are available."
-  - Do NOT introduce nouns not present in the source or clarifications.
-  - Do NOT add system access, environment, or permission prerequisites.
-  - If no steps imply concrete required inputs, omit Prerequisites entirely.
-
-  Result:
-  - If the last 1–2 steps indicate a saved, applied, enabled, confirmed, or verified
-    final state, write one sentence summarising the outcome.
-  - The sentence must restate what the final steps establish — nothing more.
-    Example: last steps "Enable the connector." + "Confirm data is flowing." →
-             "The connector is enabled and data is flowing."
-    Example: last step "Save." in an edit procedure →
-             "The [entity] is saved."
-  - Prefer describing the final state over restating the last step's wording.
-    Good:  "The updated tag is saved."
-    Avoid: "The user saves the tag."
-  - Do NOT introduce system components, integrations, or purpose clauses not in source.
-  - If the final steps do not clearly indicate a definable outcome, omit Result.
-
-  Notes:
-  - Conditional or warning sentences from the source ("if", "may require",
-    "might require", "warning:") must be placed under Notes.
-  - Preserve the conditional word from the source ("might", "may", "if").
-
-STRUCTURAL INFERENCE RESTRICTIONS — even when inference is permitted:
-  - Do not invent new configuration parameters or field names.
-  - Do not add steps not present in the source.
-  - Do not introduce system components not mentioned in the source or clarifications.
-  - Do not add technical explanations beyond what the steps directly imply.
-  - Do not introduce new nouns that do not appear in the source or clarifications.
-  - Structural sections may summarise the source; they must not extend system behaviour.
-
-STEP FORMATTING RULES:
-- Ground every step in a source sentence — do not invent content with no source basis.
-- You MAY expand a step using answer text to produce fluent, readable prose.
-- When incorporating an answer, integrate it naturally into the sentence.
-- If a conditional or error branch ends without a stated next action, stop at
-  the source's words. Do NOT add implied recovery steps.
-
-LIGHT STEP EXPANSION (permitted for procedure steps):
-When rewriting source steps into user-facing prose, you MAY apply these minimal
-expansions to produce professional technical documentation:
-- Add a common noun classifier: "connector" → "connector application",
-  "edit" → "Edit icon", "tags" → "Tags section"
-- Use the standard UI navigation verb: "Go to X" → "Navigate to the X section"
-- Complete an abbreviated terminal action: "Save." → "Save the changes."
-- Add a natural qualifier to a selection step: "Select a tag." →
-  "Locate and select the required tag from the list."
-All expansions must remain consistent with the source topic. Do NOT introduce
-nouns, system components, or values not traceable to the source or clarifications.
-
-STEP EXPANSION FROM ANSWERS:
-- When an answer to a clarification question is prefixed "This answer contains multiple
-  sequential actions", each listed sub-step becomes its own numbered step in the procedure.
-- Do NOT collapse them back into one step.
-- Do NOT add connecting words like "and then" between them.
-
-NOTE FORMATTING RULE:
-- When a Note combines a source condition ("Admin may need to...") with an answer that
-  provides a navigation path, collapse them into one fluent sentence:
-    Correct:   "If required, configure advanced settings in Settings > Advanced Settings
-               on the Connector page."
-    Incorrect: "Admin may need to configure advanced settings. The Advanced Settings
-               option is available in the Settings page inside the Connector page."
-- Format navigation paths using > notation: "Settings > Advanced Settings"
-  not "the settings page inside the connector page".
-- The conditional word from the source ("may", "if required") must be preserved.
+STEP RULES:
+- Add common noun classifiers (e.g., "connector application") and standard UI navigation verbs to improve flow.
+- Collapse navigation answers into fluent sentences using "Settings > Advanced" notation.
+- If an answer contains multiple sequential actions, output as separate numbered steps.
 
 SECTION SUPPRESSION:
 - If a section has no source-grounded or inferrable content by the rules above,
@@ -352,7 +257,10 @@ Governance Notes       ← OMIT if no governance rules were violated
 `;
 }
 
-function conceptOutputSpec(): string {
+function conceptOutputSpec(profileId?: string): string {
+  if (profileId === "fast_draft") {
+    return "GENERATE: Rewrite the source into a formal concept explanation. Focus on clarity and flow.";
+  }
   return `
 GENERATE: Rewrite the source into a formal concept explanation.
 
@@ -376,9 +284,12 @@ Governance Notes          ← OMIT if no governance rules were violated
 `;
 }
 
-function troubleshootingOutputSpec(): string {
+function troubleshootingOutputSpec(profileId?: string): string {
+  if (profileId === "fast_draft") {
+    return "GENERATE: Rewrite the source into a troubleshooting guide. List Symptoms, Causes, and Resolutions clearly.";
+  }
   return `
-${gapCheckBlock()}
+${gapCheckBlock(profileId)}
 GENERATE: Rewrite the source into a troubleshooting guide.
 
 INTRO SENTENCE:
@@ -402,7 +313,10 @@ Governance Notes       ← OMIT if no governance rules were violated
 `;
 }
 
-function referenceOutputSpec(): string {
+function referenceOutputSpec(profileId?: string): string {
+  if (profileId === "fast_draft") {
+    return "GENERATE: Rewrite the source into a reference document. Group parameters and options logically.";
+  }
   return `
 GENERATE: Rewrite the source into a reference document.
 
@@ -426,9 +340,12 @@ Governance Notes       ← OMIT if no governance rules were violated
 `;
 }
 
-function tutorialOutputSpec(): string {
+function tutorialOutputSpec(profileId?: string): string {
+  if (profileId === "fast_draft") {
+    return "GENERATE: Rewrite the source into a tutorial. Provide a logical learning path.";
+  }
   return `
-${gapCheckBlock()}
+${gapCheckBlock(profileId)}
 GENERATE: Rewrite the source into a tutorial.
 
 INTRO SENTENCE:
@@ -452,7 +369,10 @@ Governance Notes       ← OMIT if no governance rules were violated
 `;
 }
 
-function releaseNotesOutputSpec(): string {
+function releaseNotesOutputSpec(profileId?: string): string {
+  if (profileId === "fast_draft") {
+    return "GENERATE: Rewrite the source into release notes. Summarise key changes by category.";
+  }
   return `
 GENERATE: Rewrite the source into release notes.
 
@@ -479,7 +399,10 @@ Governance Notes       ← OMIT if no governance rules were violated
 `;
 }
 
-function apiDocumentationOutputSpec(): string {
+function apiDocumentationOutputSpec(profileId?: string): string {
+  if (profileId === "fast_draft") {
+    return "GENERATE: Rewrite the source into API documentation. Clearly define endpoints, parameters, and responses.";
+  }
   return `
 GENERATE: Rewrite the source into API documentation.
 

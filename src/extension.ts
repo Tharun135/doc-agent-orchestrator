@@ -303,6 +303,7 @@ export function activate(context: vscode.ExtensionContext) {
                 preClarifications: lastPromptContext.preClarifications,
                 clarifications: accumulated,
                 pass: currentPass,
+                governanceProfileId: activeProfile.id,
               });
 
               await vscode.env.clipboard.writeText(newPrompt);
@@ -367,6 +368,7 @@ export function activate(context: vscode.ExtensionContext) {
           context: lastPromptContext.context,
           preClarifications: lastPromptContext.preClarifications,
           clarifications: clarifications,
+          governanceProfileId: activeProfile.id,
         });
 
         // Copy to clipboard
@@ -618,17 +620,22 @@ Might need firewall exception.`,
         if (templateStatusBarItem) { templateStatusBarItem.dispose(); templateStatusBarItem = null; }
 
         // ── Upfront Q&A: detect gaps in source and ask user before first AI call ──
-        const detectedQuestions = detectQuestions(contextText, taskType, editedTemplateText, userIntent);
         let preClarifications: string | undefined;
 
-        if (detectedQuestions.length > 0) {
-          const answers = await showQAPanel(context.extensionUri, detectedQuestions);
-          if (answers !== null && answers.length === detectedQuestions.length) {
-            // Only include questions that received a non-empty answer
-            const answeredQuestions = detectedQuestions.filter((_, i) => answers[i].trim().length > 0);
-            const answeredValues    = answers.filter(a => a.trim().length > 0);
-            if (answeredQuestions.length > 0) {
-              preClarifications = formatPreClarifications(answeredQuestions, answeredValues);
+        // SKIP upfront Q&A if the user is in Fast Draft mode to save time.
+        if (activeProfile.id === "fast_draft") {
+          vscode.window.showInformationMessage("🚀 Running in Fast Draft mode — skipping upfront clarification questions.");
+        } else {
+          const detectedQuestions = detectQuestions(contextText, taskType, editedTemplateText, userIntent);
+          if (detectedQuestions.length > 0) {
+            const answers = await showQAPanel(context.extensionUri, detectedQuestions);
+            if (answers !== null && answers.length === detectedQuestions.length) {
+              // Only include questions that received a non-empty answer
+              const answeredQuestions = detectedQuestions.filter((_, i) => answers[i].trim().length > 0);
+              const answeredValues    = answers.filter(a => a.trim().length > 0);
+              if (answeredQuestions.length > 0) {
+                preClarifications = formatPreClarifications(answeredQuestions, answeredValues);
+              }
             }
           }
         }
@@ -639,6 +646,7 @@ Might need firewall exception.`,
           context: contextText,
           preClarifications,
           templateContent: editedTemplateText,
+          governanceProfileId: activeProfile.id,
         });
 
         // Reset pass counter for a fresh generation run

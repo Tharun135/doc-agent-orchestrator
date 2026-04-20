@@ -1,78 +1,71 @@
-# Migrating to the Cloud Database
+## Migrating the database
 
 This procedure describes how to migrate legacy data to the Cloud Database.
 
-## Prerequisites
+### Prerequisites
 
 - Administrative access to the Cloud Management Portal.
 - A pre-configured destination VPC with network routing enabled.
 
-## Procedure
+### Procedure
 
-1. Navigate to the Main Console at
-   [https://console.cloud-enterprise.com](https://console.cloud-enterprise.com).
+1. Navigate to the [Main Console](https://console.cloud-enterprise.com).
 
     The Main Console is the default landing page after SSO authentication.
 
-2. From the VPC list, select the appropriate VPC.
+2. Check the environment.
 
-    > **Note:** Administrative access is required for this step.
+3. From the VPC list, select the appropriate VPC.
 
-3. In the "Export Settings" modal, select the "Advanced" tab.
+    !!! note
+        This step requires administrator access.
 
-4. In the "Buffer size" field, enter `64`.
+4. In the "Export Settings" modal, select the "Advanced" tab.
 
-    > **Note:** The buffer size is 64 MB. This ensures high-throughput transfer
-    > and prevents memory overflow on the legacy host.
+5. In the "Buffer Size" field, enter `64`.
 
-5. Export the legacy data using the standard migration script.
+    Setting the buffer to 64 MB ensures high-throughput transfer and prevents
+    memory overflow on the legacy host.
 
-6. Upload the resulting file to the Cloud Bucket. Use the bucket with the
-   project tag.
+6. Export the legacy data using the standard migration script.
 
-7. In the Security Vault, generate a migration token.
+7. Upload the resulting file to the Cloud Bucket with the project tag.
 
-    > **Note:** If token generation fails, wait and then retry.
+8. In the Security Vault, generate a migration token.
 
-8. Initialize the Cloud Database with the migration token and the cloud file.
+    If token generation fails, wait and retry.
 
-9. Toggle the sync mode to `On`.
+9. Initialize the Cloud Database using the migration token and the cloud file.
 
-10. Enable the high-speed bridge.
+10. Toggle the sync mode to "On".
 
-11. Set the sync timeout to `30`.
+11. Enable the high-speed bridge.
 
-    > **Note:** If the sync fails at any point, check the logs and alert the
-    > Lead Engineer.
+12. Set the sync timeout to `30`.
 
-12. Once the status shows "Complete," delete the temporary files.
+    If the sync fails, check the logs and alert the Lead Engineer.
 
-## Result
+13. Once the status shows "Complete," delete the temporary files.
 
-The legacy data migration is complete and the sync mode is active.
+### Result
 
-## Known Gaps
+The legacy data is migrated to the Cloud Database and the sync is complete.
 
-The following gaps require source clarification before the procedure can be
-considered complete.
+### Known Gaps
 
-- **Step 1:** The source instructs the user to check the environment but does
-  not define what to check or where.
-- **Step 2:** The UI location of the VPC list is not specified.
-- **Step 5:** The location and method for running the standard migration script
+- Step 2: Content of the environment check is not specified.
+- Steps 4–6: Access path to the "Export Settings" modal is not specified; its
+  relationship to the standard migration script is not specified.
+- Step 6: Location, syntax, and execution method of the standard migration
+  script are not specified.
+- Step 7: Access method and navigation path to the Cloud Bucket are not
+  specified.
+- Step 8: Navigation path to the Security Vault is not specified.
+- Step 9: UI location and navigation path for Cloud Database initialization are
+  not specified.
+- Steps 10–12: UI location for sync mode, high-speed bridge, and sync timeout
   are not specified.
-- **Step 6:** The upload method and UI location for the Cloud Bucket are not
-  specified.
-- **Step 7:** The UI location and navigation path to the Security Vault are not
-  specified.
-- **Step 8:** The UI location and method for initializing the Cloud Database
-  are not specified.
-- **Step 9:** The UI location of the sync mode toggle is not specified.
-- **Step 10:** The UI location for enabling the high-speed bridge is not
-  specified.
-- **Step 11:** The UI location for the sync timeout field is not specified. The
-  unit for `30` is not specified. The specific logs to check on sync failure
-  are not identified.
-- **Step 12:** The UI location of the status indicator is not specified. The
-  identity and location of the temporary files are not specified.
+- Step 12: Unit for the sync timeout value `30` is not specified.
+- Step 12: Log location and access method are not specified.
+- Step 13: Location of temporary files and deletion method are not specified.
 

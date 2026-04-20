@@ -48,118 +48,38 @@ const OUTPUT_SPEC_MAP: Record<TaskType, (sections: string[]) => string> = {
 
 export function generatePrompt(input: PromptInput): string {
   validatePromptInput(input);
-
-  const hasPreClarifications = !!(input.preClarifications?.trim());
-  const hasClarifications    = !!(input.clarifications?.trim());
-  const hasAnyAnswers        = hasPreClarifications || hasClarifications;
-
-  const passHeader = (input.pass && input.pass > 1)
-    ? `GENERATION PASS: ${input.pass} (Resolution Pass)\n`
-    : "";
-
-  const preClarificationsSection = hasPreClarifications
-    ? `PRE-CLARIFICATIONS:\n${input.preClarifications}\n`
-    : "";
-
-  const clarificationsSection = hasClarifications
-    ? `CLARIFICATIONS:\n${input.clarifications}\n`
-    : "";
-
-  const clarificationsBlock = hasAnyAnswers
-    ? `CLARIFICATIONS PROVIDED (Authoritative):\n${preClarificationsSection}${clarificationsSection}
-RESOLUTION RULES:
-1. Integrate answers directly into content.
-2. Remove resolved gaps from Known Gaps.
-`
-    : "";
-
+  const passHeader = (input.pass && input.pass > 1) ? `RESOLUTION PASS: ${input.pass}\n` : "";
+  const answers = (input.preClarifications?.trim() || "") + (input.clarifications?.trim() || "");
   const template = getTemplateFor(input.taskType);
-  const isOverride = !!(input.templateContent?.trim());
-  const templateContent = isOverride ? input.templateContent! : template.content;
-  const requiredSections = isOverride ? extractHeadingsFromMarkdown(templateContent) : template.requiredSections;
+  const sections = input.templateContent?.trim() ? extractHeadingsFromMarkdown(input.templateContent) : template.requiredSections;
 
-  const templateBlock = `
-OUTPUT STRUCTURE:
-${requiredSections.map((s: string) => `- ${s}`).join("\n")}
-
-EXAMPLE:
-${templateContent}
-`;
-
-  const styleGuideBlock = input.styleGuideRules?.trim()
-    ? `Custom style guide rules:\n${input.styleGuideRules}\n`
-    : "";
-
-  const prompt = `SYSTEM:
-You are a Technical Documentation Agent.
+  return `SYSTEM: Technical Documentation Agent.
 ${passHeader}
 APPROACH:
-1. Generate complete documentation based on SOURCE and CLARIFICATIONS.
-2. Ground everything in the provided facts. Do NOT invent.
-3. List any residual gaps as a bulleted list in "Known Gaps".
-4. Omit sections with no source-grounded content.
+1. Ground in SOURCE/ANSWERS; do not invent.
+2. Omit sections with no grounded content.
+3. List gaps in "Known Gaps".
+${answers ? `ANSWERS:\n${answers}\n` : ""}${input.styleGuideRules?.trim() ? `STYLE:\n${input.styleGuideRules}\n` : ""}${GOVERNANCE_RULES}
 
-${clarificationsBlock}
-${styleGuideBlock}
-${GOVERNANCE_RULES}
-
-USER INTENT:
-${input.userIntent}
-
+INTENT: ${input.userIntent}
 SOURCE:
 ${input.context}
 
-${templateBlock}
-${OUTPUT_SPEC_MAP[input.taskType](requiredSections)}`;
-
-  return prompt;
+STRUCTURE:
+${sections.map(s => `- ${s}`).join("\n")}
+${OUTPUT_SPEC_MAP[input.taskType](sections)}`;
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────────────────────
-
-function gapCheckBlock(): string {
-  return `
-Safety check (last resort):
-If you encounter a step where WHERE, HOW, RESULT, or ON ERROR are still unknown,
-do NOT invent a value. List it under Known gaps and continue.
-`;
-}
-
-function formatSectionsList(sections: string[]): string {
-  return "SECTIONS (in required order):\n" + sections.map(s => {
-    if (s.toLowerCase() === "overview") return `${s} ← Required (one sentence intro)`;
-    if (s.toLowerCase() === "procedure") return `${s} ← Required`;
-    if (s.toLowerCase() === "steps") return `${s} ← Required`;
-    if (s.toLowerCase() === "result") return `${s} ← OMIT if no final state is indicated`;
-    if (s.toLowerCase() === "notes") return `${s} ← OMIT if no warnings/conditions in source`;
-    return `${s} ← OMIT if no source-grounded content`;
-  }).join("\n");
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Output Specs (Refactored to be dynamic)
-// ─────────────────────────────────────────────────────────────────────────────
 
 function procedureOutputSpec(sections: string[]): string {
   return `
 ${gapCheckBlock()}
-GENERATE: Rewrite the source into a user-facing procedure.
-
-STRUCTURAL RULES:
-1. Every section must use the exact heading name from the list below.
-2. If a heading like "Overview" exists in the required list, you MUST provide it as a heading (e.g., "### Overview"), followed by its content.
-3. The intro sentence must be the first line of the "Overview" section.
-
-Overview content logic:
-- Write: "This procedure describes how to [task]."
-- Derive [task] from the source title or user intent.
-- One sentence only.
-
-${formatSectionsList(sections)}
-Known Gaps ← Required if any gaps exist
-Governance Notes ← Required if any violations occur
+GENERATE: Rewrite source as a procedure.
+RULES:
+- Overview: "This procedure describes how to [task]." (1 sentence)
+- Prerequisites: List required inputs from source.
+- Result: 1 sentence summary of outcome.
+- Omit empty sections.
+- Sections: ${sections.join(", ")}
 `;
 }
 

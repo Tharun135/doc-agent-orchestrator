@@ -66,130 +66,38 @@ const OUTPUT_SPEC_MAP: Record<TaskType, (profileId?: string) => string> = {
  */
 export function generatePrompt(input: PromptInput): string {
   validatePromptInput(input);
-
-  const hasPreClarifications = !!(input.preClarifications?.trim());
-  const hasClarifications    = !!(input.clarifications?.trim());
-  const hasAnyAnswers        = hasPreClarifications || hasClarifications;
-
-  const passHeader = (input.pass && input.pass > 1)
-    ? `GENERATION PASS: ${input.pass} (Resolution Pass)\n`
-    : "";
-
-  const preClarificationsSection = hasPreClarifications
-    ? `PRE-CLARIFICATIONS:\n${input.preClarifications}\n`
-    : "";
-
-  const clarificationsSection = hasClarifications
-    ? `CLARIFICATIONS:\n${input.clarifications}\n`
-    : "";
-
-  const clarificationsBlock = hasAnyAnswers
-    ? `CLARIFICATIONS PROVIDED (Authoritative):\n${preClarificationsSection}${clarificationsSection}
-RESOLUTION RULES:
-1. Integrate answers directly into content.
-2. Remove resolved gaps from Known Gaps.
-`
-    : "";
-
+  const passHeader = (input.pass && input.pass > 1) ? `RESOLUTION PASS: ${input.pass}\n` : "";
+  const answers = (input.preClarifications?.trim() || "") + (input.clarifications?.trim() || "");
   const template = getTemplateFor(input.taskType);
-  const templateContent = input.templateContent?.trim() ? input.templateContent : template.content;
-  const templateBlock = `
-OUTPUT STRUCTURE:
-${template.requiredSections.map(s => `- ${s}`).join("\n")}
+  const sections = input.templateContent?.trim() ? extractHeadingsFromMarkdown(input.templateContent) : template.requiredSections;
 
-EXAMPLE:
-${templateContent}
-`;
-
-  const prompt = `SYSTEM:
-You are a Technical Documentation Agent.
+  return `SYSTEM: Technical Documentation Agent.
 ${passHeader}
 APPROACH:
-1. Generate complete documentation based on SOURCE and CLARIFICATIONS.
-2. Ground everything in the provided facts. Do NOT invent.
-3. List any residual gaps as a bulleted list in "Known Gaps".
-4. Omit sections with no source-grounded content.
+1. Ground in SOURCE/ANSWERS; do not invent.
+2. Omit sections with no grounded content.
+3. List gaps in "Known Gaps".
+${answers ? `ANSWERS:\n${answers}\n` : ""}${input.styleGuideRules?.trim() ? `STYLE:\n${input.styleGuideRules}\n` : ""}${input.governanceProfileId === "fast_draft" ? LIGHT_GOVERNANCE_RULES : GOVERNANCE_RULES}
 
-${clarificationsBlock}
-${input.governanceProfileId === "fast_draft" ? LIGHT_GOVERNANCE_RULES : GOVERNANCE_RULES}
-
-USER INTENT:
-${input.userIntent}
-
+INTENT: ${input.userIntent}
 SOURCE:
 ${input.context}
 
-${templateBlock}
+STRUCTURE:
+${sections.map(s => `- ${s}`).join("\n")}
 ${OUTPUT_SPEC_MAP[input.taskType](input.governanceProfileId)}`;
-
-  return prompt;
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Shared gap-check block  (one canonical version, used by specs that need it)
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Returns the gap-check instruction block.
- * Only injected into specs for task types where action steps are present
- * (procedure, troubleshooting, tutorial). Not needed for concept/reference/
- * release-notes/api-documentation because Pass 0 already handled all gaps.
- *
- * This block is a last-resort safety net for gaps that slipped through
- * questionDetector.ts. It should rarely trigger in practice.
- */
-function gapCheckBlock(profileId?: string): string {
-  if (profileId === "fast_draft") { return ""; }
-  return `
-SAFETY CHECK (last resort — Pass 0 should have caught these):
-If you encounter a step where any of the following are still unknown, do NOT
-invent a value. List it under Known Gaps and continue.
-
-  □ WHERE  — exact UI location or navigation path
-  □ HOW    — specific value, input, or action required
-  □ RESULT — what the system shows or does on success
-  □ ON ERROR — which log, what to look for, what the next action is
-
-Do not stop generation for these — list them and continue.
-`;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Per-task output specs
-// ─────────────────────────────────────────────────────────────────────────────
 
 function procedureOutputSpec(profileId?: string): string {
-  if (profileId === "fast_draft") {
-    return "GENERATE: Rewrite the source into a user-facing procedure. Focus on basic steps and clear language. Omit strict structural rules.";
-  }
+  if (profileId === "fast_draft") return "GENERATE: User-facing procedure draft.";
   return `
 ${gapCheckBlock(profileId)}
-GENERATE: Rewrite the source into a user-facing procedure.
-
-STRUCTURAL INFERENCE:
-- Overview: "This procedure describes how to [verb phrase]." Derive verb from title or Intent.
-- Prerequisites: "[Input noun from source] is available." Derive only from required step inputs.
-- Result: One sentence summarizing final state (e.g., "The [entity] is saved").
-- Notes: Place conditional/warning sentences here, preserving keywords like "may" or "if".
-
-STEP RULES:
-- Add common noun classifiers (e.g., "connector application") and standard UI navigation verbs to improve flow.
-- Collapse navigation answers into fluent sentences using "Settings > Advanced" notation.
-- If an answer contains multiple sequential actions, output as separate numbered steps.
-
-SECTION SUPPRESSION:
-- If a section has no source-grounded or inferrable content by the rules above,
-  omit it entirely.
-- Omitting is correct. Filling with ungrounded invented content is a violation.
-
-SECTIONS:
-Overview               ← Required (intro sentence as first line)
-Prerequisites          ← OMIT if no steps imply concrete required inputs
-Procedure              ← Required
-Notes                  ← OMIT if source has no conditional or warning sentences
-Result                 ← OMIT if final steps do not indicate a clear outcome
-Known Gaps             ← OMIT only if nothing could be resolved by a follow-up answer
-Governance Notes       ← OMIT if no governance rules were violated
+GENERATE: Rewrite source as a procedure.
+RULES:
+- Overview: "This procedure describes how to [task]." (1 sentence)
+- Prerequisites: List required inputs from source.
+- Result: 1 sentence summary of outcome.
+- Omit empty sections.
 `;
 }
 

@@ -1,17 +1,17 @@
 ## Migrating the database
 
+### Overview
+
 This procedure describes how to migrate legacy data to the Cloud Database.
 
 ### Prerequisites
 
-- Administrative access to the Cloud Management Portal.
-- A pre-configured destination VPC with network routing enabled.
+- Administrative access to the Cloud Management Portal
+- A pre-configured destination VPC with network routing enabled
 
 ### Procedure
 
-1. Navigate to the [Main Console](https://console.cloud-enterprise.com).
-
-    The Main Console is the default landing page after SSO authentication.
+1. Open the [Main Console](https://console.cloud-enterprise.com).
 
 2. Check the environment.
 
@@ -20,12 +20,9 @@ This procedure describes how to migrate legacy data to the Cloud Database.
     !!! note
         This step requires administrator access.
 
-4. In the "Export Settings" modal, select the "Advanced" tab.
+4. Open the "Export Settings" modal and select the "Advanced" tab.
 
-5. In the "Buffer Size" field, enter `64`.
-
-    Setting the buffer to 64 MB ensures high-throughput transfer and prevents
-    memory overflow on the legacy host.
+5. Set the buffer size to `64`.
 
 6. Export the legacy data using the standard migration script.
 
@@ -33,39 +30,38 @@ This procedure describes how to migrate legacy data to the Cloud Database.
 
 8. In the Security Vault, generate a migration token.
 
-    If token generation fails, wait and retry.
+    !!! note
+        If token generation fails, wait and retry.
 
-9. Initialize the Cloud Database using the migration token and the cloud file.
+9. Initialize the Cloud Database with the migration token and the uploaded file.
 
-10. Toggle the sync mode to "On".
+10. Enable the high-speed bridge.
 
-11. Enable the high-speed bridge.
+11. Set the sync timeout to `30`.
 
-12. Set the sync timeout to `30`.
+12. Toggle the sync mode to "On".
 
-    If the sync fails, check the logs and alert the Lead Engineer.
+    !!! note
+        If the sync fails, check the logs and alert the Lead Engineer.
 
-13. Once the status shows "Complete," delete the temporary files.
+13. When the status shows "Complete," delete the temporary files.
 
 ### Result
 
-The legacy data is migrated to the Cloud Database and the sync is complete.
+Migration completes. The Cloud Database contains the legacy data.
 
-### Known Gaps
+### Known gaps
 
-- Step 2: Content of the environment check is not specified.
-- Steps 4–6: Access path to the "Export Settings" modal is not specified; its
-  relationship to the standard migration script is not specified.
-- Step 6: Location, syntax, and execution method of the standard migration
-  script are not specified.
-- Step 7: Access method and navigation path to the Cloud Bucket are not
-  specified.
-- Step 8: Navigation path to the Security Vault is not specified.
-- Step 9: UI location and navigation path for Cloud Database initialization are
-  not specified.
-- Steps 10–12: UI location for sync mode, high-speed bridge, and sync timeout
-  are not specified.
-- Step 12: Unit for the sync timeout value `30` is not specified.
-- Step 12: Log location and access method are not specified.
-- Step 13: Location of temporary files and deletion method are not specified.
+- Step 2: The source does not specify what to verify when checking the environment.
+- Step 4: The source does not specify how to open the "Export Settings" modal or the navigation path.
+- Step 5: The source does not specify the exact UI label for the buffer size field or the unit of measurement.
+- Step 6: The source does not specify the location of the standard migration script or how to run it.
+- Step 7: The source does not specify the navigation path to the Cloud Bucket or how to identify it by project tag in the UI.
+- Step 8: The source does not specify the navigation path to the Security Vault or the wait duration before retrying.
+- Step 9: The source does not specify the navigation path or UI controls for initializing the Cloud Database.
+- Step 10: The source does not specify how to enable the high-speed bridge or its location in the UI.
+- Step 11: The source does not specify the navigation path to the sync timeout setting or the unit of measurement.
+- Step 12: The source does not specify the location of the sync mode toggle in the UI.
+- Step 12, sync failure: The source does not specify which logs to check, their location, or how to contact the Lead Engineer.
+- Step 13: The source does not specify which files are temporary or their location.
 

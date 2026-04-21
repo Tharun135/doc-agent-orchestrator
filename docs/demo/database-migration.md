@@ -1,65 +1,72 @@
-# Migrating the cloud database
+## Migrating the database
 
-This procedure describes how to migrate legacy data to the cloud database.
+### Overview
 
-## Prerequisites
+This procedure describes how to migrate the database.
+
+### Prerequisites
 
 - Administrative access to the Cloud Management Portal
 - A pre-configured destination VPC with network routing enabled
 
-## Procedure
+### Procedure
 
-1. Navigate to the Main Console at `https://console.cloud-enterprise.com`.
+1. In the Cloud Management Portal, select "Console" from the top navigation menu.
+
+    The Main Console opens. The Environment Overview section displays the system status.
 
 2. Check the environment.
 
-3. Select the appropriate VPC from the list.
+3. Set the buffer size to `64`.
 
-4. In the "Export Settings" modal, open the "Advanced" tab.
-
-5. Set the buffer size to `64 MB`.
+4. From the VPC list, select the appropriate VPC.
 
     !!! note
-        Setting the buffer size to 64 MB ensures high-throughput transfer
-        and prevents memory overflow on the legacy host.
+        This step requires administrator access.
 
-6. Export the legacy data using the standard migration script.
+5. Export the legacy data using the standard migration script.
 
-7. Upload the resulting file to the Cloud Bucket with the project tag.
+6. Upload the resulting file to the Cloud Bucket with the project tag.
 
-8. Generate a migration token in the Security Vault.
+7. In the Security Vault, generate a migration token.
 
-    If the token generation fails, wait for a while and then retry.
+    If the token generation fails, wait and retry.
 
-9. Initialize the Cloud Database with the migration token and the cloud file.
+8. Initialize the Cloud Database with the migration token and the cloud file.
+
+9. Toggle the sync mode to `On`.
 
 10. Enable the high-speed bridge.
 
-11. Toggle the sync mode to `On`.
-
-12. Set the sync timeout to `30`.
+11. Set the sync timeout to `30`.
 
     If the sync fails at any point, check the logs and alert the Lead Engineer.
 
-13. Once the status shows `Complete`, delete the temporary files.
+12. Once the status shows `Complete`, delete the temporary files.
 
-## Result
+### Result
 
-The migration is complete and the temporary files have been deleted.
+The database migration is complete.
 
-## Known Gaps
+### Known Gaps
 
 The following information is missing from the source and the pre-clarifications.
-These gaps prevent the user from acting.
 
 | Step | Missing information |
 | --- | --- |
-| 4 | Navigation path to reach the "Export Settings" modal |
-| 6 | Navigation path or UI location for running the standard migration script |
-| 7 | Navigation path or UI location for uploading to the Cloud Bucket |
-| 8 | Navigation path or UI location for the Security Vault |
-| 9 | Navigation path or UI location for initializing the Cloud Database |
-| 10 | Navigation path or UI location for enabling the high-speed bridge |
-| 11 | Navigation path or UI location for the sync mode toggle |
-| 12 | Unit for the sync timeout value (`30`) |
-| 12 | Log name and search criteria for the sync failure condition |
+| 2 | Success criteria for checking the environment are not defined |
+| 3 | UI location for the buffer size setting is not specified; unit for the value `64` is not specified |
+| 5 | Location and execution method for the standard migration script are not specified |
+| 6 | UI location for the Cloud Bucket is not specified; method for identifying the project-tagged bucket is not specified |
+| 7 | UI location for the Security Vault is not specified |
+| 7 | Wait duration before retrying token generation is not specified |
+| 8 | UI location for Cloud Database initialization is not specified |
+| 9 | UI location for the sync mode toggle is not specified |
+| 10 | UI location and enabling method for the high-speed bridge are not specified |
+| 11 | UI location for the sync timeout setting is not specified |
+| 11 | Unit of measurement for the sync timeout value `30` is not specified |
+| 11 | Which logs to check and how to access them are not specified |
+| 11 | Lead Engineer notification method is not specified |
+| 12 | Location of the temporary files is not specified |
+
+**Note on step ordering:** The source states "Set the buffer size to 64 before starting the export" after the export step. This procedure places step 3 before step 5 to reflect the stated prerequisite. Confirm the intended sequence.

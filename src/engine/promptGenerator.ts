@@ -66,53 +66,61 @@ const OUTPUT_SPEC_MAP: Record<TaskType, (profileId?: string) => string> = {
  */
 export function generatePrompt(input: PromptInput): string {
   validatePromptInput(input);
-  const passHeader = (input.pass && input.pass > 1) ? `PASS ${input.pass}` : "";
+  const pass = (input.pass && input.pass > 1) ? ` (Revision Pass ${input.pass})` : "";
   const answers = (input.preClarifications?.trim() || "") + (input.clarifications?.trim() || "");
   const template = getTemplateFor(input.taskType);
   const sections = input.templateContent?.trim() ? extractHeadingsFromMarkdown(input.templateContent) : template.requiredSections;
 
-  return `SYSTEM: Technical Doc Agent. ${passHeader}
-${input.governanceProfileId === "fast_draft" ? LIGHT_GOVERNANCE_RULES : GOVERNANCE_RULES}${input.styleGuideRules?.trim() ? `STYLE: ${input.styleGuideRules}\n` : ""}
+  return `Technical Writer Mode.${pass}
+
+TASK: Write a ${input.taskType} document.
 INTENT: ${input.userIntent}
-SOURCE: ${input.context}
-${answers ? `ANSWERS: ${answers}\n` : ""}
-GENERATE: ${OUTPUT_SPEC_MAP[input.taskType](input.governanceProfileId)}
-STRUCTURE: ${sections.map(s => `- ${s}`).join("\n")}`;
+SOURCE: """
+${input.context}
+"""
+${answers ? `ANSWERS: """\n${answers}\n"""` : ""}
+
+RULES:
+${input.governanceProfileId === "fast_draft" ? LIGHT_GOVERNANCE_RULES : GOVERNANCE_RULES}${input.styleGuideRules?.trim() ? `- STYLE: ${input.styleGuideRules}\n` : ""}- ${OUTPUT_SPEC_MAP[input.taskType](input.governanceProfileId)}
+
+OUTPUT STRUCTURE:
+${sections.map(s => `- ${s}`).join("\n")}
+- Known Gaps`;
 }
 
 function procedureOutputSpec(profileId?: string): string {
-  if (profileId === "fast_draft") return "Factual procedure.";
-  return "Strict procedure. 1-sentence Overview. Prerequisites. Result summary. Omit empty.";
+  if (profileId === "fast_draft") return "Format as a draft procedure.";
+  return "Strict procedure. Include 1-sentence overview, prerequisites, and result summary.";
 }
 
 function conceptOutputSpec(profileId?: string): string {
-  if (profileId === "fast_draft") return "Concept draft.";
-  return "Concept. Intro: 'Describes [topic]'. Omit empty.";
+  if (profileId === "fast_draft") return "Format as a concept draft.";
+  return "Detailed concept. Explain 'what' and 'why' based only on source.";
 }
 
 function troubleshootingOutputSpec(profileId?: string): string {
-  if (profileId === "fast_draft") return "Troubleshooting draft.";
-  return "Troubleshooting. Intro: 'How to resolve [problem]'. Omit empty.";
+  if (profileId === "fast_draft") return "Format as troubleshooting draft.";
+  return "Troubleshooting guide. Direct mapping of symptoms to resolutions.";
 }
 
 function referenceOutputSpec(profileId?: string): string {
-  if (profileId === "fast_draft") return "Reference draft.";
-  return "Reference. Intro: 'Describes [subject]'. Omit empty.";
+  if (profileId === "fast_draft") return "Format as reference draft.";
+  return "Technical reference. Document parameters and types accurately.";
 }
 
 function tutorialOutputSpec(profileId?: string): string {
-  if (profileId === "fast_draft") return "Tutorial draft.";
-  return "Tutorial. Intro: 'Guides through [task]'. Omit empty.";
+  if (profileId === "fast_draft") return "Format as tutorial draft.";
+  return "Learning tutorial. Guide the user through the task step-by-step.";
 }
 
 function releaseNotesOutputSpec(profileId?: string): string {
-  if (profileId === "fast_draft") return "Release notes draft.";
-  return "Release notes. Intro: 'Summarises changes in [version]'. Omit empty.";
+  if (profileId === "fast_draft") return "Format as release notes draft.";
+  return "Release notes. Group changes by category (Features, Fixes, etc.).";
 }
 
 function apiDocumentationOutputSpec(profileId?: string): string {
-  if (profileId === "fast_draft") return "API doc draft.";
-  return "API Documentation. Intro: 'Describes [endpoint/function]'. Omit empty.";
+  if (profileId === "fast_draft") return "Format as API doc draft.";
+  return "Technical API reference. Focus on endpoints, methods, and schemas.";
 }
 
 function extractHeadingsFromMarkdown(markdown: string): string[] {

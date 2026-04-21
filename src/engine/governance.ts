@@ -1,13 +1,11 @@
 export const GOVERNANCE_RULES = `
-GOVERNANCE:
-- ZERO INVENTION. Only use SOURCE/ANSWERS.
-- No source? Omit section.
-- Unknown? List in "Known Gaps".
+- Factual only. Use ONLY provided SOURCE and ANSWERS.
+- If information is missing, do not guess; move to "Known Gaps".
+- Maintain technical terminology from the source.
 `;
 
 export const LIGHT_GOVERNANCE_RULES = `
-GOVERNANCE (DRAFT):
-- Ground in SOURCE.
-- Natural phrasing allowed.
-- List gaps in "Known Gaps".
+- Factual draft. Ground in SOURCE.
+- Natural phrasing is permitted.
+- List uncertainties in "Known Gaps".
 `;

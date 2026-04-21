@@ -1,3 +1,5 @@
+# Migration Steps for Legacy Data to Cloud Database
+
 First, navigate to the Main Console and check the environment.
 Select the appropriate VPC from the list. (Admins only).
 Export the legacy data using the standard migration script.

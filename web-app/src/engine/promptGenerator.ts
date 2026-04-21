@@ -153,3 +153,18 @@ function extractHeadingsFromMarkdown(markdown: string): string[] {
   }
   return headings;
 }
+
+function gapCheckBlock(): string {
+  return `RESOLUTION RULES:
+1. Integrate answers directly into content.
+2. Remove resolved gaps from Known Gaps.
+
+Safety check (last resort):
+If you encounter a step where WHERE, HOW, RESULT, or ON ERROR are still unknown,
+do NOT invent a value. List it under Known gaps and continue.`;
+}
+
+function formatSectionsList(sections: string[]): string {
+  return `SECTIONS (in required order):
+${sections.map(s => `- ${s}`).join("\n")}`;
+}

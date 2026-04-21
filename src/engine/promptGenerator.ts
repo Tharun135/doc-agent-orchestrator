@@ -70,45 +70,48 @@ export function generatePrompt(input: PromptInput): string {
   const template = getTemplateFor(input.taskType);
   const sections = input.templateContent?.trim() ? extractHeadingsFromMarkdown(input.templateContent) : template.requiredSections;
 
-  return `Write a ${input.taskType} using the SOURCE below. No preamble.
-${input.governanceProfileId === "fast_draft" ? LIGHT_GOVERNANCE_RULES : GOVERNANCE_RULES}${input.styleGuideRules?.trim() ? `- ${input.styleGuideRules}\n` : ""}
-SOURCE:
+  return `### ROLE: INTERNAL TECHNICAL WRITER
+
+### CONSTRAINTS:
+- NO WEB SEARCH. DO NOT USE EXTERNAL TOOLS.
+${input.governanceProfileId === "fast_draft" ? LIGHT_GOVERNANCE_RULES : GOVERNANCE_RULES}
+### SOURCE:
 ${input.context}
-${answers ? `\nANSWERS:\n${answers}` : ""}
+${answers ? `\n### ANSWERS:\n${answers}` : ""}
 
-STRUCTURE:
-${sections.map(s => `- ${s}`).join("\n")}
-- Known Gaps
+### TASK:
+Construct a ${input.taskType} following this structure: ${sections.join(", ")}, Known Gaps.
 
-ACTION: ${OUTPUT_SPEC_MAP[input.taskType](input.governanceProfileId)}`;
+### OUTPUT SPEC:
+${OUTPUT_SPEC_MAP[input.taskType](input.governanceProfileId)}`;
 }
 
 function procedureOutputSpec(profileId?: string): string {
-  return "Convert source to step-by-step procedure. Include Overview, Prereqs, Result, and a Known Gaps section for any missing details.";
+  return "Convert source to numbered steps. Include Overview, Prerequisites, Result, and Known Gaps.";
 }
 
 function conceptOutputSpec(profileId?: string): string {
-  return "Convert to conceptual documentation.";
+  return "Format as a conceptual article.";
 }
 
 function troubleshootingOutputSpec(profileId?: string): string {
-  return "Convert to troubleshooting guide.";
+  return "Format as a troubleshooting guide.";
 }
 
 function referenceOutputSpec(profileId?: string): string {
-  return "Convert to technical reference.";
+  return "Format as technical reference.";
 }
 
 function tutorialOutputSpec(profileId?: string): string {
-  return "Convert to learning tutorial.";
+  return "Format as a learning tutorial.";
 }
 
 function releaseNotesOutputSpec(profileId?: string): string {
-  return "Convert to release notes.";
+  return "Format as release notes.";
 }
 
 function apiDocumentationOutputSpec(profileId?: string): string {
-  return "Convert to API documentation.";
+  return "Format as API documentation.";
 }
 
 function extractHeadingsFromMarkdown(markdown: string): string[] {

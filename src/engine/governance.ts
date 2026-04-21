@@ -1,8 +1,9 @@
 export const GOVERNANCE_RULES = `
-- Strict Source-Grounding (No Outside Info).
+- NO WEB SEARCH. Do not use external knowledge or search tools.
+- SOURCE-ONLY. Use only provided text.
+- If info is missing, leave it as a gap. Do NOT solve it.
 `;
 
 export const LIGHT_GOVERNANCE_RULES = `
-- Focus on first-draft flow.
-- Grounded in source.
+- Ground in SOURCE. No outside info.
 `;

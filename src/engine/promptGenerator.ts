@@ -66,61 +66,49 @@ const OUTPUT_SPEC_MAP: Record<TaskType, (profileId?: string) => string> = {
  */
 export function generatePrompt(input: PromptInput): string {
   validatePromptInput(input);
-  const pass = (input.pass && input.pass > 1) ? ` (Revision Pass ${input.pass})` : "";
   const answers = (input.preClarifications?.trim() || "") + (input.clarifications?.trim() || "");
   const template = getTemplateFor(input.taskType);
   const sections = input.templateContent?.trim() ? extractHeadingsFromMarkdown(input.templateContent) : template.requiredSections;
 
-  return `Technical Writer Mode.${pass}
-
-TASK: Write a ${input.taskType} document.
-INTENT: ${input.userIntent}
-SOURCE: """
+  return `Write a ${input.taskType} using the SOURCE below. No preamble.
+${input.governanceProfileId === "fast_draft" ? LIGHT_GOVERNANCE_RULES : GOVERNANCE_RULES}${input.styleGuideRules?.trim() ? `- ${input.styleGuideRules}\n` : ""}
+SOURCE:
 ${input.context}
-"""
-${answers ? `ANSWERS: """\n${answers}\n"""` : ""}
+${answers ? `\nANSWERS:\n${answers}` : ""}
 
-RULES:
-${input.governanceProfileId === "fast_draft" ? LIGHT_GOVERNANCE_RULES : GOVERNANCE_RULES}${input.styleGuideRules?.trim() ? `- STYLE: ${input.styleGuideRules}\n` : ""}- ${OUTPUT_SPEC_MAP[input.taskType](input.governanceProfileId)}
-
-OUTPUT STRUCTURE:
+STRUCTURE:
 ${sections.map(s => `- ${s}`).join("\n")}
-- Known Gaps`;
+- Known Gaps
+
+ACTION: ${OUTPUT_SPEC_MAP[input.taskType](input.governanceProfileId)}`;
 }
 
 function procedureOutputSpec(profileId?: string): string {
-  if (profileId === "fast_draft") return "Format as a draft procedure.";
-  return "Strict procedure. Include 1-sentence overview, prerequisites, and result summary.";
+  return "Convert source to step-by-step procedure. Include Overview, Prereqs, Result, and a Known Gaps section for any missing details.";
 }
 
 function conceptOutputSpec(profileId?: string): string {
-  if (profileId === "fast_draft") return "Format as a concept draft.";
-  return "Detailed concept. Explain 'what' and 'why' based only on source.";
+  return "Convert to conceptual documentation.";
 }
 
 function troubleshootingOutputSpec(profileId?: string): string {
-  if (profileId === "fast_draft") return "Format as troubleshooting draft.";
-  return "Troubleshooting guide. Direct mapping of symptoms to resolutions.";
+  return "Convert to troubleshooting guide.";
 }
 
 function referenceOutputSpec(profileId?: string): string {
-  if (profileId === "fast_draft") return "Format as reference draft.";
-  return "Technical reference. Document parameters and types accurately.";
+  return "Convert to technical reference.";
 }
 
 function tutorialOutputSpec(profileId?: string): string {
-  if (profileId === "fast_draft") return "Format as tutorial draft.";
-  return "Learning tutorial. Guide the user through the task step-by-step.";
+  return "Convert to learning tutorial.";
 }
 
 function releaseNotesOutputSpec(profileId?: string): string {
-  if (profileId === "fast_draft") return "Format as release notes draft.";
-  return "Release notes. Group changes by category (Features, Fixes, etc.).";
+  return "Convert to release notes.";
 }
 
 function apiDocumentationOutputSpec(profileId?: string): string {
-  if (profileId === "fast_draft") return "Format as API doc draft.";
-  return "Technical API reference. Focus on endpoints, methods, and schemas.";
+  return "Convert to API documentation.";
 }
 
 function extractHeadingsFromMarkdown(markdown: string): string[] {

@@ -70,20 +70,26 @@ export function generatePrompt(input: PromptInput): string {
   const template = getTemplateFor(input.taskType);
   const sections = input.templateContent?.trim() ? extractHeadingsFromMarkdown(input.templateContent) : template.requiredSections;
 
-  return `### ROLE: INTERNAL TECHNICAL WRITER
+  // Performance Optimization: Strip existing Known Gaps from source to prevent model distraction/loops
+  const sourceWithoutGaps = input.context.split(/^#{1,4}\s+Known Gaps/im)[0].trim();
 
-### CONSTRAINTS:
-- NO WEB SEARCH. DO NOT USE EXTERNAL TOOLS.
+  return `### ACTION: Update Documentation
+Use the ANSWERS to fill gaps in the SOURCE procedure. 
+
+### RULES:
+- NO WEB SEARCH. No outside knowledge.
 ${input.governanceProfileId === "fast_draft" ? LIGHT_GOVERNANCE_RULES : GOVERNANCE_RULES}
 ### SOURCE:
-${input.context}
-${answers ? `\n### ANSWERS:\n${answers}` : ""}
+${sourceWithoutGaps}
 
-### TASK:
-Construct a ${input.taskType} following this structure: ${sections.join(", ")}, Known Gaps.
+### ANSWERS:
+${answers || "(No new info provided)"}
 
-### OUTPUT SPEC:
-${OUTPUT_SPEC_MAP[input.taskType](input.governanceProfileId)}`;
+### OUTPUT STRUCTURE:
+${sections.map(s => `- ${s}`).join("\n")}
+- Known Gaps
+
+### GENERATE: ${OUTPUT_SPEC_MAP[input.taskType](input.governanceProfileId)}`;
 }
 
 function procedureOutputSpec(profileId?: string): string {

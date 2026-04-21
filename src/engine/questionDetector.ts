@@ -1454,26 +1454,13 @@ export function formatPreClarifications(
 ): string {
   return questions
     .map((q, i) => {
-      const raw = answers[i]?.trim() || "(no answer provided)";
+      const raw = answers[i]?.trim() || "(no answer)";
       const steps = splitAnswerIntoSteps(raw);
+      const answerBody = steps.length > 1
+        ? steps.map((s, j) => `    ${j + 1}. ${s}`).join("\n")
+        : `    ${raw}`;
 
-      let answerBlock: string;
-      if (steps.length > 1) {
-        const numbered = steps.map((s, j) => `    Step ${j + 1}: ${s}`).join("\n");
-        answerBlock =
-          `[A${i + 1}] This answer contains multiple sequential actions — ` +
-          `treat each as a separate numbered step in the procedure:\n${numbered}`;
-      } else {
-        answerBlock = `[A${i + 1}] ${raw}`;
-      }
-
-      return (
-        `[Q${i + 1}] ${q.question}\n` +
-        (q.sourceContext !== "(whole source)"
-          ? `       Source line: "${q.sourceContext}"\n`
-          : "") +
-        answerBlock
-      );
+      return `[Q${i + 1}] ${q.question}\n${answerBody}`;
     })
     .join("\n\n");
 }

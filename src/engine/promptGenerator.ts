@@ -66,74 +66,53 @@ const OUTPUT_SPEC_MAP: Record<TaskType, (profileId?: string) => string> = {
  */
 export function generatePrompt(input: PromptInput): string {
   validatePromptInput(input);
-  const passHeader = (input.pass && input.pass > 1) ? `RESOLUTION PASS: ${input.pass}\n` : "";
+  const passHeader = (input.pass && input.pass > 1) ? `PASS ${input.pass}` : "";
   const answers = (input.preClarifications?.trim() || "") + (input.clarifications?.trim() || "");
   const template = getTemplateFor(input.taskType);
   const sections = input.templateContent?.trim() ? extractHeadingsFromMarkdown(input.templateContent) : template.requiredSections;
 
-  return `SYSTEM: Technical Documentation Agent.
-${passHeader}
-APPROACH:
-1. Ground in SOURCE/ANSWERS; do not invent.
-2. Omit sections with no grounded content.
-3. List gaps in "Known Gaps".
-${answers ? `ANSWERS:\n${answers}\n` : ""}${input.styleGuideRules?.trim() ? `STYLE:\n${input.styleGuideRules}\n` : ""}${input.governanceProfileId === "fast_draft" ? LIGHT_GOVERNANCE_RULES : GOVERNANCE_RULES}
-
+  return `SYSTEM: Technical Doc Agent. ${passHeader}
+${input.governanceProfileId === "fast_draft" ? LIGHT_GOVERNANCE_RULES : GOVERNANCE_RULES}${input.styleGuideRules?.trim() ? `STYLE: ${input.styleGuideRules}\n` : ""}
 INTENT: ${input.userIntent}
-SOURCE:
-${input.context}
-
-STRUCTURE:
-${sections.map(s => `- ${s}`).join("\n")}
-${OUTPUT_SPEC_MAP[input.taskType](input.governanceProfileId)}`;
+SOURCE: ${input.context}
+${answers ? `ANSWERS: ${answers}\n` : ""}
+GENERATE: ${OUTPUT_SPEC_MAP[input.taskType](input.governanceProfileId)}
+STRUCTURE: ${sections.map(s => `- ${s}`).join("\n")}`;
 }
 
 function procedureOutputSpec(profileId?: string): string {
-  if (profileId === "fast_draft") return "GENERATE: User-facing procedure draft.";
-  return `
-${gapCheckBlock(profileId)}
-GENERATE: Rewrite source as a procedure.
-RULES:
-- Overview: "This procedure describes how to [task]." (1 sentence)
-- Prerequisites: List required inputs from source.
-- Result: 1 sentence summary of outcome.
-- Omit empty sections.
-`;
+  if (profileId === "fast_draft") return "Factual procedure.";
+  return "Strict procedure. 1-sentence Overview. Prerequisites. Result summary. Omit empty.";
 }
 
 function conceptOutputSpec(profileId?: string): string {
-  if (profileId === "fast_draft") return "GENERATE: Concept draft.";
-  return `GENERATE: Rewrite as concept. Intro: "This article describes [topic]."`;
+  if (profileId === "fast_draft") return "Concept draft.";
+  return "Concept. Intro: 'Describes [topic]'. Omit empty.";
 }
 
 function troubleshootingOutputSpec(profileId?: string): string {
-  if (profileId === "fast_draft") return "GENERATE: Troubleshooting draft.";
-  return `${gapCheckBlock(profileId)}\nGENERATE: Rewrite as troubleshooting. Intro: "Use this guide to diagnose and resolve [problem]."`;
+  if (profileId === "fast_draft") return "Troubleshooting draft.";
+  return "Troubleshooting. Intro: 'How to resolve [problem]'. Omit empty.";
 }
 
 function referenceOutputSpec(profileId?: string): string {
-  if (profileId === "fast_draft") return "GENERATE: Reference draft.";
-  return `GENERATE: Rewrite as reference. Intro: "This reference describes [subject]."`;
+  if (profileId === "fast_draft") return "Reference draft.";
+  return "Reference. Intro: 'Describes [subject]'. Omit empty.";
 }
 
 function tutorialOutputSpec(profileId?: string): string {
-  if (profileId === "fast_draft") return "GENERATE: Tutorial draft.";
-  return `${gapCheckBlock(profileId)}\nGENERATE: Rewrite as tutorial. Intro: "This tutorial guides you through [task]."`;
+  if (profileId === "fast_draft") return "Tutorial draft.";
+  return "Tutorial. Intro: 'Guides through [task]'. Omit empty.";
 }
 
 function releaseNotesOutputSpec(profileId?: string): string {
-  if (profileId === "fast_draft") return "GENERATE: Release notes draft.";
-  return `GENERATE: Rewrite as release notes. Intro: "This document summarises the changes in [version]."`;
+  if (profileId === "fast_draft") return "Release notes draft.";
+  return "Release notes. Intro: 'Summarises changes in [version]'. Omit empty.";
 }
 
 function apiDocumentationOutputSpec(profileId?: string): string {
-  if (profileId === "fast_draft") return "GENERATE: API doc draft.";
-  return `GENERATE: Rewrite as API documentation. Intro: "This reference describes the [endpoint/function]."`;
-}
-
-function gapCheckBlock(profileId?: string): string {
-  if (profileId === "fast_draft") return "";
-  return `Safety check: No inventions for WHERE, HOW, RESULT, ON ERROR. List in Known Gaps.`;
+  if (profileId === "fast_draft") return "API doc draft.";
+  return "API Documentation. Intro: 'Describes [endpoint/function]'. Omit empty.";
 }
 
 function extractHeadingsFromMarkdown(markdown: string): string[] {

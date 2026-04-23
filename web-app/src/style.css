@@ -351,6 +351,7 @@ body {
 .badge-qa      { background: var(--warning-soft); color: var(--warning); }
 .badge-prompt  { background: var(--success-soft); color: var(--success); }
 .badge-diff    { background: var(--danger-soft); color: var(--danger); }
+.badge-audit   { background: var(--success-soft); color: var(--success); }
 
 .gap-table {
   width: 100%;
@@ -590,11 +591,12 @@ body {
 }
 
 @keyframes svgMovingX {
-  0%, 18%   { transform: translateX(0); }
-  25%, 43%  { transform: translateX(180px); }
-  50%, 68%  { transform: translateX(360px); }
-  75%, 93%  { transform: translateX(540px); }
-  100%      { transform: translateX(540px); }
+  0%, 15%   { transform: translateX(0); }
+  20%, 35%  { transform: translateX(180px); }
+  40%, 55%  { transform: translateX(360px); }
+  60%, 75%  { transform: translateX(540px); }
+  80%, 95%  { transform: translateX(720px); }
+  100%      { transform: translateX(720px); }
 }
 
 .svg-active-border {
@@ -1419,3 +1421,53 @@ textarea { min-height: 220px; font-family: var(--font-mono); font-size: 13px; }
   }
 }
 
+/* ── Audit Checklist ────────────────────────────────── */
+.audit-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.audit-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.audit-item:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-accent);
+}
+
+.audit-check {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  cursor: pointer;
+  accent-color: var(--success);
+}
+
+.audit-text strong {
+  display: block;
+  font-size: 14px;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.audit-text p {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.audit-item:has(.audit-check:checked) {
+  border-color: var(--success);
+  background: var(--success-soft);
+}

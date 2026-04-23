@@ -19,7 +19,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 // State
 // ─────────────────────────────────────────────────────────────────────────────
 interface AppState {
-  step: 1 | 2 | 3 | 4;
+  step: 1 | 2 | 3 | 4 | 5;
   sourceText: string;
   taskType: TaskType | null;
   userIntent: string;
@@ -159,7 +159,7 @@ function updateStepper() {
     el.classList.toggle('done', i + 1 < state.step);
   });
   const fill = document.getElementById('progress-fill') as HTMLElement;
-  if (fill) fill.style.width = `${((state.step - 1) / 3) * 100}%`;
+  if (fill) fill.style.width = `${((state.step - 1) / 4) * 100}%`;
 
   updateManualWorkflow();
 }
@@ -168,7 +168,7 @@ function updateManualWorkflow() {
   const svg = document.getElementById('manual-workflow-svg');
   if (!svg) return;
 
-  for (let i = 1; i <= 4; i++) {
+  for (let i = 1; i <= 5; i++) {
     const node = document.getElementById(`svg-node-${i}`);
     if (node) {
       node.classList.remove('active', 'done');
@@ -176,7 +176,7 @@ function updateManualWorkflow() {
       if (i < state.step) node.classList.add('done');
     }
     
-    if (i < 4) {
+    if (i < 5) {
       const line = document.getElementById(`svg-line-${i}`);
       if (line) {
         line.classList.remove('active', 'done');
@@ -187,7 +187,7 @@ function updateManualWorkflow() {
   }
 }
 
-function goToStep(step: 1 | 2 | 3 | 4) {
+function goToStep(step: 1 | 2 | 3 | 4 | 5) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   const target = document.getElementById(`step${step}`);
   if (target) target.classList.add('active');
@@ -769,12 +769,24 @@ function renderStep4(showDiff = false) {
     </div>
 
     <div id="diff-section" class="${showDiff ? '' : 'hidden'}">
+      <div class="info-banner" style="margin-top: 24px; border-color: var(--success); background: var(--success-soft);">
+        <span class="info-icon">🎯</span>
+        <span>Validation Mode: Review every "Green" addition below. Does it exist in your source? If the AI added extra features or guessed UI names, reject the output.</span>
+      </div>
+
       <div class="section-header mt-24">
         <div class="section-title">Side-by-side diff</div>
         <div class="section-desc">Green = added by AI · Red = removed from source · Grey = unchanged</div>
       </div>
       <div id="diff-stats-row" class="diff-stats-row"></div>
       <div class="diff-grid" id="diff-grid"></div>
+
+      <div class="btn-row mt-24" style="justify-content: center;">
+         <button class="btn-primary" id="go-to-step5-btn">
+          <span>Confirm & proceed to Inventory Audit</span>
+          <span>→</span>
+         </button>
+      </div>
 
       <div id="ambiguity-section" class="hidden">
         <div class="section-header mt-24">
@@ -813,6 +825,14 @@ function renderStep4(showDiff = false) {
     state.resolveAnswers = new Array(state.ambiguities.length).fill('');
     renderDiffSection();
   });
+
+  const nextBtn = document.getElementById('go-to-step5-btn');
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      renderStep5();
+      goToStep(5);
+    });
+  }
 
   if (showDiff && state.diffResult) {
     renderDiffSection();
@@ -962,12 +982,12 @@ function renderAmbiguitySection() {
 }
 
 function renderAcceptedView() {
-  const view = document.getElementById('step4')!;
+  const view = document.getElementById('step5')!;
   view.innerHTML = `
     <div class="card" style="text-align:center;padding:48px 24px;">
-      <div style="font-size:48px;margin-bottom:16px;">✅</div>
-      <div class="section-title">Output Accepted</div>
-      <div class="section-desc" style="max-width:480px;margin:12px auto 28px;">Your governed documentation has been accepted after ${state.pass} generation pass${state.pass !== 1 ? 'es' : ''}. All AI changes were verified against your source.</div>
+      <div style="font-size:48px;margin-bottom:16px;">✨</div>
+      <div class="section-title">Documentation Finalized</div>
+      <div class="section-desc" style="max-width:480px;margin:12px auto 28px;">Your documentation has been audited and cleared for use. After ${state.pass} pass${state.pass !== 1 ? 'es' : ''}, your content remains 100% faithful to the source facts.</div>
       <div class="btn-row" style="justify-content:center;">
         <button class="btn-primary" id="new-session-btn">Start a new document →</button>
       </div>
@@ -977,6 +997,89 @@ function renderAcceptedView() {
     resetState();
     renderStep1();
     goToStep(1);
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Step 5 — Inventory Audit (NEW)
+// ─────────────────────────────────────────────────────────────────────────────
+function renderStep5() {
+  const view = document.getElementById('step5')!;
+  
+  view.innerHTML = `
+    <div class="section-header">
+      <div class="section-title">Inventory Audit — Rule of Governance</div>
+      <div class="section-desc">Final verification to ensure absolute fidelity. AI is strictly forbidden from adding anything not present in the input or explicitly clarified.</div>
+    </div>
+
+    <div class="card">
+      <div class="info-banner mb-16" style="border-color: var(--warning);">
+        <span class="info-icon">⚖️</span>
+        <span>A successful audit means you are <strong>accountable</strong> for every claim in the document. Do not check these items unless you have verified them.</span>
+      </div>
+
+      <div class="audit-checklist">
+        <label class="audit-item">
+          <input type="checkbox" id="audit-1" class="audit-check" />
+          <div class="audit-text">
+            <strong>No Invented Features</strong>
+            <p>I have confirmed the AI did not add any functionality, buttons, or workflow steps that were not in my rough notes.</p>
+          </div>
+        </label>
+        
+        <label class="audit-item">
+          <input type="checkbox" id="audit-2" class="audit-check" />
+          <div class="audit-text">
+            <strong>No Guessed UI Locations</strong>
+            <p>I have verified that all page names, menu paths, and field titles are exactly as they appear in the system.</p>
+          </div>
+        </label>
+
+        <label class="audit-item">
+          <input type="checkbox" id="audit-3" class="audit-check" />
+          <div class="audit-text">
+            <strong>No Assumed Prerequisites</strong>
+            <p>The AI has not added "Before you begin" requirements or setups that I did not provide.</p>
+          </div>
+        </label>
+
+        <label class="audit-item">
+          <input type="checkbox" id="audit-4" class="audit-check" />
+          <div class="audit-text">
+            <strong>No Implied Dependencies</strong>
+            <p>The AI has not assumed the existence of external systems, APIs, or database connections not mentioned in the source.</p>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-primary" id="finalize-doc-btn" disabled>
+        <span>Complete Final Audit</span>
+        <span>✅</span>
+      </button>
+      <button class="btn-ghost" id="step5-back">← Back to Diff</button>
+    </div>
+  `;
+
+  const finalizeBtn = document.getElementById('finalize-doc-btn') as HTMLButtonElement;
+  const checks = document.querySelectorAll('.audit-check') as NodeListOf<HTMLInputElement>;
+  
+  const updateFinalizeBtn = () => {
+    const allChecked = Array.from(checks).every(c => c.checked);
+    finalizeBtn.disabled = !allChecked;
+  };
+
+  checks.forEach(c => c.addEventListener('change', updateFinalizeBtn));
+
+  finalizeBtn.addEventListener('click', () => {
+    showToast('Inventory audit complete! Documentation is verified.', 'success');
+    renderAcceptedView();
+  });
+
+  document.getElementById('step5-back')!.addEventListener('click', () => {
+    renderStep4(true);
+    goToStep(4);
   });
 }
 
@@ -1087,6 +1190,11 @@ function bootstrap() {
         <div class="step-circle">4</div>
         <div class="step-label">Diff & Validate</div>
       </div>
+      <div class="step-line" id="step-line-4"></div>
+      <div class="step-item" id="stepper-5">
+        <div class="step-circle">5</div>
+        <div class="step-label">Inventory Audit</div>
+      </div>
     </div>
 
     <!-- Main content -->
@@ -1095,6 +1203,7 @@ function bootstrap() {
       <div class="view" id="step2"></div>
       <div class="view" id="step3"></div>
       <div class="view" id="step4"></div>
+      <div class="view" id="step5"></div>
     </main>
 
     <!-- Footer -->
@@ -1132,11 +1241,12 @@ function bootstrap() {
             <h2><span class="info-icon">🔄</span> Workflow</h2>
             
             <div class="workflow-diagram">
-              <svg class="workflow-svg" viewBox="0 0 700 120" id="manual-workflow-svg">
+              <svg class="workflow-svg" viewBox="0 0 900 120" id="manual-workflow-svg">
                 <!-- Lines / Arrows -->
                 <path id="svg-line-1" d="M120 60 H200" stroke="var(--border)" stroke-width="2" class="svg-dash" fill="none" />
                 <path id="svg-line-2" d="M300 60 H380" stroke="var(--border)" stroke-width="2" class="svg-dash" fill="none" />
                 <path id="svg-line-3" d="M480 60 H560" stroke="var(--border)" stroke-width="2" class="svg-dash" fill="none" />
+                <path id="svg-line-4" d="M660 60 H740" stroke="var(--border)" stroke-width="2" class="svg-dash" fill="none" />
                 
                 <!-- Moving Highlight Group -->
                 <g class="svg-moving-highlight">
@@ -1167,7 +1277,13 @@ function bootstrap() {
                 <!-- Node 4: Diff -->
                 <g id="svg-node-4" class="svg-node">
                   <rect x="560" y="30" width="100" height="60" rx="10" fill="transparent" stroke="var(--border)" stroke-width="1.5" />
-                  <text x="610" y="80" text-anchor="middle" class="svg-text">4. Diff & validate</text>
+                  <text x="610" y="80" text-anchor="middle" class="svg-text">4. Diff</text>
+                </g>
+
+                <!-- Node 5: Audit -->
+                <g id="svg-node-5" class="svg-node">
+                  <rect x="740" y="30" width="100" height="60" rx="10" fill="transparent" stroke="var(--border)" stroke-width="1.5" />
+                  <text x="790" y="80" text-anchor="middle" class="svg-text">5. Audit</text>
                 </g>
               </svg>
             </div>
@@ -1191,6 +1307,11 @@ function bootstrap() {
               <h3><span class="manual-badge badge-diff">Phase 4</span> Post-AI diff validation</h3>
               <p>After generating documentation, paste the response back to see a side-by-side diff. This ensures every change the AI made is verified against your original source.</p>
             </div>
+
+            <div class="manual-step">
+              <h3><span class="manual-badge badge-audit">Phase 5</span> Inventory Audit</h3>
+              <p>The final governance checkpoint. A mandatory checklist where you confirm the AI did not invent any features, UI paths, or requirements that weren't in the input.</p>
+            </div>
           </div>
 
           <div class="manual-section">
@@ -1205,7 +1326,10 @@ function bootstrap() {
               <p><strong>Step 3: Generate & run</strong> — Once the prompt is generated, click the <strong>Copy prompt</strong> button. Take this prompt to your preferred AI assistant (like Claude or ChatGPT) and run it.</p>
             </div>
             <div class="manual-step">
-              <p><strong>Step 4: Verify</strong> — Copy the AI's response and bring it back here. Paste it into the Step 4 "Validate" view to see a side-by-side comparison. Check for any "Preserved ambiguities" to ensure accuracy.</p>
+              <p><strong>Step 4: Verify</strong> — Copy the AI's response and bring it back here. Paste it into the Step 4 "Validate" view to see a side-by-side comparison.</p>
+            </div>
+            <div class="manual-step">
+              <p><strong>Step 5: Audit</strong> — Complete the mandatory checklist to confirm no "invented" content was accepted. Once checked, the document is cleared for final use.</p>
             </div>
           </div>
 
@@ -1276,6 +1400,12 @@ function bootstrap() {
   });
   document.getElementById('stepper-3')!.addEventListener('click', () => {
     if (state.step > 3 && state.generatedPrompt) { renderStep3(); goToStep(3); }
+  });
+  document.getElementById('stepper-4')!.addEventListener('click', () => {
+    if (state.step > 4 && state.aiResponse) { renderStep4(true); goToStep(4); }
+  });
+  document.getElementById('stepper-5')!.addEventListener('click', () => {
+    if (state.step > 5) { renderStep5(); goToStep(5); }
   });
 
   renderStep1();

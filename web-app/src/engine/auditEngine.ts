@@ -42,7 +42,8 @@ const STOP_WORDS = new Set([
   'command', 'commands', 'file', 'files', 'recommended', 'recommend', 'recommendation',
   'within', 'during', 'strength', 'events', 'event',
   'initial', 'finally', 'last', 'does', 'doing', 'specify', 'specifies', 'specifying',
-  'location', 'locations', 'target', 'targets', 'always', 'never'
+  'location', 'locations', 'target', 'targets', 'always', 'never',
+  'topic', 'topics', 'include', 'includes', 'including', 'included'
 ]);
 
 export interface AuditWarning {

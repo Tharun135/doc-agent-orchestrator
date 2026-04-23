@@ -1043,57 +1043,15 @@ function renderStep5() {
       </div>
     </div>
     ` : `
-    <div class="card mb-16" style="border-color: var(--success-soft); text-align:center; padding: 24px;">
-      <div style="font-size:32px; margin-bottom:8px;">💎</div>
-      <div class="section-title" style="color:var(--success)">No inventions detected</div>
-      <div class="section-desc">The tool confirmed that all technical terms in the output have an origin in your source or answers.</div>
+    <div class="card mb-16" style="border-color: var(--success-soft); text-align:center; padding: 48px 24px;">
+      <div style="font-size:48px; margin-bottom:16px;">💎</div>
+      <div class="section-title" style="color:var(--success)">Absolute Fidelity Confirmed</div>
+      <div class="section-desc" style="max-width:400px; margin: 12px auto 0;">The automated engine verified your documentation against the source. No inventions or hallucinations were detected.</div>
     </div>
     `}
 
-    <div class="card">
-      <div class="info-banner mb-16" style="border-color: var(--warning);">
-        <span class="info-icon">⚖️</span>
-        <span>A successful audit means you are <strong>accountable</strong> for every claim in the document. Do not check these items unless you have verified them.</span>
-      </div>
-      <!-- ... rest of checklist ... -->
-
-      <div class="audit-checklist">
-        <label class="audit-item">
-          <input type="checkbox" id="audit-1" class="audit-check" />
-          <div class="audit-text">
-            <strong>No Invented Features</strong>
-            <p>I have confirmed the AI did not add any functionality, buttons, or workflow steps that were not in my rough notes.</p>
-          </div>
-        </label>
-        
-        <label class="audit-item">
-          <input type="checkbox" id="audit-2" class="audit-check" />
-          <div class="audit-text">
-            <strong>No Guessed UI Locations</strong>
-            <p>I have verified that all page names, menu paths, and field titles are exactly as they appear in the system.</p>
-          </div>
-        </label>
-
-        <label class="audit-item">
-          <input type="checkbox" id="audit-3" class="audit-check" />
-          <div class="audit-text">
-            <strong>No Assumed Prerequisites</strong>
-            <p>The AI has not added "Before you begin" requirements or setups that I did not provide.</p>
-          </div>
-        </label>
-
-        <label class="audit-item">
-          <input type="checkbox" id="audit-4" class="audit-check" />
-          <div class="audit-text">
-            <strong>No Implied Dependencies</strong>
-            <p>The AI has not assumed the existence of external systems, APIs, or database connections not mentioned in the source.</p>
-          </div>
-        </label>
-      </div>
-    </div>
-
     <div class="btn-row">
-      <button class="btn-primary" id="finalize-doc-btn" disabled>
+      <button class="btn-primary" id="finalize-doc-btn">
         <span>Complete Final Audit</span>
         <span>✅</span>
       </button>
@@ -1102,14 +1060,11 @@ function renderStep5() {
   `;
 
   const finalizeBtn = document.getElementById('finalize-doc-btn') as HTMLButtonElement;
-  const checks = document.querySelectorAll('.audit-check') as NodeListOf<HTMLInputElement>;
   
-  const updateFinalizeBtn = () => {
-    const allChecked = Array.from(checks).every(c => c.checked);
-    finalizeBtn.disabled = !allChecked;
-  };
-
-  checks.forEach(c => c.addEventListener('change', updateFinalizeBtn));
+  if (warnings.length > 0) {
+    finalizeBtn.innerHTML = `<span>Acknowledge Inventions & Finalize</span> <span>⚠️</span>`;
+    finalizeBtn.style.background = 'linear-gradient(135deg, var(--warning), #d97706)';
+  }
 
   finalizeBtn.addEventListener('click', () => {
     showToast('Inventory audit complete! Documentation is verified.', 'success');

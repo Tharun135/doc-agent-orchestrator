@@ -43,7 +43,16 @@ const STOP_WORDS = new Set([
   'within', 'during', 'strength', 'events', 'event',
   'initial', 'finally', 'last', 'does', 'doing', 'specify', 'specifies', 'specifying',
   'location', 'locations', 'target', 'targets', 'always', 'never',
-  'topic', 'topics', 'include', 'includes', 'including', 'included'
+  'topic', 'topics', 'include', 'includes', 'including', 'included',
+  'summarises', 'summarise', 'summarizes', 'summarize', 'summary', 'changes', 'change', 'changed',
+  'introduced', 'introduce', 'introduces', 'optimizations', 'optimization', 'fixes', 'fix', 'fixed',
+  'library', 'libraries', 'updates', 'update', 'updated', 'improvement', 'improvements', 'improved', 'improve',
+  'removed', 'remove', 'removes', 'customer', 'customers', 'administrator', 'admin', 'admins',
+  'feature', 'features', 'deprecated', 'absent', 'cannot', 'without', 'described', 'describe', 'describes',
+  'upgrade', 'upgrades', 'migration', 'migrations', 'scripts', 'script', 'named', 'name', 'names',
+  'system', 'systems', 'requirements', 'requirement', 'mentioned', 'mention', 'mentions',
+  'download', 'downloads', 'contributors', 'contributor', 'version', 'versions', 'release', 'releases',
+  'requires', 'require', 'required', 'requires', 'necessary', 'optional', 'placeholder'
 ]);
 
 export interface AuditWarning {
@@ -56,25 +65,56 @@ export interface AuditWarning {
 export function performAudit(sourceText: string, clarifications: string[], aiResponse: string): AuditWarning[] {
   const referenceText = (sourceText + ' ' + clarifications.join(' ')).toLowerCase();
   
-  // Extract technical tokens (words starting with capitals or CamelCase usually signify UI labels/terms, 
-  // but since we lowercase for comparison, we just look for significant words)
+  // Reference tokens (lowercased for broad matching)
   const getTokens = (text: string) => {
     return text
       .split(/[^a-zA-Z0-9]/)
-      .map(t => t.trim().toLowerCase())
-      .filter(t => t.length > 3 && !STOP_WORDS.has(t));
+      .map(t => t.trim())
+      .filter(t => t.length > 3);
   };
 
-  const referenceTokens = new Set(getTokens(referenceText));
+  const getReferenceSet = (text: string) => {
+    const tokens = getTokens(text).map(t => t.toLowerCase());
+    return new Set(tokens);
+  };
+
+  const referenceTokens = getReferenceSet(referenceText);
   const aiLines = aiResponse.split('\n');
   const warnings: AuditWarning[] = [];
 
-  aiLines.forEach((line, index) => {
+  for (let index = 0; index < aiLines.length; index++) {
+    const line = aiLines[index];
+    
+    // Stop audit when hitting the Known Gaps section
+    if (line.trim().toLowerCase().startsWith('## known gaps')) {
+      break;
+    }
+
     const lineTokens = getTokens(line);
-    const novelTerms = lineTokens.filter(t => !referenceTokens.has(t));
+    const novelTerms: string[] = [];
+
+    lineTokens.forEach(token => {
+      const lowerToken = token.toLowerCase();
+      
+      // If the word doesn't exist in our reference material (source + answers)
+      if (!referenceTokens.has(lowerToken) && !STOP_WORDS.has(lowerToken)) {
+        
+        // ONLY flag if it's a "Technical/Structural" candidate:
+        // 1. It starts with a Capital letter (likely UI Label, Page name, Feature name)
+        // 2. OR it contains digits (like Port numbers, version strings, or IDs)
+        // 3. OR it's a very short but non-English looking word (future proofing)
+        
+        const isCapitalized = /^[A-Z]/.test(token);
+        const hasDigits = /\d/.test(token);
+
+        if (isCapitalized || hasDigits) {
+          novelTerms.push(token);
+        }
+      }
+    });
 
     if (novelTerms.length > 0) {
-      // Check if it's a high-risk line (contains action verbs + novel terms)
+      // Check if it's a high-risk line (contains action verbs)
       const isAction = /\b(click|select|open|enter|type|configure|navigate|run|test|verify|set)\b/i.test(line);
       
       warnings.push({
@@ -84,7 +124,7 @@ export function performAudit(sourceText: string, clarifications: string[], aiRes
         severity: isAction ? 'high' : 'medium'
       });
     }
-  });
+  }
 
   return warnings;
 }

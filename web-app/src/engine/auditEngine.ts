@@ -28,7 +28,9 @@ const STOP_WORDS = new Set([
   'available', 'listed', 'completing', 'complete', 'completes', 'done', 'finished',
   'duration', 'depends', 'depending', 'size', 'mode', 'within', 'during', 'their', 'they', 'our', 'out',
   'detected', 'background', 'content', 'required', 'necessary', 'optional', 'placeholder', 'token',
-  'provide', 'provides', 'providing', 'displays', 'displays', 'shown', 'shows'
+  'provide', 'provides', 'providing', 'provided', 'displays', 'shown', 'shows',
+  'appears', 'appearing', 'appear', 'failure', 'fail', 'fails', 'none', 'titles', 'title', 'referenced',
+  'resolve', 'resolving', 'resolved', 'source', 'above'
 ]);
 
 export interface AuditWarning {

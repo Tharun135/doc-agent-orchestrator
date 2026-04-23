@@ -30,7 +30,17 @@ const STOP_WORDS = new Set([
   'detected', 'background', 'content', 'required', 'necessary', 'optional', 'placeholder', 'token',
   'provide', 'provides', 'providing', 'provided', 'displays', 'shown', 'shows',
   'appears', 'appearing', 'appear', 'failure', 'fail', 'fails', 'none', 'titles', 'title', 'referenced',
-  'resolve', 'resolving', 'resolved', 'source', 'above'
+  'resolve', 'resolving', 'resolved', 'source', 'above',
+  'performing', 'perform', 'performed', 'performs', 'remains', 'remain', 'remaining',
+  'continues', 'continue', 'continuing', 'adjust', 'adjusting', 'adjusted', 'adjusts',
+  'addressing', 'address', 'addressed', 'stopped', 'stop', 'stops', 'stopping',
+  'responding', 'respond', 'responds', 'open', 'opens', 'opening', 'opened',
+  'repairing', 'repair', 'repaired', 'repairs', 'contain', 'contains', 'containing',
+  'viewing', 'view', 'views', 'viewed', 'access', 'accessing', 'accessed',
+  'configure', 'configuring', 'configured', 'navigation', 'path', 'paths', 'setting', 'settings', 'link', 'links',
+  'missing', 'unknown', 'undefined', 'unspecified', 'known', 'gaps', 'gap',
+  'command', 'commands', 'file', 'files', 'recommended', 'recommend', 'recommendation',
+  'within', 'during', 'strength', 'events', 'event'
 ]);
 
 export interface AuditWarning {

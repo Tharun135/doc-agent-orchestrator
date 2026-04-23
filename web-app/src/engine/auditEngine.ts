@@ -14,7 +14,21 @@
 const STOP_WORDS = new Set([
   'the', 'and', 'a', 'to', 'of', 'in', 'is', 'for', 'on', 'with', 'at', 'by', 'an', 'be', 'this', 'that', 'from', 'it', 'as', 'are', 'if', 'or', 'will', 'you', 'your', 'has', 'have', 'can', 'should',
   'then', 'next', 'after', 'before', 'once', 'when', 'where', 'how', 'why', 'what', 'which', 'who', 'whom', 'whose', 'wherever', 'whenever', 'however', 'nonetheless', 'therefore', 'consequently',
-  'using', 'using', 'follows', 'following', 'below', 'above', 'shown', 'displayed', 'navigated', 'clicked', 'selected', 'entered', 'specified', 'defined'
+  'using', 'follows', 'following', 'below', 'above', 'shown', 'displayed', 'navigated', 'clicked', 'selected', 'entered', 'specified', 'defined',
+  'guide', 'manual', 'article', 'documentation', 'document', 'docs', 'report', 'summary', 'overview',
+  'diagnose', 'diagnostic', 'diagnostics', 'troubleshoot', 'troubleshooting',
+  'follow', 'these', 'order', 'steps', 'step', 'process', 'procedure', 'workflow', 'task',
+  'status', 'condition', 'state', 'result', 'outcome',
+  'common', 'problems', 'solutions', 'problem', 'solution', 'causes', 'cause', 'issues', 'issue',
+  'table', 'lists', 'list', 'provide', 'provides', 'additional', 'information', 'info', 'details', 'detail',
+  'advanced', 'basic', 'standard', 'simple', 'general',
+  'contact', 'support', 'officer', 'team', 'help', 'assist',
+  'topics', 'related', 'see', 'refer', 'reference', 'link', 'urls', 'url',
+  'known', 'gaps', 'unknown', 'tbd', 'todo', 'pending',
+  'available', 'listed', 'completing', 'complete', 'completes', 'done', 'finished',
+  'duration', 'depends', 'depending', 'size', 'mode', 'within', 'during', 'their', 'they', 'our', 'out',
+  'detected', 'background', 'content', 'required', 'necessary', 'optional', 'placeholder', 'token',
+  'provide', 'provides', 'providing', 'displays', 'displays', 'shown', 'shows'
 ]);
 
 export interface AuditWarning {

@@ -11,6 +11,7 @@ import Tesseract from 'tesseract.js';
 import * as pdfjsLib from 'pdfjs-dist';
 import pdfWorker from 'pdfjs-dist/build/pdf.worker.mjs?url';
 import JSZip from 'jszip';
+import { performAudit, AuditWarning } from './engine/auditEngine';
 
 // Worker configuration for PDF.js using local node_modules via Vite ?url
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
@@ -1006,17 +1007,55 @@ function renderAcceptedView() {
 function renderStep5() {
   const view = document.getElementById('step5')!;
   
+  // Run automated audit
+  const allAnswers = [...state.answers, ...state.resolveAnswers].filter(a => a?.trim());
+  const warnings = performAudit(state.sourceText, allAnswers, state.aiResponse);
+  const highRisk = warnings.filter(w => w.severity === 'high');
+
   view.innerHTML = `
     <div class="section-header">
       <div class="section-title">Inventory Audit — Rule of Governance</div>
       <div class="section-desc">Final verification to ensure absolute fidelity. AI is strictly forbidden from adding anything not present in the input or explicitly clarified.</div>
     </div>
 
+    ${warnings.length > 0 ? `
+    <div class="card mb-16" style="border-color: var(--danger-soft);">
+      <div class="qa-header" style="margin-bottom: 12px;">
+        <label class="field-label" style="margin:0; color: var(--danger);">🕵️ Automated Invention Report</label>
+        <span class="qa-count-badge" style="background:var(--danger-soft); color:var(--danger)">${warnings.length} issues detected</span>
+      </div>
+      <div class="text-muted mb-16" style="font-size:13px;">The tool detected terms in the AI response that were not found in your source or clarifications. Review these carefully.</div>
+      
+      <div class="audit-warning-list">
+        ${warnings.map(w => `
+          <div class="audit-warning-item ${w.severity}">
+            <div class="warning-meta">
+              <span class="warning-line">Line ${w.lineIndex}</span>
+              <span class="warning-severity">${w.severity.toUpperCase()} RISK</span>
+            </div>
+            <div class="warning-text">${escHtml(w.lineText)}</div>
+            <div class="warning-terms">
+              <span>Novel terms:</span>
+              ${w.novelTerms.map(t => `<span class="term-pill">${t}</span>`).join('')}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    ` : `
+    <div class="card mb-16" style="border-color: var(--success-soft); text-align:center; padding: 24px;">
+      <div style="font-size:32px; margin-bottom:8px;">💎</div>
+      <div class="section-title" style="color:var(--success)">No inventions detected</div>
+      <div class="section-desc">The tool confirmed that all technical terms in the output have an origin in your source or answers.</div>
+    </div>
+    `}
+
     <div class="card">
       <div class="info-banner mb-16" style="border-color: var(--warning);">
         <span class="info-icon">⚖️</span>
         <span>A successful audit means you are <strong>accountable</strong> for every claim in the document. Do not check these items unless you have verified them.</span>
       </div>
+      <!-- ... rest of checklist ... -->
 
       <div class="audit-checklist">
         <label class="audit-item">

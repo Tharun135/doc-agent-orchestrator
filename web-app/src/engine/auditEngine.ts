@@ -40,7 +40,9 @@ const STOP_WORDS = new Set([
   'configure', 'configuring', 'configured', 'navigation', 'path', 'paths', 'setting', 'settings', 'link', 'links',
   'missing', 'unknown', 'undefined', 'unspecified', 'known', 'gaps', 'gap',
   'command', 'commands', 'file', 'files', 'recommended', 'recommend', 'recommendation',
-  'within', 'during', 'strength', 'events', 'event'
+  'within', 'during', 'strength', 'events', 'event',
+  'initial', 'finally', 'last', 'does', 'doing', 'specify', 'specifies', 'specifying',
+  'location', 'locations', 'target', 'targets', 'always', 'never'
 ]);
 
 export interface AuditWarning {
